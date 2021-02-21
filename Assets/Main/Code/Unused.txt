@@ -1,0 +1,31 @@
+﻿Vector3 difference = target.position - characterTransform.position;
+difference.y = 0;
+            if(difference.sqrMagnitude > 1f)
+            {
+                Quaternion rotation = Quaternion.LookRotation(difference);
+characterTransform.rotation = rotation;
+
+                Vector3 movement = characterTransform.forward * movementSpeed;// * deltaTime;
+velocity.x = movement.x;
+                velocity.z = movement.z;
+            }
+
+
+			    /* private void DeactivateNavMeshAgent()
+     {
+         navMeshAgent.enabled = false;
+        // target = destination;
+     }
+     */
+  /*  private void InitialiseNavMeshAgent()
+    {
+        navMeshAgent.angularSpeed = float.MaxValue;
+        navMeshAgent.speed = maxMovementSpeed;
+        navMeshAgent.acceleration = float.MaxValue;
+        navMeshAgent.updateRotation = false;
+
+    }*/
+
+	        //navMeshAgent.enabled = true;
+        //navMeshAgent.SetDestination(destination.position);
+        // navMeshAgent.isStopped = false;

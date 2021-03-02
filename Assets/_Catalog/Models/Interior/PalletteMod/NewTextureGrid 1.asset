@@ -13,63 +13,63 @@ MonoBehaviour:
   m_Name: NewTextureGrid 1
   m_EditorClassIdentifier: 
   gridColorMode: 1
-  gridColor: {r: 1, g: 0, b: 0.8548727, a: 1}
+  gridColor: {r: 0, g: 1, b: 0, a: 1}
   gridsList:
   - handlesPos: 0
     vLinesOnCanvasGrid:
     - 0
-    - 23.21875
-    - 46.4375
-    - 69.65625
-    - 92.875
-    - 116.09375
-    - 139.3125
-    - 162.53125
-    - 185.75
-    - 208.96875
-    - 232.1875
-    - 255.40625
-    - 278.625
-    - 301.84375
-    - 325.0625
-    - 348.28125
-    - 371.5
+    - 31.375
+    - 62.75
+    - 94.125
+    - 125.5
+    - 156.875
+    - 188.25
+    - 219.625
+    - 251
+    - 282.375
+    - 313.75
+    - 345.125
+    - 376.5
+    - 407.875
+    - 439.25
+    - 470.625
+    - 502
     hLinesOnCanvasGrid:
-    - 371.5
-    - 348.28125
-    - 325.0625
-    - 301.84375
-    - 278.625
-    - 255.40625
-    - 232.1875
-    - 208.96875
-    - 185.75
-    - 162.53125
-    - 139.3125
-    - 116.09375
-    - 92.875
-    - 69.65625
-    - 46.4375
-    - 23.21875
+    - 502
+    - 470.625
+    - 439.25
+    - 407.875
+    - 376.5
+    - 345.125
+    - 313.75
+    - 282.375
+    - 251
+    - 219.625
+    - 188.25
+    - 156.875
+    - 125.5
+    - 94.125
+    - 62.75
+    - 31.375
     - 0
     tg: {fileID: 11400000}
     gridOnCanvas:
       serializedVersion: 2
       x: 0
-      y: 0
-      width: 371.5
-      height: 371.5
-    mouseInsideRectPos: {x: 978, y: 273}
+      y: 502
+      width: 502
+      height: 502
+    mouseInsideRectPos: {x: 695, y: 164}
     gridColor:
       serializedVersion: 2
-      rgba: 4292477183
+      rgba: 4278255360
     gridLabel: Flat Color Grid
     editGridName: 0
-    isSelected: 1
+    isSelected: 0
     showGridOptions: 1
-    isSelectionLocked: 1
+    isSelectionLocked: 0
     isHandleSelected: 0
-    isGridPosLocked: 1
+    isGridPosLocked: 0
     isOverlapping: 0
     handleID: -1
     vLinesOnTexGrid: 0000000004000000080000000c0000001000000014000000180000001c0000002000000024000000280000002c0000003000000034000000380000003c00000040000000
@@ -80,18 +80,90 @@ MonoBehaviour:
     emptySpaceColor:
       serializedVersion: 2
       rgba: 4294967295
-    gridPos: {x: 0, y: 64}
+    gridPos: {x: 0, y: 0}
     gridWidth: 64
     gridHeight: 64
     gridColumns: 16
     gridRows: 16
     hasEmptySpace: 0
     isTexPattern: 0
+  - handlesPos: 0
+    vLinesOnCanvasGrid:
+    - 0
+    - 31.375
+    - 62.75
+    - 94.125
+    - 125.5
+    - 156.875
+    - 188.25
+    - 219.625
+    - 251
+    - 282.375
+    - 313.75
+    - 345.125
+    - 376.5
+    - 407.875
+    - 439.25
+    - 470.625
+    - 502
+    hLinesOnCanvasGrid:
+    - 502
+    - 470.625
+    - 439.25
+    - 407.875
+    - 376.5
+    - 345.125
+    - 313.75
+    - 282.375
+    - 251
+    - 219.625
+    - 188.25
+    - 156.875
+    - 125.5
+    - 94.125
+    - 62.75
+    - 31.375
+    - 0
+    tg: {fileID: 11400000}
+    gridOnCanvas:
+      serializedVersion: 2
+      x: 502
+      y: 502
+      width: 502
+      height: 502
+    mouseInsideRectPos: {x: 547, y: 110}
+    gridColor:
+      serializedVersion: 2
+      rgba: 4278255360
+    gridLabel: Flat Color Grid
+    editGridName: 0
+    isSelected: 0
+    showGridOptions: 1
+    isSelectionLocked: 0
+    isHandleSelected: 0
+    isGridPosLocked: 0
+    isOverlapping: 0
+    handleID: -1
+    vLinesOnTexGrid: 0000000004000000080000000c0000001000000014000000180000001c0000002000000024000000280000002c0000003000000034000000380000003c00000040000000
+    hLinesOnTexGrid: 0000000004000000080000000c0000001000000014000000180000001c0000002000000024000000280000002c0000003000000034000000380000003c00000040000000
+    tintColor:
+      serializedVersion: 2
+      rgba: 4294967295
+    emptySpaceColor:
+      serializedVersion: 2
+      rgba: 4294902015
+    gridPos: {x: 64, y: 0}
+    gridWidth: 64
+    gridHeight: 64
+    gridColumns: 16
+    gridRows: 16
+    hasEmptySpace: 1
+    isTexPattern: 0
   copyList: []
   texAtlas: {fileID: 2800000, guid: 744245356ca822e459518d2ec08eb038, type: 3}
   originTexAtlas: {fileID: 0}
-  originOffset: {x: 300, y: 86}
-  sizeOffset: {x: 615, y: 615}
+  originOffset: {x: 256, y: -136}
+  sizeOffset: {x: 876, y: 876}
   showShortcuts: 0
   zoomSpeed: 80
   handleSize: 10

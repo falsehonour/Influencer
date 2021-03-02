@@ -16,6 +16,8 @@ namespace Nicrom.PM
         /// List of color cells that are not used by any model.  
         /// </summary>
         private List<Rect> emptyCells = new List<Rect>();
+       // private List<Rect> usedCells;// = PM_Utils.GetUsedGridCells(pMod, tex);
+
         /// <summary>
         /// List of warning messages.
         /// </summary>
@@ -118,6 +120,8 @@ namespace Nicrom.PM
         /// </summary>
         private int bHeight = 14;
 
+        private int selectedColourIndex = 0;
+
         void OnEnable()
         {
             PaletteModifier pMod = (PaletteModifier)target;
@@ -211,15 +215,21 @@ namespace Nicrom.PM
             PaletteModifier pMod = (PaletteModifier)target;
 
             if (Event.current.type == EventType.Layout)
+            {
                 CheckReferenceValues(pMod);
+            }
 
             if (bStyle == null)
+            {
                 bStyle = new GUIStyle(GUI.skin.button);
+            }
 
             serializedObject.Update();
 
             if (warningMessages.Count > 0)
+            {
                 DrawWarningMessages();
+            }
 
             if (drawTexNameOnly)
             {
@@ -376,9 +386,13 @@ namespace Nicrom.PM
         private void CustomInspector(PaletteModifier pMod)
         {
             if (pMod.textureUpdate == TextureUpdate.Auto)
+            {
                 CheckForColorChanges(pMod, true);
+            }
             else
+            {
                 CheckForColorChanges(pMod, false);
+            }
 
             if (canDrawInspector)
             {
@@ -389,7 +403,9 @@ namespace Nicrom.PM
                 GUILayout.EndHorizontal();
 
                 if (texCanBeModified && pMod.selectedToolBar == 0)
+                {
                     DrawTextureTab(pMod);
+                }
 
                 if (canDrawInspector && pMod.selectedToolBar == 1)
                 {
@@ -400,7 +416,13 @@ namespace Nicrom.PM
                 }
 
                 if (pMod.texGrid != null && canDrawInspector && pMod.selectedToolBar == 2)
+                {
                     DrawMiscellaneousTab(pMod);
+                }
+                if (pMod.texGrid != null && canDrawInspector && pMod.selectedToolBar == 3)
+                {
+                    DrawColourSwatchTab(pMod);
+                }
             }
         }
 
@@ -410,50 +432,61 @@ namespace Nicrom.PM
         /// <param name="pMod"> The object being inspected. </param>
         private void DrawReorderableLists(PaletteModifier pMod)
         {
-            if (pMod.texGrid == null)      
-                return;      
+           // Debug.Log("DrawReorderableLists");
+            if (pMod.texGrid == null)
+            {
+                return;
+            }
 
-            if(reorderableLists.Count != pMod.palettesList.Count)          
-                CreateReorderableLists(pMod);       
+            if (reorderableLists.Count != pMod.palettesList.Count)
+            {
+                CreateReorderableLists(pMod);
+            }
 
             for (int i = 0; i < reorderableLists.Count; i++)
             {
-                if (pMod.palettesList[i].editPaletteName)
+                Palette palette = pMod.palettesList[i];
+                if (palette.editPaletteName)
                 {
                     EditorGUIUtility.labelWidth = 120;
-                    pMod.palettesList[i].paletteName = EditorGUILayout.TextField(new GUIContent("Palette Name"), pMod.palettesList[i].paletteName);
+                    palette.paletteName = EditorGUILayout.TextField(new GUIContent("Palette Name"), palette.paletteName);
 
-                    if (pMod.palettesList[i].isColorListExpanded)
+                    if (palette.isColorListExpanded)
                     {
-                        pMod.palettesList[i].elementHeight = Mathf.Clamp(EditorGUILayout.IntField(new GUIContent("Element Height"),
-                            pMod.palettesList[i].elementHeight), 16, 200);
-                        pMod.palettesList[i].propFieldHeight = Mathf.Clamp(EditorGUILayout.IntField(new GUIContent("Color Field Height"),
-                            pMod.palettesList[i].propFieldHeight), 14, 200);
+                        palette.elementHeight = Mathf.Clamp(EditorGUILayout.IntField(new GUIContent("Element Height"),
+                            palette.elementHeight), 16, 200);
+                        palette.propFieldHeight = Mathf.Clamp(EditorGUILayout.IntField(new GUIContent("Color Field Height"),
+                           palette.propFieldHeight), 14, 200);
                     }
                 }
 
-                if (pMod.palettesList[i].isColorListExpanded)
+                if (palette.isColorListExpanded)
+                {
                     reorderableLists[i].DoLayoutList();
-                
-                if(!pMod.palettesList[i].isColorListExpanded)
+
+                }
+
+                if (!palette.isColorListExpanded)
                 {
                     GUILayout.BeginVertical("RL Header");
                     GUILayout.Space(1);
                     GUILayout.BeginHorizontal();
                     GUILayout.Space(6);
-                    GUILayout.Label(pMod.palettesList[i].paletteName, EditorStyles.boldLabel);
+                    GUILayout.Label(palette.paletteName, EditorStyles.boldLabel);
                     GUILayout.EndHorizontal();
                     GUILayout.EndVertical();
 
                     GUILayout.BeginVertical("RL Background", GUILayout.Height(30));
                     GUILayout.Space(5);
 
-                    int rows = Mathf.CeilToInt((pMod.palettesList[i].cellsList.Count * 25f) / Screen.width);
+                    int rows = Mathf.CeilToInt((palette.cellsList.Count * 25f) / Screen.width);
                     int elementsPerRow = Mathf.CeilToInt(Screen.width / 25f);
                     int count = 0;
 
-                    if (elementsPerRow > pMod.palettesList[i].cellsList.Count)
-                        elementsPerRow = pMod.palettesList[i].cellsList.Count;
+                    if (elementsPerRow > palette.cellsList.Count)
+                    {
+                        elementsPerRow = palette.cellsList.Count;
+                    }
 
                     for (int k = 0; k < rows; k++)
                     {
@@ -463,11 +496,13 @@ namespace Nicrom.PM
 
                         for (int j = 0; j < elementsPerRow; j++)
                         {
-                            if (count > pMod.palettesList[i].cellsList.Count - 1)
+                            if (count > palette.cellsList.Count - 1)
+                            {
                                 break;
+                            }
 #if UNITY_2018_1_OR_NEWER
-                            pMod.palettesList[i].cellsList[count].currentCellColor = EditorGUILayout.ColorField(new GUIContent(""),
-                                pMod.palettesList[i].cellsList[count].currentCellColor, false, true, false, GUILayout.MinWidth(16));
+                            palette.cellsList[count].currentCellColor = EditorGUILayout.ColorField(new GUIContent(""),
+                                palette.cellsList[count].currentCellColor, false, true, false, GUILayout.MinWidth(16));
 #else
                             pMod.palettesList[i].cellsList[count].currentCellColor = EditorGUILayout.ColorField(new GUIContent(""),
                                 pMod.palettesList[i].cellsList[count].currentCellColor, false, true, false, null, GUILayout.MinWidth(16));
@@ -478,8 +513,10 @@ namespace Nicrom.PM
                         GUILayout.FlexibleSpace();
                         GUILayout.EndHorizontal();
 
-                        if (count > pMod.palettesList[i].cellsList.Count)
+                        if (count > palette.cellsList.Count)
+                        {
                             break;
+                        }
                     }
                     GUILayout.Space(5);
                     GUILayout.EndVertical();
@@ -530,7 +567,9 @@ namespace Nicrom.PM
             EditorGUILayout.BeginHorizontal();
 
             if (isColorListExpanded)
+            {
                 DrawAddRemoveColorButton(pMod, i, bStyle);
+            }
 
             GUI.enabled = true;
             DrawMoveUpDownPaletteButton(pMod, i, bStyle);
@@ -1042,6 +1081,68 @@ namespace Nicrom.PM
             });
         }
 
+        private void DrawColourSwatchTab(PaletteModifier pMod)
+        {
+            GUILayout.Space(-4);
+
+            InspectorBox(10, () =>
+            {
+                EditorGUIUtility.labelWidth = 150;
+
+                for (int i = 0; i < pMod.palettesList.Count; i++)
+                {
+                    Palette palette = pMod.palettesList[i];
+                    {
+                        int rows = Mathf.CeilToInt((palette.cellsList.Count * 25f) / Screen.width);
+                        int elementsPerRow = Mathf.CeilToInt(Screen.width / 25f);
+                        int count = 0;
+
+                        if (elementsPerRow > palette.cellsList.Count)
+                        {
+                            elementsPerRow = palette.cellsList.Count;
+                        }
+
+                        for (int k = 0; k < rows; k++)
+                        {
+
+                            for (int j = 0; j < elementsPerRow; j++)
+                            {
+                                if (count > palette.cellsList.Count - 1)
+                                {
+                                    break;
+                                }
+#if UNITY_2018_1_OR_NEWER
+                                palette.cellsList[count].swatchCellColor = EditorGUILayout.ColorField(new GUIContent(""),
+                                     palette.cellsList[count].swatchCellColor, false, true, false, GUILayout.MinWidth(16));
+#else
+                            pMod.palettesList[i].cellsList[count].currentCellColor = EditorGUILayout.ColorField(new GUIContent(""),
+                                pMod.palettesList[i].cellsList[count].currentCellColor, false, true, false, null, GUILayout.MinWidth(16));
+#endif
+                                count++;
+                            }
+
+                            if (count > palette.cellsList.Count)
+                            {
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (GUILayout.Button(new GUIContent("Set colours")))
+                {
+                    absolutePath = EditorUtility.SaveFilePanel("Save Image", relativePath, "NewMesh.asset", "asset");
+
+                    if (absolutePath != "")
+                    {
+                        BreakAndSetToSwatchColours(pMod);
+                    }
+                    /*var usedCells =  PM_Utils.GetUsedGridCells(pMod, tex);
+                    Debug.Log($"usedCells: {usedCells.Count}");*/
+                }       
+            });
+        }
+
         /// <summary>
         /// Used to determine if the current object uses texture patterns. 
         /// </summary>
@@ -1184,11 +1285,12 @@ namespace Nicrom.PM
             {
                 for (int i = 0; i < pMod.palettesList.Count; i++)
                 {
-                    for (int j = 0; j < pMod.palettesList[i].cellsList.Count; j++)
+                    Palette palette = pMod.palettesList[i];
+                    for (int j = 0; j < palette.cellsList.Count; j++)
                     {
-                        if (pMod.palettesList[i].cellsList[j].isSelected)
+                        if (palette.cellsList[j].isSelected)
                         {
-                            pMod.palettesList[i].cellsList[j].isSelected = false;
+                            palette.cellsList[j].isSelected = false;
                             UpdateTexture(pMod, i, j);
                         }
                     }
@@ -1497,7 +1599,9 @@ namespace Nicrom.PM
                 Vector2 UV =  Vector2.zero;
 
                 if (UVs[i].y < 0)
+                {
                     continue;
+                }
 
                 if (Mathf.Abs(UVs[i].x) % 1 == 0)
                 {
@@ -1577,6 +1681,9 @@ namespace Nicrom.PM
                 Debug.LogWarning("Not all the mesh UVs are inside the Texture Grid. Open the Texture Grid Editor and make " 
                     + "sure all flat colors and texture patterns have a Flat Color Grid/Texture Pattern Rect on top of them." 
                     + " Then go to Misc tab and press Rebuild PM Data button.");
+
+            Debug.Log("palettesList.Count:" + pMod.palettesList.Count);
+
         }
 
         /// <summary>
@@ -1590,26 +1697,27 @@ namespace Nicrom.PM
 
             for (int i = 0; i < len; i++)
             {
-                int len2 = pMod.palettesList[i].cellsList.Count;
+                Palette palette = pMod.palettesList[i];
+                int len2 = palette.cellsList.Count;
 
                 for (int j = 0; j < len2; j++)
                 {            
-                    x = (int)(pMod.palettesList[i].cellsList[j].gridCell.x + pMod.palettesList[i].cellsList[j].gridCell.width * 0.5f);
-                    y = (int)(pMod.palettesList[i].cellsList[j].gridCell.y + pMod.palettesList[i].cellsList[j].gridCell.height * 0.5f);
+                    x = (int)(palette.cellsList[j].gridCell.x + palette.cellsList[j].gridCell.width * 0.5f);
+                    y = (int)(palette.cellsList[j].gridCell.y + palette.cellsList[j].gridCell.height * 0.5f);
                    
-                    if (pMod.palettesList[i].cellsList[j].isTexture)
+                    if (palette.cellsList[j].isTexture)
                     { 
                         Color tintColor = GetTintColorFromTextureGrid(pMod, i, j);
 
-                        pMod.palettesList[i].cellsList[j].currentCellColor = tintColor;
-                        pMod.palettesList[i].cellsList[j].previousCellColor = tintColor;
+                        palette.cellsList[j].currentCellColor = tintColor;
+                        palette.cellsList[j].previousCellColor = tintColor;
                     }
                     else
                     {
                         Color texelColor = tex.GetPixel(x, y);
 
-                        pMod.palettesList[i].cellsList[j].currentCellColor = texelColor;
-                        pMod.palettesList[i].cellsList[j].previousCellColor = texelColor;
+                        palette.cellsList[j].currentCellColor = texelColor;
+                        palette.cellsList[j].previousCellColor = texelColor;
                     }
                 }
             }
@@ -1676,7 +1784,9 @@ namespace Nicrom.PM
             for (int i = 0; i < pMod.texGrid.gridsList.Count; i++)
             {
                 if (pMod.texGrid.gridsList[i].isTexPattern)
+                {
                     pMod.texGrid.gridsList[i].tintColor = Color.white;
+                }
             }
         }
 
@@ -1689,19 +1799,23 @@ namespace Nicrom.PM
         private void UpdateTexture(PaletteModifier pMod, int i, int j)
         {
             Color32 highlightColor = Color.yellow;
+            CellData cellData = pMod.palettesList[i].cellsList[j];
 
             if (pMod.highlightSelectedColor)
-                highlightColor = Color32.Lerp(pMod.palettesList[i].cellsList[j].currentCellColor, pMod.highlightColor, pMod.colorBlend);
-
-            if (pMod.palettesList[i].cellsList[j].isSelected && pMod.highlightSelectedColor)
             {
-                UpdateTexPixelColors(pMod, highlightColor, pMod.palettesList[i].cellsList[j].isTexture, i, j);
-                pMod.palettesList[i].cellsList[j].highlightColorApplied = true;
+                highlightColor = Color32.Lerp
+                    (cellData.currentCellColor, pMod.highlightColor, pMod.colorBlend);
+            }
+
+            if (cellData.isSelected && pMod.highlightSelectedColor)
+            {
+                UpdateTexPixelColors(pMod, highlightColor, cellData.isTexture, i, j);
+                cellData.highlightColorApplied = true;
             }
             else
             {
-                UpdateTexPixelColors(pMod, pMod.palettesList[i].cellsList[j].currentCellColor, pMod.palettesList[i].cellsList[j].isTexture, i, j);
-                pMod.palettesList[i].cellsList[j].highlightColorApplied = false;
+                UpdateTexPixelColors(pMod, cellData.currentCellColor, cellData.isTexture, i, j);
+                cellData.highlightColorApplied = false;
             }     
         }
 
@@ -1816,8 +1930,8 @@ namespace Nicrom.PM
                 currentTexColors = pMod.texGrid.originTexAtlas.GetPixels32();
                 tex.SetPixels32(currentTexColors);
                 tex.Apply();
-                
-                OffsetMeshUVs(pMod);
+
+                OffsetMeshUVsToEmptyTextureParts(pMod);
                 mesh.uv = UVs;
                 SaveMeshAsset();
                 pMod.GetComponent<MeshFilter>().sharedMesh = mesh;
@@ -1838,6 +1952,21 @@ namespace Nicrom.PM
                 Debug.LogWarning("Break Color Sharing operation could not be completed. There is no more empty space on the texture atlas "
                     + "or the Empty Space Color field value is incorrect.");
             }
+        }
+
+        private void BreakAndSetToSwatchColours(PaletteModifier pMod)
+        {
+            // usedCells =  PM_Utils.GetUsedGridCells(pMod, tex);
+               
+             ClearSelection(pMod);//Remove?
+
+             OffsetMeshUVsToSwatchColours(pMod);
+             mesh.uv = UVs;
+             SaveMeshAsset();
+             pMod.GetComponent<MeshFilter>().sharedMesh = mesh;
+
+             Debug.Log("Break Color Sharing operation is completed. A new mesh was created and added to the current GameObject.");
+           
         }
 
         /// <summary>
@@ -1916,43 +2045,105 @@ namespace Nicrom.PM
         /// Moves the mesh UVs to a part of the texture that is not used by other models. 
         /// </summary>
         /// <param name="pMod"> The object being inspected. </param>
-        private void OffsetMeshUVs(PaletteModifier pMod)
+        private void OffsetMeshUVsToEmptyTextureParts(PaletteModifier pMod)
         {
+
+            if (pMod.GetComponent<MeshFilter>() != null)
+            {
+                mesh = Instantiate(pMod.GetComponent<MeshFilter>().sharedMesh);
+            }
+
+            if (pMod.GetComponent<SkinnedMeshRenderer>() != null)
+            {
+                mesh = Instantiate(pMod.GetComponent<SkinnedMeshRenderer>().sharedMesh);
+            }
+
+            UVs = mesh.uv;
             int len1, len2, len3;
             int index = 0;
 
             len1 = pMod.palettesList.Count;
-
-            if (pMod.GetComponent<MeshFilter>() != null)
-                mesh = Instantiate(pMod.GetComponent<MeshFilter>().sharedMesh);
-
-            if (pMod.GetComponent<SkinnedMeshRenderer>() != null)
-                mesh = Instantiate(pMod.GetComponent<SkinnedMeshRenderer>().sharedMesh);
-
-            UVs = mesh.uv;
+            Debug.Log($"pMod.palettesList.Count = {len1}");
 
             for (int i = 0; i < len1; i++)
             {
-                len2 = pMod.palettesList[i].cellsList.Count;
+                List<CellData> cellsList = pMod.palettesList[i].cellsList;
+                len2 = cellsList.Count;
+                Debug.Log($"cellsList.Count = {len2}");//Number of colours on model?
 
                 for (int j = 0; j < len2; j++)
                 {
-                    if (!pMod.palettesList[i].cellsList[j].isTexture)
+                    if (!cellsList[j].isTexture)
                     {
-                        pMod.palettesList[i].cellsList[j].gridCell = emptyCells[index];
+                        Rect emptyCell = emptyCells[index];
+                        cellsList[j].gridCell = emptyCell;
 
-                        float u = (emptyCells[index].x + emptyCells[index].width * 0.5f) / tex.width;
-                        float v = (emptyCells[index].y + emptyCells[index].height * 0.5f) / tex.height;
+                        float x = (emptyCell.x + emptyCell.width * 0.5f) / tex.width;
+                        float y = (emptyCell.y + emptyCell.height * 0.5f) / tex.height;
 
-                        len3 = pMod.palettesList[i].cellsList[j].uvIndex.Count;
+                        len3 = cellsList[j].uvIndex.Count;
+                        Debug.Log($"cellsList[j].uvIndex.Count = {len3}");
 
                         for (int k = 0; k < len3; k++)
                         {
-                            int n = pMod.palettesList[i].cellsList[j].uvIndex[k];
-                            UVs[n] = new Vector2(u, v);
+                            int n = cellsList[j].uvIndex[k];
+                            UVs[n] = new Vector2(x, y);
                         }
 
                         index++;
+                    }
+                }
+            }
+        }
+
+        private void OffsetMeshUVsToSwatchColours(PaletteModifier pMod)
+        {
+
+            if (pMod.GetComponent<MeshFilter>() != null)
+            {
+                mesh = Instantiate(pMod.GetComponent<MeshFilter>().sharedMesh);
+            }
+
+            if (pMod.GetComponent<SkinnedMeshRenderer>() != null)
+            {
+                mesh = Instantiate(pMod.GetComponent<SkinnedMeshRenderer>().sharedMesh);
+            }
+
+            UVs = mesh.uv;
+            int palettesListCount = pMod.palettesList.Count;
+            Debug.Log($"pMod.palettesList.Count = {palettesListCount}");
+
+            for (int i = 0; i < palettesListCount; i++)
+            {
+                List<CellData> cellsList = pMod.palettesList[i].cellsList;
+                int cellsListCount = cellsList.Count;
+                Debug.Log($"cellsList.Count = {cellsListCount}");//Number of colours on model?
+
+                for (int j = 0; j < cellsListCount; j++)
+                {
+                    CellData cellData = cellsList[j];
+                    if (!cellData.isTexture)
+                    {
+                        //Vector2 uv = PM_Utils.GetBestApproximateUV(pMod, tex, cellData.swatchCellColor);
+                        Rect newCell = PM_Utils.GetBestApproximateCell(pMod, tex, cellData.swatchCellColor);
+                        cellData.gridCell = newCell;
+
+                        float u = ((newCell.x + newCell.width  * 0.5f) / tex.width);
+                        float v = ((newCell.y + newCell.height * 0.5f) / tex.height);
+                        Vector2 uv = new Vector2(u, v);
+
+                        int uvIndices = cellData.uvIndex.Count;
+                        Debug.Log($"cellsList[j].uvIndex.Count = {uvIndices}");
+
+                        for (int k = 0; k < uvIndices; k++)
+                        {
+                            int n = cellData.uvIndex[k];
+                            UVs[n] = uv;
+                        }
+                    }
+                    else
+                    {
+                        Debug.Log("cellData.isTexture!");
                     }
                 }
             }

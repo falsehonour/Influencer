@@ -2,11 +2,13 @@
 using UnityEngine;
 using System;
 
-namespace Nicrom.PM {
+namespace Nicrom.PM
+{
     /// <summary>
     /// Color numbering modes.  
     /// </summary>
-    public enum ColorNumbering {
+    public enum ColorNumbering
+    {
         /// <summary>
         /// The color numbering is continuous across palettes.  
         /// </summary>
@@ -31,17 +33,14 @@ namespace Nicrom.PM {
         Manual
     }
 
-    public class PaletteModifier : MonoBehaviour {
+    public class PaletteModifier : MonoBehaviour
+    {
         public ColorNumbering colorNumbering = ColorNumbering.Continuous;
         public TextureUpdate textureUpdate = TextureUpdate.Auto;
         /// <summary>
         /// List of cell groups.  
         /// </summary>
-        public List<Palette> palettesList = new List<Palette>();
-        /// <summary>
-        /// List of grid cells that are deleted from the inspector.
-        /// </summary>
-        public List<CellData> cellStorage = new List<CellData>();
+        public List<Palette> palettesList = new List<Palette>();   
         /// <summary>
         /// Reference to a Texture Grid asset.  
         /// </summary>
@@ -106,15 +105,17 @@ namespace Nicrom.PM {
         /// <summary>
         /// Tool bar titels.  
         /// </summary>
-        public string[] toolBarTitles = { "Texture", "Gradient", "Misc" };
+        public string[] toolBarTitles = { "Texture", "Gradient", "Misc", "Colour Swatch" };
         /// <summary>
         /// The ID of the selected tool bar.  
         /// </summary>
         public int selectedToolBar = 0;
+        public List<CellData> cellStorage = new List<CellData>();
     }
 
     [Serializable]
-    public class Palette {
+    public class Palette
+    {
         /// <summary>
         /// List of CellData instances.  
         /// </summary>
@@ -142,7 +143,8 @@ namespace Nicrom.PM {
     }
 
     [Serializable]
-    public class CellData {
+    public class CellData
+    {
         /// <summary>
         /// List of UV indexes that are located inside a grid cell.  
         /// </summary>
@@ -155,6 +157,9 @@ namespace Nicrom.PM {
         /// Previous texture color of a grid cell.  
         /// </summary>
         public Color32 previousCellColor;
+
+        public Color32 swatchCellColor;
+
         /// <summary>
         /// Position, width and height of a grid cell.  
         /// </summary>
@@ -173,12 +178,13 @@ namespace Nicrom.PM {
         /// </summary>
         public bool isTexture = false;
 
-        public CellData(Color32 color, Rect cell, bool tColor)
+        public CellData(Color32 colour, Rect cell, bool tColour)
         {
-            currentCellColor = color;
-            previousCellColor = color;
+            currentCellColor = colour;
+            previousCellColor = colour;
+            swatchCellColor = colour;
             gridCell = cell;
-            isTexture = tColor;
+            isTexture = tColour;
         }
     }
 }

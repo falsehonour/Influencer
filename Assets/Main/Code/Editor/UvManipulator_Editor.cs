@@ -20,6 +20,7 @@ public class UvManipulator_Editor : EditorWindow
         uvMultiplier = EditorGUILayout.FloatField("UV Multiplier",uvMultiplier);
         newMeshesPath = EditorGUILayout.TextField("New Meshes Path", newMeshesPath);
 
+        //mesh filters array field:
         {
             // "target" can be any class derrived from ScriptableObject 
             // (could be EditorWindow, MonoBehaviour, etc)
@@ -30,23 +31,42 @@ public class UvManipulator_Editor : EditorWindow
             EditorGUILayout.PropertyField(property, true); // True means show children
             serializedObject.ApplyModifiedProperties(); // Remember to apply modified properties
         }
+
+        EditorGUILayout.Space();
+
+        bool pathIsLegal = newMeshesPath[newMeshesPath.Length - 1] == '/';
+        bool meshFiltersIsEmpty = (meshFilters == null || meshFilters.Length == 0);
+        bool disableButton = (!pathIsLegal || meshFiltersIsEmpty);
+        EditorGUI.BeginDisabledGroup(disableButton);
         if (GUILayout.Button("Manipulate!"))
         {
             ManipulateUVs();
         }
+        EditorGUI.EndDisabledGroup();
+
+        //Errors and warnings:
+        if (!pathIsLegal)
+        {
+            EditorGUILayout.HelpBox("Path name must end with '/'!", MessageType.Warning);
+        }
+        if (meshFiltersIsEmpty)
+        {
+            EditorGUILayout.HelpBox("There are no mesh filters in the mesh filters array...", MessageType.Warning);
+        }
+
 
     }
 
     private void ManipulateUVs()
     {
-        if(newMeshesPath[newMeshesPath.Length-1] != '/')
-        {
-            Debug.LogError ("Path name must end with '/'!");
-            return;
-        }
-
         for (int i = 0; i < meshFilters.Length; i++)
         {
+           /* if (!oldMesh.isReadable)
+            {
+                Debug.LogError
+                   ("The mesh you're trying to manipulate ain't readable");
+                continue;
+            }*/
             MeshFilter meshFilter = meshFilters[i];
             Mesh oldMesh = meshFilter.sharedMesh;
             if (!oldMesh.isReadable)

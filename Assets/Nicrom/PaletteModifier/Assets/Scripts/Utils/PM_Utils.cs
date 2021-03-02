@@ -60,15 +60,16 @@ namespace Nicrom.PM {
 
             for (int i = 0; i < pMod.texGrid.gridsList.Count; i++)
             {
-                x = pMod.texGrid.gridsList[i].gridPos.x;
-                y = pMod.texGrid.gridsList[i].gridPos.y;
+                CustomGrid grid = pMod.texGrid.gridsList[i];
+                x = grid.gridPos.x;
+                y = grid.gridPos.y;
 
-                width = pMod.texGrid.gridsList[i].gridWidth;
-                height = pMod.texGrid.gridsList[i].gridHeight;
+                width =  grid.gridWidth;
+                height = grid.gridHeight;
 
                 if (PointInsideRect(new Rect(x, y, width - 1, height - 1), point))
                 {
-                    if (pMod.texGrid.gridsList[i].isTexPattern)
+                    if (grid.isTexPattern)
                     {
                         cellRect = new Rect(x, y, width, height);
                         isPointInsideCG = true;
@@ -76,13 +77,13 @@ namespace Nicrom.PM {
                         break;
                     }
 
-                    int len = pMod.texGrid.gridsList[i].vLinesOnTexGrid.Count;
+                    int len = grid.vLinesOnTexGrid.Count;
                     int min, max;
 
                     for (int j = 0; j < len - 1; j++)
                     {
-                        min = x + pMod.texGrid.gridsList[i].vLinesOnTexGrid[j];
-                        max = x + pMod.texGrid.gridsList[i].vLinesOnTexGrid[j + 1];
+                        min = x + grid.vLinesOnTexGrid[j];
+                        max = x + grid.vLinesOnTexGrid[j + 1];
 
                         if (point.x >= min && point.x <= max)
                         {
@@ -92,12 +93,12 @@ namespace Nicrom.PM {
                         }
                     }
 
-                    len = pMod.texGrid.gridsList[i].hLinesOnTexGrid.Count;
+                    len = grid.hLinesOnTexGrid.Count;
 
                     for (int j = 0; j < len - 1; j++)
                     {
-                        min = y + pMod.texGrid.gridsList[i].hLinesOnTexGrid[j];
-                        max = y + pMod.texGrid.gridsList[i].hLinesOnTexGrid[j + 1];
+                        min = y + grid.hLinesOnTexGrid[j];
+                        max = y + grid.hLinesOnTexGrid[j + 1];
 
                         if (point.y >= min && point.y <= max)
                         {
@@ -111,7 +112,9 @@ namespace Nicrom.PM {
                 }
 
                 if (isPointInsideCG)
+                {
                     break;
+                }
             }
 
             return cellRect;
@@ -222,6 +225,102 @@ namespace Nicrom.PM {
             return emptyCells;
         }
 
+        public static List<Rect> GetUsedGridCells(PaletteModifier pMod, Texture2D tex)
+        {
+            int x, y;
+            int texelX, texelY;
+            int usedCellsCount = 0;
+            int minX, maxX, minY, maxY;
+            Color texelColor;
+            List<Rect> usedCells = new List<Rect>();
+
+            for (int i = 0; i < pMod.texGrid.gridsList.Count; i++)
+            {
+                CustomGrid grid = pMod.texGrid.gridsList[i];
+                x = grid.gridPos.x;
+                y = grid.gridPos.y;
+               
+                for (int r = 0; r < grid.gridColumns; r++)
+                {
+                    for (int c = 0; c < grid.gridRows; c++)
+                    {
+                        minX = x + grid.vLinesOnTexGrid[c];
+                        maxX = x + grid.vLinesOnTexGrid[c + 1];
+                                   
+                        minY = y + grid.hLinesOnTexGrid[r];
+                        maxY = y + grid.hLinesOnTexGrid[r + 1];
+               
+                        texelX = Mathf.CeilToInt(minX + (maxX - minX) * 0.5f);
+                        texelY = Mathf.CeilToInt(minY + (maxY - minY) * 0.5f);
+               
+                        texelColor = tex.GetPixel(texelX, texelY);
+               
+                        if (texelColor != grid.emptySpaceColor)
+                        {
+                            usedCells.Add(new Rect(minX, minY, maxX - minX, maxY - minY));
+                            usedCellsCount++;
+                        }
+                    }
+                }
+            }
+            return usedCells;
+        }
+
+        public static Rect GetBestApproximateCell(PaletteModifier pMod, Texture2D texture, Color colour)
+        {
+            int x, y;
+            int texelX, texelY;
+            int minX, maxX, minY, maxY;
+            Color texelColor;
+            //Vector2 bestUV = new Vector2();
+            Rect bestRect = new Rect();
+            float bestRGBDifferene = float.MaxValue;
+            for (int i = 0; i < pMod.texGrid.gridsList.Count; i++)
+            {
+                CustomGrid grid = pMod.texGrid.gridsList[i];
+                x = grid.gridPos.x;
+                y = grid.gridPos.y;
+
+                for (int r = 0; r < grid.gridColumns; r++)
+                {
+                    for (int c = 0; c < grid.gridRows; c++)
+                    {
+                        minX = x + grid.vLinesOnTexGrid[c];
+                        maxX = x + grid.vLinesOnTexGrid[c + 1];
+
+                        minY = y + grid.hLinesOnTexGrid[r];
+                        maxY = y + grid.hLinesOnTexGrid[r + 1];
+
+                        texelX = Mathf.CeilToInt(minX + (maxX - minX) * 0.5f);
+                        texelY = Mathf.CeilToInt(minY + (maxY - minY) * 0.5f);
+
+                        texelColor = texture.GetPixel(texelX, texelY);
+
+                        if (texelColor != grid.emptySpaceColor)
+                        {
+                            float RGBDifference = GetRGBDifference(texelColor, colour);
+                            if(bestRGBDifferene > RGBDifference)
+                            {
+                                bestRGBDifferene = RGBDifference;
+                                bestRect = new Rect(minX, minY, maxX - minX, maxY - minY);
+                                //bestUV = new Vector2((float)texelX / texture.width, (float)texelY / texture.height);
+                            }
+                        }
+                    }
+                }
+            }
+            return bestRect;
+        }
+
+        private static float GetRGBDifference(Color colourA,Color colourB)
+        {
+            float r = Mathf.Abs(colourA.r - colourB.r);
+            float g = Mathf.Abs(colourA.g - colourB.g);
+            float b = Mathf.Abs(colourA.b - colourB.b);
+
+            float average = r + g + b;
+            return average;
+        }
         /// <summary>
         /// Compares two colors.
         /// </summary>

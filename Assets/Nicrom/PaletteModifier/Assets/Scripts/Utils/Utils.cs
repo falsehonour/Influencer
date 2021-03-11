@@ -57,22 +57,22 @@ namespace SemiColours
         {
             isPointInsideCG = false;
             Rect cellRect = new Rect(0, 0, 0, 0);
-            int x, y, width, height;
+            int gridOriginX, gridOriginY, width, height;
 
             for (int i = 0; i < pMod.texGrid.gridsList.Count; i++)
             {
                 CustomGrid grid = pMod.texGrid.gridsList[i];
-                x = grid.gridPos.x;
-                y = grid.gridPos.y;
+                gridOriginX = grid.gridPos.x;
+                gridOriginY = grid.gridPos.y;
 
                 width =  grid.gridWidth;
                 height = grid.gridHeight;
 
-                if (PointInsideRect(new Rect(x, y, width - 1, height - 1), point))
+                if (PointInsideRect(new Rect(gridOriginX, gridOriginY, width - 1, height - 1), point))
                 {
                     if (grid.isTexPattern)
                     {
-                        cellRect = new Rect(x, y, width, height);
+                        cellRect = new Rect(gridOriginX, gridOriginY, width, height);
                         isPointInsideCG = true;
                         break;
                     }
@@ -82,10 +82,10 @@ namespace SemiColours
 
                     for (int j = 0; j < len - 1; j++)
                     {
-                        min = x + grid.vLinesOnTexGrid[j];
-                        max = x + grid.vLinesOnTexGrid[j + 1];
+                        min = gridOriginX + grid.vLinesOnTexGrid[j];
+                        max = gridOriginX + grid.vLinesOnTexGrid[j + 1];
 
-                        if (point.x >= min && point.x <= max)
+                        if (point.x >= min && point.x < max) //&& point.x <= max)
                         {
                             cellRect.x = min;
                             cellRect.width = max - min;
@@ -97,10 +97,10 @@ namespace SemiColours
 
                     for (int j = 0; j < len - 1; j++)
                     {
-                        min = y + grid.hLinesOnTexGrid[j];
-                        max = y + grid.hLinesOnTexGrid[j + 1];
+                        min = gridOriginY + grid.hLinesOnTexGrid[j];
+                        max = gridOriginY + grid.hLinesOnTexGrid[j + 1];
 
-                        if (point.y >= min && point.y <= max)
+                        if (point.y >= min && point.y < max) //point.y <= max)
                         {
                             cellRect.y = min;
                             cellRect.height = max - min;
@@ -118,6 +118,45 @@ namespace SemiColours
             }
 
             return cellRect;
+        }
+
+        public static Vector2 GetMonoColorUV(SemiPaletteModifier pMod, Texture2D texture)
+        {
+            Vector2 uv = new Vector2();
+            if (pMod != null && pMod.texGrid != null && pMod.texGrid.gridsList != null)
+            {
+                Rect cellRect = new Rect(0, 0, 0, 0);
+                CustomGrid grid = pMod.texGrid.gridsList[0];
+
+                //int x, y;//, width, height;
+                /* width = grid.gridWidth;
+                 height = grid.gridHeight;*/
+                int x = grid.gridPos.x;
+                int y = grid.gridPos.y;
+
+                int min, max;
+
+                min = x + grid.vLinesOnTexGrid[0];
+                max = x + grid.vLinesOnTexGrid[1];
+                cellRect.x = min;
+                cellRect.width = max - min;
+
+                min = y + grid.hLinesOnTexGrid[0];
+                max = y + grid.hLinesOnTexGrid[1];
+                cellRect.y = min;
+                cellRect.height = max - min;
+
+
+                float u = ((cellRect.x + cellRect.width * 0.5f) / texture.width);
+                float v = ((cellRect.y + cellRect.height * 0.5f) / texture.height);
+                uv = new Vector2(u, v);
+
+            }
+            else
+            {
+                Debug.LogError("Something's null!");
+            }
+            return uv;
         }
 
         /// <summary>
@@ -183,15 +222,18 @@ namespace SemiColours
             return usedCells;
         }
 
-        public static Rect GetBestApproximateCell(SemiPaletteModifier pMod, Texture2D texture, Color colour)
+        public static Rect GetBestApproximateCell(SemiPaletteModifier pMod, Texture2D texture,CellData cellData)// ref Color32 colour)
         {
             int x, y;
             int texelX, texelY;
             int minX, maxX, minY, maxY;
-            Color texelColor;
             //Vector2 bestUV = new Vector2();
             Rect bestRect = new Rect();
-            float bestRGBDifferene = float.MaxValue;
+            int bestRGBDifferene = int.MaxValue;
+
+            Color32 texelColour;
+            Color32 newColour = new Color32();
+
             for (int i = 0; i < pMod.texGrid.gridsList.Count; i++)
             {
                 CustomGrid grid = pMod.texGrid.gridsList[i];
@@ -211,14 +253,15 @@ namespace SemiColours
                         texelX = Mathf.CeilToInt(minX + (maxX - minX) * 0.5f);
                         texelY = Mathf.CeilToInt(minY + (maxY - minY) * 0.5f);
 
-                        texelColor = texture.GetPixel(texelX, texelY);
+                        texelColour = texture.GetPixel(texelX, texelY);
 
-                        if (texelColor != grid.emptySpaceColor)
+                        //if (texelColor != grid.emptySpaceColor)
                         {
-                            float RGBDifference = GetRGBDifference(texelColor, colour);
-                            if(bestRGBDifferene > RGBDifference)
+                            int RGBDifference = GetRGBDifference(ref texelColour,ref cellData.swatchCellColor);
+                            if(RGBDifference < bestRGBDifferene)
                             {
                                 bestRGBDifferene = RGBDifference;
+                                newColour = texelColour;
                                 bestRect = new Rect(minX, minY, maxX - minX, maxY - minY);
                                 //bestUV = new Vector2((float)texelX / texture.width, (float)texelY / texture.height);
                             }
@@ -226,16 +269,17 @@ namespace SemiColours
                     }
                 }
             }
+            cellData.swatchCellColor = newColour;
             return bestRect;
         }
 
-        private static float GetRGBDifference(Color colourA,Color colourB)
+        private static int GetRGBDifference(ref Color32 colourA, ref Color32 colourB)
         {
-            float r = Mathf.Abs(colourA.r - colourB.r);
-            float g = Mathf.Abs(colourA.g - colourB.g);
-            float b = Mathf.Abs(colourA.b - colourB.b);
+            int r = Mathf.Abs(colourA.r - colourB.r);
+            int g = Mathf.Abs(colourA.g - colourB.g);
+            int b = Mathf.Abs(colourA.b - colourB.b);
 
-            float average = r + g + b;
+            int average = r + g + b;
             return average;
         }
 

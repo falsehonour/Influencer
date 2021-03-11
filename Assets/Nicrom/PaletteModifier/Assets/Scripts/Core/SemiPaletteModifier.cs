@@ -15,24 +15,11 @@ namespace SemiColours
         /// Reference to a Texture Grid asset.  
         /// </summary>
         public Nicrom.PM.TextureGrid texGrid;
-
-        /// <summary>
-        /// Used to determine if the cells data should be recalculated.  
-        /// </summary>
-        public bool generatePaletteModifierData = true;
-        [Range(0, 1)]
         /// <summary>
         /// The name of the main texture.  
         /// </summary>
         public string textureName = "_MainTex";
-        
-        public int flatColorsOnObject = 0;
-        
-        /// <summary>
-        /// The current number of flat colors that are displayed in the inspector.  
-        /// </summary>
-        public int flatColorsInInspector = 0;
-        
+ 
     }
 
     [Serializable]
@@ -44,7 +31,6 @@ namespace SemiColours
         public List<int> uvIndex = new List<int>();
 
         public Color32 swatchCellColor;
-
         /// <summary>
         /// Position, width and height of a grid cell.  
         /// </summary>

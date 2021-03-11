@@ -7,7 +7,29 @@ using Mirror;
 
 public class PlayerController : NetworkBehaviour
 {
-   /* private enum PlayerActions
+    private class PlayerServerData
+    {
+        public List<PlayerController> playersInRange;
+
+        public const byte MAX_HEALTH = 100;
+        private const float HEALTH_LOSS_INTERVAL = 1f;
+        private const float NEARBY_PLAYERS_DETECTION_INTERVAL = 0.066f;
+
+        //public float healthReductionTimer;
+        public RepeatingTimer healthReductionTimer;
+        public RepeatingTimer nearbyPlayersDetectionTimer;
+
+        public PlayerServerData()
+        {
+            playersInRange = new List<PlayerController>();
+            healthReductionTimer = new RepeatingTimer(HEALTH_LOSS_INTERVAL);
+            nearbyPlayersDetectionTimer = new RepeatingTimer(NEARBY_PLAYERS_DETECTION_INTERVAL);
+        }
+    }
+
+    private PlayerServerData serverData;
+
+    /*private enum PlayerActions
     {
         InputMovement,AutomaticMovement;
     }*/
@@ -20,7 +42,7 @@ public class PlayerController : NetworkBehaviour
     private Quaternion desiredRotation;
     private Vector3 velocity;
     [SerializeField] private float gravity = -9.8f;
-    private const float MIN_SQUARED_WAYPOINT_DISTANCE =0.05f;
+    private const float MIN_SQUARED_WAYPOINT_DISTANCE = 0.05f;
     #region Path Finding:
 
     private NavMeshPath pathCache;
@@ -39,28 +61,159 @@ public class PlayerController : NetworkBehaviour
     #endregion
     [SerializeField] private Transform cameraAnchor;
      private Camera camera;
-
     [SerializeField] private Animator animator;
     private Liftable liftable;// TODO: make it more generic;
     [SerializeField] private Transform grabbingHand;
     //private bool isWalking;
+    #region Tagging
+    private static float minTagSquaredDistance = 10f;
+    [SyncVar] private bool tagger;
+    [SerializeField] private GameObject hashTag;
+    [SyncVar/*(hook = "ShowTagButton")*/] private bool canTag;
+    [SerializeField] private GameObject tagButton;
+    #endregion
+    #region Health:
+    [SyncVar(hook = nameof(OnHealthChanged))] private byte health;
+    [SerializeField] private TMPro.TextMeshPro healthGUI;
+    #endregion
+    public static PlayerController localPlayerController;
+    
 
     private void Start()
     {
+        myTransform = transform;
+
+        if (isServer)
+        {
+            Server_Initialise();
+        }
         if (isLocalPlayer)
         {
-            myTransform = transform;
+            localPlayerController = this;
             pathCache = new NavMeshPath();
             pathWayPoints = new Vector3[16];
             joystick = FindObjectOfType<Joystick>();
+            tagButton = GameObject.Find("TagButton");
             CharacterCamera characterCamera = FindObjectOfType<CharacterCamera>();
-            characterCamera.Initialise(myTransform, cameraAnchor.localPosition);
+            characterCamera.Initialise(myTransform, cameraAnchor.localPosition, cameraAnchor.rotation);
             camera = characterCamera.GetComponent<Camera>();
+
+            Cmd_SetTagger(GameManager.Tagger);
         }
-
-
+        else
+        {
+            hashTag.SetActive(tagger);
+        }
+        //if (isServer && tagger)
+        /* {
+             collidersInRange = new Collider[64];
+         }*/
     }
 
+    [Server]
+    private void Server_Initialise()
+    {
+        serverData = new PlayerServerData();
+        PlayerManager.AddPlayer(this);
+        health = PlayerServerData.MAX_HEALTH;
+    }
+
+    #region Tagging:
+    [Command]
+    private void Cmd_SetTagger(bool value)
+    {
+        SetTagger(value);
+    }
+
+    [Server]
+    private void SetTagger(bool value)
+    {
+        if(value)
+        {
+            serverData.healthReductionTimer.Reset();
+        }
+        tagger = value;
+        RpcSetTagger(value);
+    }
+
+    [ClientRpc]
+    private void RpcSetTagger(bool value)
+    { 
+        hashTag.SetActive(value);
+    }
+
+    [Server]
+    private void HandleNearbyPlayersDetection(float deltaTime)
+    {
+        if (serverData.nearbyPlayersDetectionTimer.Update(deltaTime))
+        {
+            //Debug.Log("NearbyPlayersDetection");
+            //TODO: Do these things in a unified method, cache all players locations
+            List<PlayerController> playersInRange = serverData.playersInRange;
+            playersInRange.Clear();
+            Vector3 myPosition = myTransform.position;
+            List<PlayerController> players = PlayerManager.allPlayers;
+            //bool playerFound = false;
+            for (int i = 0; i < players.Count; i++)
+            {
+                PlayerController playerController = players[i];
+                if (playerController != null && playerController != this)
+                {
+                    float squaredDistance = Vector3.SqrMagnitude
+                        (myPosition - playerController.myTransform.position);
+
+                    if (squaredDistance < minTagSquaredDistance)
+                    {
+                        playersInRange.Add(playerController);
+                    }
+                }
+            }
+
+            canTag = playersInRange.Count > 0;
+        }
+        
+    }
+
+    [Server]
+    private void HandleTaggerHealthReduction(float deltaTime)
+    {
+        if (serverData.healthReductionTimer.Update(deltaTime))
+        {
+            health -= 1;
+        }
+    }
+    
+    [Client]
+    private void OnHealthChanged (byte oldHealth, byte newHealth)
+    {
+        healthGUI.text = newHealth.ToString();
+    }
+    /*[Client]
+    private void ShowTagButton(bool oldVlaue, bool newVlaue)
+    {
+        tagButton.SetActive(newVlaue);
+    }*/
+    [Client]
+    public void TryTag()
+    {
+        Debug.Log("tryTag()");
+        CmdTryTag();
+    }
+
+    [Command]
+    private void CmdTryTag()
+    {
+        //TODO: In case there's more than one players, pick a player based on distance or something.
+        if (serverData.playersInRange.Count == 0)
+        {
+            Debug.LogWarning("Can't tag, no players in range");
+            return;
+        }
+
+        serverData.playersInRange[0].SetTagger(true);
+        SetTagger(false);
+    }
+    #endregion
     private void Update()
     {
         if (isLocalPlayer)
@@ -82,30 +235,22 @@ public class PlayerController : NetworkBehaviour
 
     private void FixedUpdate()
     {
+        float deltaTime = Time.fixedDeltaTime;
         if (isLocalPlayer)
         {
-            float deltaTime = Time.fixedDeltaTime;
             HandleMovement(ref deltaTime);
+            //TODO: That's alot of method calls bruh
+            bool showTagButton = (tagger && canTag);
+            tagButton.SetActive(showTagButton);         
         }
-    }
-
-    private Interactable FindInteractable()
-    {
-        Interactable interactable = null;
-        Vector2 mousePosition = Input.mousePosition;
-        Ray ray = camera.ScreenPointToRay(mousePosition);
-        RaycastHit raycastHit;
-        
-        if (Physics.Raycast(ray, out raycastHit))
+        if (tagger && isServer) //Lots of network activity
         {
-            interactable = raycastHit.collider.GetComponentInParent<Interactable>();
-            if (interactable != null)
+            HandleNearbyPlayersDetection(deltaTime);
+            if (health > 0)
             {
-                Debug.Log("Interactable found!");
+                HandleTaggerHealthReduction(deltaTime);
             }
         }
-
-        return interactable;
     }
 
     private void ActivateNavMesh(InteractableAccessPoint interactableAccessPoint)
@@ -207,15 +352,44 @@ public class PlayerController : NetworkBehaviour
         velocity.x = movement.x;
         velocity.z = movement.z;
 
-        characterController.Move(velocity * deltaTime);
-        myTransform.rotation = Quaternion.RotateTowards
-            (myTransform.rotation, desiredRotation, maxRotationSpeed * deltaTime);
-
         float velocitySquaredMagnitude = velocity.sqrMagnitude;
         float maxVelocitySquaredMagnitude = maxMovementSpeed * maxMovementSpeed;//TODO: Pre-Calculate
+        float velocityPercentage = (velocitySquaredMagnitude / maxVelocitySquaredMagnitude);
+
+        if(velocityPercentage < 0.15f)//HARDCODED
+        {
+            velocity.x = 0;
+            velocity.z = 0;
+            velocityPercentage = 0;
+        }
         //Debug.Log($"velocitySquaredMagnitude: {velocitySquaredMagnitude.ToString("f2")}");
-        animator.SetFloat("Speed", velocitySquaredMagnitude / maxVelocitySquaredMagnitude);
-       // Debug.Log($"navMeshVelocity: {navMeshAgent.velocity}");
+        animator.SetFloat("Speed", velocityPercentage);
+
+        characterController.Move(velocity * deltaTime);
+
+        myTransform.rotation = Quaternion.RotateTowards
+            (myTransform.rotation, desiredRotation, maxRotationSpeed * deltaTime);
+        // Debug.Log($"navMeshVelocity: {navMeshAgent.velocity}");
+    }
+
+    #region Interactables:
+    private Interactable FindInteractable()
+    {
+        Interactable interactable = null;
+        Vector2 mousePosition = Input.mousePosition;
+        Ray ray = camera.ScreenPointToRay(mousePosition);
+        RaycastHit raycastHit;
+
+        if (Physics.Raycast(ray, out raycastHit))
+        {
+            interactable = raycastHit.collider.GetComponentInParent<Interactable>();
+            if (interactable != null)
+            {
+                Debug.Log("Interactable found!");
+            }
+        }
+
+        return interactable;
     }
 
     [Command]
@@ -224,17 +398,34 @@ public class PlayerController : NetworkBehaviour
         //desiredInteractableAccessPoint.Interact(this);
         Debug.Log("CmdTryInteract");
 
-        Interactable interactable = NetworkIdentity.spawned[interactableID].GetComponent<Interactable>();
-        float distance = Vector3.Distance(myTransform.position, interactable.transform.position);
+        var spawned = NetworkIdentity.spawned;
+        NetworkIdentity networkIdentity = spawned[interactableID];
+        if (networkIdentity == null)
+        {
+            Debug.LogError("THE NETWORK IDENTITY YOU WERE LOOKING FOR DOES NOT EXIST!");
+            return;
+        }
+        Interactable interactable = networkIdentity.GetComponent<Interactable>();
+        if(interactable == null)
+        {
+            Debug.LogError("THE INTERACTABLE YOU WERE LOOKING FOR DOES NOT EXIST!");
+            return;
+        }
+
+        float distance =  Vector3.Distance(myTransform.position, interactable.transform.position);
+
         if (distance < 2)//TODO: Add serious check
         {
             Debug.Log("interactable.Interact(/*this*/);");
             interactable.Interact(/*this*/);
+            if(interactable is Liftable)
+            {
+                Lift((Liftable)interactable);
+            }
         }
         else
         {
             Debug.LogWarning($"distance = {distance.ToString("f3")}, illegal interaction");
-
         }
     }
 
@@ -253,4 +444,30 @@ public class PlayerController : NetworkBehaviour
     {
         liftable.Graphics.SetParent(grabbingHand);
     }
+    #endregion
+
+
+    [Server]
+    private void OnTriggerEnter(Collider other)
+    {
+        HealthPickUp healthPickUp = other.GetComponentInParent<HealthPickUp>();
+        if (healthPickUp != null)
+        {
+            Collect(healthPickUp);
+        }
+    }
+
+    [Server]
+    private void Collect(HealthPickUp healthPickUp)
+    {
+        healthPickUp.Collect();
+        byte healthAddition = 8;
+        health += healthAddition;
+        if (health > PlayerServerData.MAX_HEALTH)
+        {
+            health = PlayerServerData.MAX_HEALTH;
+        }
+         
+    }
+
 }

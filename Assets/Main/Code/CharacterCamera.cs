@@ -38,11 +38,12 @@ public class CharacterCamera : MonoBehaviour
         myTransform.position = newPosition;
     }
 
-    internal void Initialise(Transform target, Vector3 offset)
+    internal void Initialise(Transform target, Vector3 offset, Quaternion rotation)
     {
         myTransform = transform;
         this.target = target;
         desiredOffset = offset;
         myTransform.parent = null;
+        myTransform.rotation = rotation;
     }
 }

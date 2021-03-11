@@ -120,8 +120,6 @@ namespace Nicrom.PM
         /// </summary>
         private int bHeight = 14;
 
-        private int selectedColourIndex = 0;
-
         void OnEnable()
         {
             PaletteModifier pMod = (PaletteModifier)target;

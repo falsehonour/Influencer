@@ -9,24 +9,30 @@ public class PlayerController : NetworkBehaviour
 {
     private class PlayerServerData
     {
-        public List<PlayerController> playersInRange;
+        public const float MAX_HEALTHY_MOVEMENT_SPEED = 2.7f;
+        public const float MAX_TRAPPED__MOVEMENT_SPEED = 1f;
 
+        public const float MIN_TAG_SQUARED_DISTANCE = 10f;
         public const byte MAX_HEALTH = 100;
+        public const float TRAP_DURATION = 3f;
         private const float HEALTH_LOSS_INTERVAL = 1f;
         private const float NEARBY_PLAYERS_DETECTION_INTERVAL = 0.066f;
 
-        //public float healthReductionTimer;
+        public List<PlayerController> playersInRange;
         public RepeatingTimer healthReductionTimer;
         public RepeatingTimer nearbyPlayersDetectionTimer;
+        public SingleCycleTimer trapTimer;
 
         public PlayerServerData()
         {
             playersInRange = new List<PlayerController>();
             healthReductionTimer = new RepeatingTimer(HEALTH_LOSS_INTERVAL);
             nearbyPlayersDetectionTimer = new RepeatingTimer(NEARBY_PLAYERS_DETECTION_INTERVAL);
+            trapTimer = new SingleCycleTimer();
         }
     }
 
+    //This object should exist only on the server.
     private PlayerServerData serverData;
 
     /*private enum PlayerActions
@@ -37,7 +43,7 @@ public class PlayerController : NetworkBehaviour
     private Transform myTransform;
     private Joystick joystick;
 
-    [SerializeField] private float maxMovementSpeed;
+    [SyncVar] private float maxMovementSpeed;
     [SerializeField] private float maxRotationSpeed;
     private Quaternion desiredRotation;
     private Vector3 velocity;
@@ -66,10 +72,9 @@ public class PlayerController : NetworkBehaviour
     [SerializeField] private Transform grabbingHand;
     //private bool isWalking;
     #region Tagging
-    private static float minTagSquaredDistance = 10f;
-    [SyncVar] private bool tagger;
+    [SyncVar(hook = nameof(OnTaggerChange))] private bool tagger;
     [SerializeField] private GameObject hashTag;
-    [SyncVar/*(hook = "ShowTagButton")*/] private bool canTag;
+    [SyncVar(hook = nameof(OnCanTagChange))] private bool canTag;
     [SerializeField] private GameObject tagButton;
     #endregion
     #region Health:
@@ -104,10 +109,6 @@ public class PlayerController : NetworkBehaviour
         {
             hashTag.SetActive(tagger);
         }
-        //if (isServer && tagger)
-        /* {
-             collidersInRange = new Collider[64];
-         }*/
     }
 
     [Server]
@@ -116,6 +117,7 @@ public class PlayerController : NetworkBehaviour
         serverData = new PlayerServerData();
         PlayerManager.AddPlayer(this);
         health = PlayerServerData.MAX_HEALTH;
+        maxMovementSpeed = PlayerServerData.MAX_HEALTHY_MOVEMENT_SPEED;
     }
 
     #region Tagging:
@@ -133,18 +135,31 @@ public class PlayerController : NetworkBehaviour
             serverData.healthReductionTimer.Reset();
         }
         tagger = value;
-        RpcSetTagger(value);
+        if (!value)
+        {
+            canTag = false;
+        }
     }
 
-    [ClientRpc]
-    private void RpcSetTagger(bool value)
+    [Client]
+    private void OnTaggerChange(bool oldValue, bool newValue)
     { 
-        hashTag.SetActive(value);
+        hashTag.SetActive(newValue);
     }
 
+    [Client]
+    private void OnCanTagChange(bool oldValue, bool newValue)
+    {
+        if (isLocalPlayer)
+        {
+            tagButton.SetActive(newValue);
+        }
+    }
+    
     [Server]
     private void HandleNearbyPlayersDetection(float deltaTime)
     {
+        //The content of this method is executed when a timer finishes a cycle
         if (serverData.nearbyPlayersDetectionTimer.Update(deltaTime))
         {
             //Debug.Log("NearbyPlayersDetection");
@@ -162,7 +177,7 @@ public class PlayerController : NetworkBehaviour
                     float squaredDistance = Vector3.SqrMagnitude
                         (myPosition - playerController.myTransform.position);
 
-                    if (squaredDistance < minTagSquaredDistance)
+                    if (squaredDistance < PlayerServerData.MIN_TAG_SQUARED_DISTANCE )
                     {
                         playersInRange.Add(playerController);
                     }
@@ -188,11 +203,7 @@ public class PlayerController : NetworkBehaviour
     {
         healthGUI.text = newHealth.ToString();
     }
-    /*[Client]
-    private void ShowTagButton(bool oldVlaue, bool newVlaue)
-    {
-        tagButton.SetActive(newVlaue);
-    }*/
+
     [Client]
     public void TryTag()
     {
@@ -204,6 +215,7 @@ public class PlayerController : NetworkBehaviour
     private void CmdTryTag()
     {
         //TODO: In case there's more than one players, pick a player based on distance or something.
+        //
         if (serverData.playersInRange.Count == 0)
         {
             Debug.LogWarning("Can't tag, no players in range");
@@ -214,6 +226,7 @@ public class PlayerController : NetworkBehaviour
         SetTagger(false);
     }
     #endregion
+
     private void Update()
     {
         if (isLocalPlayer)
@@ -240,15 +253,26 @@ public class PlayerController : NetworkBehaviour
         {
             HandleMovement(ref deltaTime);
             //TODO: That's alot of method calls bruh
-            bool showTagButton = (tagger && canTag);
-            tagButton.SetActive(showTagButton);         
+           /* bool showTagButton = (tagger && canTag);
+            tagButton.SetActive(showTagButton);   */      
         }
-        if (tagger && isServer) //Lots of network activity
+        if (isServer) //Lots of network activity
         {
-            HandleNearbyPlayersDetection(deltaTime);
-            if (health > 0)
+            if (tagger)
             {
-                HandleTaggerHealthReduction(deltaTime);
+                HandleNearbyPlayersDetection(deltaTime);
+                if (health > 0)
+                {
+                    HandleTaggerHealthReduction(deltaTime);
+                }
+            }
+            if (serverData.trapTimer.IsActive)
+            {
+                bool unTrap = serverData.trapTimer.Update(deltaTime);
+                if (unTrap)
+                {
+                    maxMovementSpeed = PlayerServerData.MAX_HEALTHY_MOVEMENT_SPEED;
+                }
             }
         }
     }
@@ -283,7 +307,7 @@ public class PlayerController : NetworkBehaviour
 
     private void HandleMovement(ref float deltaTime)
     {
-
+        //TODO: This area of th code must be revisited, it is probably outdated 
         float verticalInput = joystick.Vertical;
         float horizontalInput = joystick.Horizontal;
         Vector3 movement = new Vector3();
@@ -447,27 +471,56 @@ public class PlayerController : NetworkBehaviour
     #endregion
 
 
-    [Server]
     private void OnTriggerEnter(Collider other)
     {
-        HealthPickUp healthPickUp = other.GetComponentInParent<HealthPickUp>();
-        if (healthPickUp != null)
+        if (isServer)
         {
-            Collect(healthPickUp);
+            Server_OnTriggerEnter(other);
         }
     }
 
     [Server]
-    private void Collect(HealthPickUp healthPickUp)
+    private void Server_OnTriggerEnter(Collider other)
     {
-        healthPickUp.Collect();
-        byte healthAddition = 8;
-        health += healthAddition;
-        if (health > PlayerServerData.MAX_HEALTH)
+        PickUp pickUp = other.GetComponentInParent<PickUp>();
+        if (pickUp != null)
         {
-            health = PlayerServerData.MAX_HEALTH;
+            Collect(pickUp);
         }
-         
     }
 
+    [Server]
+    private void Collect(PickUp pickUp)
+    {
+
+        pickUp.Collect();
+        if(pickUp is HealthPickUp)
+        {
+            byte healthAddition = 8;//TODO: Hardcoded
+            health += healthAddition;
+            if (health > PlayerServerData.MAX_HEALTH)
+            {
+                health = PlayerServerData.MAX_HEALTH;
+            }
+        }
+        else if(pickUp is Trap)
+        {
+            serverData.trapTimer.Start(PlayerServerData.TRAP_DURATION);
+            maxMovementSpeed = PlayerServerData.MAX_TRAPPED__MOVEMENT_SPEED;
+        }         
+    }
+
+    [Client]
+    public void TryPlaceTrap()
+    {
+        Debug.Log("TryPlaceTrap");
+        Cmd_PlaceTrap();
+    }
+
+    [Command]
+    private void Cmd_PlaceTrap()
+    {
+        Vector3 trapSpawnPosition = myTransform.position + (myTransform.forward * -1.1f);//HARDCODED
+        Spawner.Spawn(Spawnables.Trap, trapSpawnPosition);
+    }
 }

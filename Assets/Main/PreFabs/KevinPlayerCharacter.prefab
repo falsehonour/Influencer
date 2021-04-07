@@ -146,7 +146,6 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.1
   characterController: {fileID: 1843534166062372999}
-  maxMovementSpeed: 2.65
   maxRotationSpeed: 500
   gravity: -9.8
   cameraAnchor: {fileID: 1843534165324223648}
@@ -184,11 +183,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   syncMode: 0
-  syncInterval: 0.1
+  syncInterval: 0.15
   clientAuthority: 1
-  localPositionSensitivity: 0.01
-  localRotationSensitivity: 0.01
-  localScaleSensitivity: 0.01
+  localPositionSensitivity: 0.05
+  localRotationSensitivity: 0.05
+  localScaleSensitivity: 0.05
 --- !u!114 &5754378159493381922
 MonoBehaviour:
   m_ObjectHideFlags: 0

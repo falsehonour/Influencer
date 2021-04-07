@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b6afed888306604caa1c1786b2e3ca7, type: 3}
+  m_Name: Boy_Body_MouthOptions
+  m_EditorClassIdentifier: 
+  characterPiecePart: {fileID: 0}
+  linkedButtonBehaviours:
+  - {fileID: 11400000, guid: 1c51d1a754edeb142834337d556fc54d, type: 2}
+  - {fileID: 11400000, guid: 5b9b86b4f2a8d2a468cdbc7e35c5c595, type: 2}
+  - {fileID: 11400000, guid: 6190f999019286a42a0fecf4471faa62, type: 2}
+  - {fileID: 11400000, guid: 788e8bd76b023a54bbb13e924f7eb8f8, type: 2}

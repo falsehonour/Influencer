@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b6afed888306604caa1c1786b2e3ca7, type: 3}
+  m_Name: Boy_Feet0
+  m_EditorClassIdentifier: 
+  characterPieces:
+  - {fileID: 11400000, guid: 5664c9a4e43aef64985a09728c243cff, type: 2}
+  linkedButtonBehaviours:
+  - {fileID: 11400000, guid: c3eb40d394dcc2f44adef2b222fc50fb, type: 2}
+  - {fileID: 11400000, guid: d785301b8cf28a346865e0e9c5a508e2, type: 2}
+  - {fileID: 11400000, guid: 9c4e468907497fd458fbcd299a8dcfe0, type: 2}
+  - {fileID: 11400000, guid: 00d8ef6d6375c8646960c60b146ab6d3, type: 2}
+  icon: {fileID: 0}

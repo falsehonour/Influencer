@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b6afed888306604caa1c1786b2e3ca7, type: 3}
+  m_Name: Boy_Hair_HairOptions
+  m_EditorClassIdentifier: 
+  characterPieceParts: []
+  linkedButtonBehaviours:
+  - {fileID: 11400000, guid: 4b0105b809965b2478183a166488e93e, type: 2}
+  - {fileID: 11400000, guid: 5ef94758627613a45b93caee82fba1f2, type: 2}
+  - {fileID: 11400000, guid: 96c96f4b7b90f8f4587648eb42347d5a, type: 2}
+  icon: {fileID: 0}

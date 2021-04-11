@@ -6,7 +6,6 @@ namespace CharacterCreation
 {
     public class Character : MonoBehaviour
     {
-        [SerializeField] private CharacterCreationUtility characterCreationUtility;
 
         [SerializeField] private Transform myTransform;
         [SerializeField] private Transform root;
@@ -52,6 +51,11 @@ namespace CharacterCreation
         public void EquipCharacterPiece(CharacterPiece characterPiece)
         {
             Debug.Log("EquipCharacterPiece");
+            if (!initialised)
+            {
+                Debug.LogError("Character has not initialised yet!");
+            }
+
             if (characterPiece is CharacterMesh)
             {
                 EquipMesh((CharacterMesh)characterPiece);
@@ -80,20 +84,12 @@ namespace CharacterCreation
                 Debug.LogError(mesh.name + " has no categories associated with it!");
                 return;
             }
-            Renderer renderer = null;
-
-            string requiredName = null;
-            CharacterCreationUtility.CharacterMeshNameRequirement[] characterPieceNameRequirements =
-                characterCreationUtility.CharacterPieceNameRequirements;
-            for (int i = 0; i < characterPieceNameRequirements.Length; i++)
+            if (bones == null)
             {
-                //TODO: this does not cover meshes that belong to multiple categories yet
-                if (mesh.Categories == characterPieceNameRequirements[i].category)
-                {
-                    requiredName = characterPieceNameRequirements[i].name;
-                    break;
-                }
+                Debug.LogError("bones == null");
             }
+            Renderer renderer = null;
+            string requiredName = CharacterCreationReferencer.NameRequirements.GetRequiredMeshName(mesh.Categories);
 
             if (mesh is CharacterStaticMesh)
             {

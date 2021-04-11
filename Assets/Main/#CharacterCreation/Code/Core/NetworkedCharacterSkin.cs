@@ -18,13 +18,14 @@ namespace CharacterCreation
             for (int i = 0; i < initialMeshes.Length; i++)
             {
                 CharacterMesh mesh = initialMeshes[i];
-                byte? meshIndex = CharacterPieceRefferences.GetCharacterMeshIndex(mesh);
-                if(meshIndex != null)
+                // byte? meshIndex = CharacterPieceReferences.GetCharacterMeshIndex(mesh);
+                byte? meshIndex = CharacterCreationReferencer.PieceRefferences.GetCharacterMeshIndex(mesh);
+                if (meshIndex != null)
                 {
                     indexes[i] = (byte)meshIndex;
                 }
-               // string path = mesh.name;//  AssetDatabase.GetAssetPath(mesh); //; PrefabUtility.path(initialMeshes[0]);
-               //paths[i] = path;
+                // string path = mesh.name;//  AssetDatabase.GetAssetPath(mesh); //; PrefabUtility.path(initialMeshes[0]);
+                //paths[i] = path;
             }
 
             Cmd_BroadcastSkin(indexes);
@@ -42,7 +43,9 @@ namespace CharacterCreation
             initialMeshes = new CharacterMesh[meshesIndexes.Length];
             for (int i = 0; i < meshesIndexes.Length; i++)
             {
-                CharacterMesh mesh = CharacterPieceRefferences.GetCharacterMesh(meshesIndexes[i]);
+               // CharacterMesh mesh = CharacterPieceReferences.GetCharacterMesh(meshesIndexes[i]);
+                CharacterMesh mesh = CharacterCreationReferencer.PieceRefferences.GetCharacterMesh(meshesIndexes[i]);
+
                 initialMeshes[i] = mesh;
             }
 
@@ -63,6 +66,10 @@ namespace CharacterCreation
             }
         }
 
+        private void Start()
+        {
+            character.Initialise();
+        }
         /*private void RebuildCharacterFromEquippedPieces()
         {
             for (int i = 0; i < equippedMeshesByMeshCategory.Length; i++)

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Boy_Hair1
   m_EditorClassIdentifier: 
   categories: 4
-  meshRenderer: {fileID: 7450837282533149884, guid: d4d87063334b367449f8bba7c9ea4f0c,
+  renderer: {fileID: 7450837282533149884, guid: d4d87063334b367449f8bba7c9ea4f0c,
     type: 3}
   parentName: head
   transformOffset:

@@ -8,7 +8,6 @@ public class UVManipulator : MonoBehaviour
     [SerializeField] private float uvMultiplier;
     [SerializeField] private Mesh[] meshes;
     
-
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.M))

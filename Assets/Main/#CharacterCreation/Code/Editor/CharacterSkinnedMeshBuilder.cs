@@ -37,7 +37,7 @@ namespace CharacterCreation
                 bonesNames[i] = bones[i].name;
             }
 
-            characterSkinnedMesh.SetSkinnedMesh(skinnedMesh, skinnedMesh.rootBone.name, bonesNames);
+            characterSkinnedMesh.SetSkinnedMesh(skinnedMesh.rootBone.name, bonesNames);
             EditorUtility.SetDirty(characterSkinnedMesh);
         }
     }

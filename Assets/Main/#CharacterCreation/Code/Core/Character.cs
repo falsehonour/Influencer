@@ -88,20 +88,22 @@ namespace CharacterCreation
             {
                 Debug.LogError("bones == null");
             }
+
             Renderer renderer = null;
-            string requiredName = CharacterCreationReferencer.NameRequirements.GetRequiredMeshName(mesh.Categories);
-
-            if (mesh is CharacterStaticMesh)
+            if (mesh.Renderer != null)
             {
-                CharacterStaticMesh characterStaticMesh = (CharacterStaticMesh)mesh;
-                if (characterStaticMesh.MeshRenderer != null)
+                renderer = Instantiate(mesh.Renderer);
+                //Making sure the object has its correct name so that the animator recognises it in case it's animated
+                string requiredName = CharacterCreationReferencer.NameRequirements.GetRequiredMeshName(mesh.Categories);
+                if (requiredName != null)
                 {
-                    renderer = Instantiate(characterStaticMesh.MeshRenderer);
-                    if (requiredName != null)
-                    {
-                        renderer.name = requiredName;
-                    }
+                    renderer.name = requiredName;
+                }
 
+                if (mesh is CharacterStaticMesh)
+                {
+                    CharacterStaticMesh characterStaticMesh = (CharacterStaticMesh)mesh;
+                         
                     Transform parent = null;
                     foreach (Transform bone in bones)
                     {
@@ -116,33 +118,20 @@ namespace CharacterCreation
                         Debug.LogError($"No object by the name {characterStaticMesh.ParentName} was found inside characterBones");
                         return;
                     }
-
+                   
                     Transform meshRendererTransform = renderer.transform;
                     meshRendererTransform.SetParent(parent);
                     TransformProperties offset = characterStaticMesh.TransformOffset;
                     meshRendererTransform.localPosition = offset.position;
                     meshRendererTransform.localRotation = offset.rotation;
                     meshRendererTransform.localScale = offset.scale;
+                         
                 }
-                else
+                else if (mesh is CharacterSkinnedMesh)
                 {
-                    Debug.Log("Mesh is null, no mesh will be instantiated");
-                }
-            }
-            else if (mesh is CharacterSkinnedMesh)
-            {
-                CharacterSkinnedMesh characterSkinnedMesh = (CharacterSkinnedMesh)mesh;
+                    CharacterSkinnedMesh characterSkinnedMesh = (CharacterSkinnedMesh)mesh;
+                    SkinnedMeshRenderer skinnedMeshRenderer = (SkinnedMeshRenderer)renderer;
 
-                if (characterSkinnedMesh.SkinnedMesh != null)
-                {
-                    SkinnedMeshRenderer skinnedMeshRenderer = Instantiate(characterSkinnedMesh.SkinnedMesh);
-                    renderer = skinnedMeshRenderer;
-                    //Making sure the object has its correct name so that the animator recognises it in case it's animated
-                    //skinnedMeshRenderer.name = characterSkinnedMesh.SkinnedMesh.name;
-                    if (requiredName != null)
-                    {
-                        skinnedMeshRenderer.name = requiredName;
-                    }
                     Transform parent = myTransform;
                     skinnedMeshRenderer.transform.SetParent(parent);
                     Transform[] newBones = skinnedMeshRenderer.bones;
@@ -179,16 +168,18 @@ namespace CharacterCreation
                             break;
                         }
                     }
+                    
                 }
                 else
                 {
-                    Debug.Log("SkinnedMesh is null, no mesh will be instantiated");
+                    Debug.LogError("The piece part is neither a CharacterSkinnedMesh nor a CharacterStaticMesh!");
                 }
             }
             else
             {
-                Debug.LogError("The piece part is neither a CharacterSkinnedMesh nor a CharacterStaticMesh!");
+                Debug.Log("Mesh is null, no mesh will be instantiated");
             }
+
 
             //Making sure the aanimator recognises the changes we make
             animator.Rebind();
@@ -199,14 +190,27 @@ namespace CharacterCreation
 
                 for (int i = 0; i < length; i++)
                 {
+
                     MeshCategories categoryIndex = (MeshCategories)(0b1 << i);
                     if ((meshCategories & categoryIndex) != 0)
                     {
+                        if(equippedMeshesByMeshCategory[i] != null)
+                        {
+                            MeshCategories overlappingCategories =
+                                ((equippedMeshesByMeshCategory[i].Categories ^ meshCategories) & equippedMeshesByMeshCategory[i].Categories);
+                            for (int j = 0; j < length; j++)
+                            {
+                                if(equippedMeshesByMeshCategory[j] != null  && (equippedMeshesByMeshCategory[j].Categories & overlappingCategories) != 0)
+                                {
+                                    equippedMeshesByMeshCategory[j] = null;
+                                }
+                            }
+                        }
                         equippedMeshesByMeshCategory[i] = mesh;
+
                         if (characterRenderersByMeshCategory[i] != null)
                         {
                             Destroy(characterRenderersByMeshCategory[i].gameObject);
-                            //
                         }
                         characterRenderersByMeshCategory[i] = renderer;
                     }

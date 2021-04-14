@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Boy_Legs0
   m_EditorClassIdentifier: 
   categories: 32
-  skinnedMesh: {fileID: 9167672763217173439, guid: efcc60f891d7a684082fa3479b950a07,
+  renderer: {fileID: 9167672763217173439, guid: efcc60f891d7a684082fa3479b950a07,
     type: 3}
   rootName: pelvis
   bones:

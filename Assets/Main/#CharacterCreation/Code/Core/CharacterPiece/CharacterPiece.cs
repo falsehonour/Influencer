@@ -13,10 +13,11 @@ namespace CharacterCreation
         Body =     0b_0000_0001,
         HeadWear = 0b_0000_0010, 
         Hair =     0b_0000_0100, 
-        Eyebrows = 0b_0000_1000,
         Torso =    0b_0001_0000,
+        Eyebrows = 0b_0000_1000,
         Legs =     0b_0010_0000,
         Feet =     0b_0100_0000, 
+        FullBody = Torso | Legs,
         /*Last = 0b1000000,*/ Length = 7
     }
 
@@ -24,6 +25,9 @@ namespace CharacterCreation
     {
         [SerializeField] private MeshCategories categories;
         public MeshCategories Categories => categories;
+        [SerializeField] protected Renderer renderer;
+        public Renderer Renderer => renderer;
+
     }
     #endregion
 

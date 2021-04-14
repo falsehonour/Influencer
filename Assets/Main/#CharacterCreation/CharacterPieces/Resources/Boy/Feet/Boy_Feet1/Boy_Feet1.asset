@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Boy_Feet1
   m_EditorClassIdentifier: 
   categories: 64
-  skinnedMesh: {fileID: 5650161044479603420, guid: 1b22b3a296a99f648aa2ff25143472b3,
+  renderer: {fileID: 5650161044479603420, guid: 1b22b3a296a99f648aa2ff25143472b3,
     type: 3}
   rootName: calf_l
   bones:

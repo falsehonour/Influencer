@@ -13,14 +13,14 @@ namespace CharacterCreation
         }
 
         private CharacterStaticMesh characterStaticMesh;
-        private MeshRenderer meshRenderer;
+        private Renderer renderer;
 
         private void OnGUI()
         {
             characterStaticMesh = EditorGUILayout.ObjectField
                 ("Target CharacterStaticMesh", characterStaticMesh, typeof(CharacterStaticMesh), true) as CharacterStaticMesh;
-            meshRenderer = EditorGUILayout.ObjectField
-                ("Mesh Renderer", meshRenderer, typeof(MeshRenderer), true) as MeshRenderer;
+            renderer = EditorGUILayout.ObjectField
+                ("Renderer", renderer, typeof(Renderer), true) as Renderer;
 
             if (GUILayout.Button("Set Target CharacterStaticMesh Fields"))
             {
@@ -32,7 +32,7 @@ namespace CharacterCreation
         {
            // GameObject prefab = EditorUtility.FindPrefabRoot(meshRenderer.gameObject); // PrefabUtility.FindPrefabRoot(meshRenderer.gameObject);
             
-            Transform meshRendererTransform = meshRenderer.transform;
+            Transform meshRendererTransform = renderer.transform;
             TransformProperties transformOffset = new TransformProperties
             {
                 position = meshRendererTransform.localPosition,
@@ -40,8 +40,7 @@ namespace CharacterCreation
                 scale = meshRendererTransform.localScale
             };
 
-            characterStaticMesh.SetFields
-                (meshRenderer, meshRendererTransform.parent.name, transformOffset);
+            characterStaticMesh.SetFields(meshRendererTransform.parent.name, transformOffset);
             EditorUtility.SetDirty(characterStaticMesh);
         }
     }

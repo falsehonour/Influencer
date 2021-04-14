@@ -6,20 +6,30 @@ namespace CharacterCreation
 {
     public class CharacterCreationManager : MonoBehaviour
     {
+        [System.Serializable]
+        private class CharacterBaseProperties
+        {
+            public Character characterPreFab;
+            public CharacterMesh[] initialMeshes;
+            public CharacterMeshModifier[] initialMeshModifiers;
+            public ButtonBehaviour[] initialButtonBehaviours;
+        }
 
-        [SerializeField] private Character character;
-        [SerializeField] private CharacterMesh[] initialMeshes;
-        [SerializeField] private CharacterMeshModifier[] initialMeshModifiers;
+        [SerializeField] private CharacterBaseProperties[] characterBases;
+        private int currentCharacterBaseIndex = 0;
+        private static Character character;
+
+        /* [SerializeField] private Character character;
+         [SerializeField] private CharacterMesh[] initialMeshes;
+         [SerializeField] private CharacterMeshModifier[] initialMeshModifiers;*/
 
         //[SerializeField] private List <CharacterPiece> initialPieceParts;
-
         /*[SerializeField] private CharacterPiece[] allCharacterPieces;
         private static CharacterPiece[][] characterPiecesByCategory;
         [SerializeField] private CharacterMorph[] allCharacterMorphs;
         private static CharacterMorph[][] characterMorphsByCategory;*/
 
         private static ButtonBehaviour lastClickedButtonBehaviour;
-        [SerializeField] private ButtonBehaviour[] initialButtonBehaviours;
         #region GUI
         [Header("GUI")]
         [SerializeField] private CharacterCreationButton[] leftPanelButtons;
@@ -31,40 +41,49 @@ namespace CharacterCreation
         void Start()
         {
             instance = this;
-            Initialise();
-        }
-
-        private void Initialise()
-        {
             InitialiseCharacter();
-            InitialiseGUI();
         }
 
         private void InitialiseCharacter()
         {
+
+            if (character != null)
+            {
+                Destroy(character.gameObject);
+            }
+
+            CharacterBaseProperties characterBaseProperties = characterBases[currentCharacterBaseIndex];
+
+            character = Instantiate(characterBaseProperties.characterPreFab);
+            character.transform.position = Vector3.zero;
+            character.transform.rotation = Quaternion.identity;
             character.Initialise();
-            for (int i = 0; i < initialMeshes.Length; i++)
+
+            for (int i = 0; i < characterBaseProperties.initialMeshes.Length; i++)
             {
-                EquipCharacterPiece(initialMeshes[i]);
+                character.EquipCharacterPiece(characterBaseProperties.initialMeshes[i]);
             }
-            for (int i = 0; i < initialMeshModifiers.Length; i++)
+            for (int i = 0; i < characterBaseProperties.initialMeshModifiers.Length; i++)
             {
-                EquipCharacterPiece(initialMeshModifiers[i]);
+                character.EquipCharacterPiece(characterBaseProperties.initialMeshModifiers[i]);
             }
+
+            ShowButtons(leftPanelButtons, characterBaseProperties.initialButtonBehaviours, false);
+            ShowButtons(rightPanelButtons, new ButtonBehaviour[0], false);
         }
 
-        private static void EquipCharacterPiece(CharacterPiece characterPiece)
+        public void SwitchCharacter()
         {
-            instance.character.EquipCharacterPiece(characterPiece);
+            currentCharacterBaseIndex++;
+            if (currentCharacterBaseIndex >= characterBases.Length)
+            {
+                currentCharacterBaseIndex = 0;
+            }
+
+            InitialiseCharacter();
         }
 
         #region GUI:
-        private void InitialiseGUI()
-        {
-            // Debug.Log("Initialise GUI Panels");
-            ShowButtons(leftPanelButtons, initialButtonBehaviours, false);
-            ShowButtons(rightPanelButtons, new ButtonBehaviour[0], false);
-        }
 
         public static void OnButtonClicked(ButtonBehaviour buttonBehaviour)
         {
@@ -83,7 +102,7 @@ namespace CharacterCreation
                 //Debug.Log("characterPieces.Length " + characterPieces.Length);
                 for (int i = 0; i < characterPieces.Length; i++)
                 {
-                    EquipCharacterPiece(characterPieces[i]);
+                   character.EquipCharacterPiece(characterPieces[i]);
                 }
             }
 
@@ -99,9 +118,9 @@ namespace CharacterCreation
             for (byte i = 0; i < buttons.Length; i++)
             {
                 CharacterCreationButton button = buttons[i];
-
+                
                 if (i < buttonBehaviours.Length)
-                {
+                {                   
                     button.gameObject.SetActive(true);
                     button.Initialise(buttonBehaviours[i]);
                 }

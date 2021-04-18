@@ -19,7 +19,7 @@ namespace CharacterCreation
             {
                 CharacterMesh mesh = initialMeshes[i];
                 // byte? meshIndex = CharacterPieceReferences.GetCharacterMeshIndex(mesh);
-                byte? meshIndex = CharacterCreationReferencer.PieceRefferences.GetCharacterMeshIndex(mesh);
+                byte? meshIndex = CharacterCreationReferencer.References.GetCharacterMeshIndex(mesh);
                 if (meshIndex != null)
                 {
                     indexes[i] = (byte)meshIndex;
@@ -40,7 +40,8 @@ namespace CharacterCreation
         [ClientRpc]
         private void Rpc_EquipSkin(byte[] meshesIndexes)
         {
-            initialMeshes = new CharacterMesh[meshesIndexes.Length];
+            Debug.LogError("Not implemented!");
+           /* initialMeshes = new CharacterMesh[meshesIndexes.Length];
             for (int i = 0; i < meshesIndexes.Length; i++)
             {
                // CharacterMesh mesh = CharacterPieceReferences.GetCharacterMesh(meshesIndexes[i]);
@@ -52,7 +53,7 @@ namespace CharacterCreation
             for (int i = 0; i < initialMeshes.Length; i++)
             {
                 character.EquipCharacterPiece(initialMeshes[i]);
-            }
+            }*/
         }
 
         private void Update()

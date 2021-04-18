@@ -1,8 +1,7 @@
 ﻿using UnityEngine;
-using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
-using CharacterCreation;
+
 public static class SaveAndLoadManager 
 {
     private static string BuildSaveFilePath(string fileName)
@@ -13,7 +12,7 @@ public static class SaveAndLoadManager
         return path;
     }
 
-    public static ISavable Load<T>(T data) where T : ISavable
+    public static T Load<T>(T data) where T : class, ISavable
     {      
         string path = BuildSaveFilePath(data.GetSaveFileName());
         if (File.Exists(path))

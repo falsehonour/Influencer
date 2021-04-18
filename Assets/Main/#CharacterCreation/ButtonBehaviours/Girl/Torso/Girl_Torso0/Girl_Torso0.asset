@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b6afed888306604caa1c1786b2e3ca7, type: 3}
+  m_Name: Girl_Torso0
+  m_EditorClassIdentifier: 
+  characterPieces:
+  - {fileID: 11400000, guid: 6e2a515d60a18414cbc31a2b3c2539d2, type: 2}
+  linkedButtonBehaviours:
+  - {fileID: 11400000, guid: fc1eea99abba15e4f8c71353ec3ae6ea, type: 2}
+  - {fileID: 11400000, guid: 522a5fd07502771448f7d40c7bbd5d0a, type: 2}
+  icon: {fileID: 0}

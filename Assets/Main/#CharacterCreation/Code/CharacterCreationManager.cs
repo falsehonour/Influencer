@@ -6,16 +6,8 @@ namespace CharacterCreation
 {
     public class CharacterCreationManager : MonoBehaviour
     {
-        [System.Serializable]
-        private class CharacterBaseProperties
-        {
-            public Character characterPreFab;
-            public CharacterMesh[] initialMeshes;
-            public CharacterMeshModifier[] initialMeshModifiers;
-            public ButtonBehaviour[] initialButtonBehaviours;
-        }
 
-        [SerializeField] private CharacterBaseProperties[] characterBases;
+        [SerializeField] private Character[] characterPreFabs;
         private int currentCharacterBaseIndex = 0;
         private static Character character;
 
@@ -41,46 +33,70 @@ namespace CharacterCreation
         void Start()
         {
             instance = this;
-            InitialiseCharacter();
+
+            // LocalPlayerData.Initialise();
+
+            PlayerSkinData playerSkinData = SaveAndLoadManager.Load<PlayerSkinData>(new PlayerSkinData());
+
+            InitialiseCharacter(playerSkinData);
         }
 
-        private void InitialiseCharacter()
+        private void InitialiseCharacter(PlayerSkinData skinData)
         {
 
             if (character != null)
             {
                 Destroy(character.gameObject);
             }
-
-            CharacterBaseProperties characterBaseProperties = characterBases[currentCharacterBaseIndex];
-
-            character = Instantiate(characterBaseProperties.characterPreFab);
+            if (skinData != null)
+            {
+                Character preFab = CharacterCreationReferencer.References.GetCharacterPreFab(skinData.characterPrefabIndex);
+                for (byte i = 0; i < characterPreFabs.Length; i++)
+                {
+                    if(preFab == characterPreFabs[i])
+                    {
+                        currentCharacterBaseIndex = i;
+                    }
+                }
+            }
+            character = Instantiate(characterPreFabs[currentCharacterBaseIndex]);
             character.transform.position = Vector3.zero;
             character.transform.rotation = Quaternion.identity;
             character.Initialise();
 
-            for (int i = 0; i < characterBaseProperties.initialMeshes.Length; i++)
+            if (skinData != null)
             {
-                character.EquipCharacterPiece(characterBaseProperties.initialMeshes[i]);
+                for (int i = 0; i < skinData.meshIndexes.Length; i++)
+                {
+                    character.EquipCharacterPiece(CharacterCreationReferencer.References.GetCharacterMesh(skinData.meshIndexes[i]));
+                }
+                for (int i = 0; i < skinData.meshModifierIndexes.Length; i++)
+                {
+                    character.EquipCharacterPiece(CharacterCreationReferencer.References.GetCharacterMeshModifier(skinData.meshModifierIndexes[i]));
+                }
             }
-            for (int i = 0; i < characterBaseProperties.initialMeshModifiers.Length; i++)
-            {
-                character.EquipCharacterPiece(characterBaseProperties.initialMeshModifiers[i]);
-            }
-
-            ShowButtons(leftPanelButtons, characterBaseProperties.initialButtonBehaviours, false);
+            character.TryEquipFallbackPieces();
+            ShowButtons(leftPanelButtons, character.BaseProperties.initialButtonBehaviours, false);
             ShowButtons(rightPanelButtons, new ButtonBehaviour[0], false);
         }
 
         public void SwitchCharacter()
         {
             currentCharacterBaseIndex++;
-            if (currentCharacterBaseIndex >= characterBases.Length)
+            if (currentCharacterBaseIndex >= characterPreFabs.Length)
             {
                 currentCharacterBaseIndex = 0;
             }
 
-            InitialiseCharacter();
+            InitialiseCharacter(null);
+        }
+
+        public void SaveCharacter()
+        {
+            PlayerSkinData playerSkinData = PlayerSkinData.CreatePlayerSkinData
+                (characterPreFabs[currentCharacterBaseIndex], character.equippedMeshesByMeshCategory, character.equippedMeshModifiersByMeshModifierCategory);
+
+            SaveAndLoadManager.Save<PlayerSkinData>(playerSkinData);
         }
 
         #region GUI:
@@ -104,6 +120,7 @@ namespace CharacterCreation
                 {
                    character.EquipCharacterPiece(characterPieces[i]);
                 }
+                character.TryEquipFallbackPieces();
             }
 
             ButtonBehaviour[] linkedButtonBehaviours = buttonBehaviour.LinkedButtonBehaviours;

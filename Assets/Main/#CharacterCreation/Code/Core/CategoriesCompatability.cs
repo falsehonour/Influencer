@@ -58,6 +58,8 @@
            new CompatabilityBlock(MeshModifierCategories.EyebrowsTextures, MeshCategories.Eyebrows),
            new CompatabilityBlock(MeshModifierCategories.EyebrowsMorph, MeshCategories.Eyebrows),
            new CompatabilityBlock(MeshModifierCategories.LegsTextures, MeshCategories.Legs),
+           new CompatabilityBlock(MeshModifierCategories.EyeColourTextures, MeshCategories.Body),
+
         };
     }
 }

@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65805055832fc1a41ac3020ea7523f8f, type: 3}
+  m_Name: Girl_Torso0_Texture1
+  m_EditorClassIdentifier: 
+  categories: 512
+  compatibleMeshes:
+  - {fileID: 11400000, guid: 6e2a515d60a18414cbc31a2b3c2539d2, type: 2}
+  materialTextures:
+  - texture2D: {fileID: 2800000, guid: 117d203293420f9458bc7ed83dcfd213, type: 3}
+    colour:
+      serializedVersion: 2
+      rgba: 4294967295
+    materialIndex: 0

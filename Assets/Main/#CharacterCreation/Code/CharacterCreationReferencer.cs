@@ -7,8 +7,8 @@ namespace CharacterCreation
         private static CharacterCreationReferencer instance;
         [SerializeField] private CharacterMeshNameRequirements nameRequirements;
         public static CharacterMeshNameRequirements NameRequirements => instance.nameRequirements;
-        [SerializeField] private CharacterPieceReferences pieceRefferences;
-        public static CharacterPieceReferences PieceRefferences => instance.pieceRefferences;
+        [SerializeField] private CharacterReferences references;
+        public static CharacterReferences References => instance.references;
 
         private void Awake()
         {

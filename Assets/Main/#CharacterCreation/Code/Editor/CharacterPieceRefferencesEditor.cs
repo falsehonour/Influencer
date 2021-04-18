@@ -3,13 +3,13 @@ using UnityEditor;
 
 namespace CharacterCreation
 {
-    [CustomEditor(typeof(CharacterPieceReferences))]
+    [CustomEditor(typeof(CharacterReferences))]
     public class CharacterPieceRefferencesEditor : Editor
     {
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
-            CharacterPieceReferences script = (CharacterPieceReferences)target;
+            CharacterReferences script = (CharacterReferences)target;
 
             if (GUILayout.Button("Update Refferences", GUILayout.Height(40)))
             {

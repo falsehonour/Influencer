@@ -44,4 +44,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   nameRequirements: {fileID: 11400000, guid: 16f70dd59e062d944b35ae5159037e59, type: 2}
-  pieceRefferences: {fileID: 11400000, guid: 00484bbbd18aee7448a4207e54488b86, type: 2}
+  references: {fileID: 11400000, guid: 00484bbbd18aee7448a4207e54488b86, type: 2}

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,21 +7,18 @@ namespace CharacterCreation
 {
     public class Character : MonoBehaviour
     {
-
+        [SerializeField] private CharacterBaseProperties baseProperties;
+        public CharacterBaseProperties BaseProperties => baseProperties;
         [SerializeField] private Transform myTransform;
         [SerializeField] private Transform root;
-        [SerializeField] private CharacterMesh[] equippedMeshesByMeshCategory;
-        [SerializeField] private CharacterMeshModifier[] equippedMeshModifiersByMeshModifierCategory;
+        public CharacterMesh[] equippedMeshesByMeshCategory;
+        public CharacterMeshModifier[] equippedMeshModifiersByMeshModifierCategory;
         private Renderer[] characterRenderersByMeshCategory;
 
         private Transform[] bones;
         [SerializeField] private Animator animator;
         private MaterialPropertyBlock materialPropertyBlock;
         private bool initialised = false;
-        private void Start()
-        {
-            //Initialise();
-        }
 
         public void Initialise()
         {
@@ -50,7 +48,7 @@ namespace CharacterCreation
 
         public void EquipCharacterPiece(CharacterPiece characterPiece)
         {
-            Debug.Log("EquipCharacterPiece");
+
             if (!initialised)
             {
                 Debug.LogError("Character has not initialised yet!");
@@ -59,15 +57,110 @@ namespace CharacterCreation
             if (characterPiece is CharacterMesh)
             {
                 EquipMesh((CharacterMesh)characterPiece);
+                RemoveUnusedModifiers();
             }
             else if (characterPiece is CharacterMeshModifier)
             {
-                EquipMeshModifier((CharacterMeshModifier)characterPiece);
+                TryEquipMeshModifier((CharacterMeshModifier)characterPiece);
             }
             else
             {
                 Debug.LogError("Tried to equip a null CharacterPiece");
             }
+        }
+
+        public void TryEquipFallbackPieces()
+        {
+            //Meshes:
+            {
+                CharacterMesh[] fallbackMeshes = baseProperties.fallbackMeshes;
+
+                MeshCategories equippedMeshCategories = 0;
+
+                for (int i = 0; i < equippedMeshesByMeshCategory.Length; i++)
+                {
+                    if (equippedMeshesByMeshCategory[i] != null)
+                    {
+                        equippedMeshCategories |= (MeshCategories)(0b1 << i);
+                    }
+                }
+                for (int i = 0; i < fallbackMeshes.Length; i++)
+                {
+                    MeshCategories fallbackMeshCategories = fallbackMeshes[i].Categories;
+
+                    //if (~(equippedMeshCategories ^ fallbackMeshCategories) == 0)
+                    if ((equippedMeshCategories & fallbackMeshCategories) == 0)
+                    {
+                        EquipMesh(fallbackMeshes[i]);
+                        equippedMeshCategories |= fallbackMeshCategories;
+                    }
+                }
+
+                //Empty category check
+                {
+                    string missingCategories = "";
+                    for (int i = 0; i < (int)MeshCategories.Length; i++)
+                    {
+                        MeshCategories category = ((MeshCategories)(0b1 << i));
+                        if ((equippedMeshCategories & category) == 0)
+                        {
+                            missingCategories += category.ToString() + ", ";
+                        }
+                    }
+                    if (missingCategories != "")
+                    {
+                        Debug.LogWarning("Missing mesh categories post-TryEquipFallbackPieces: " + missingCategories);
+                    }
+
+                }
+            }
+
+            //Modifiers:
+            {
+                CharacterMeshModifier[] fallbackModifiers = baseProperties.fallbackMeshModifiers;
+
+                MeshModifierCategories equippedModifierCategories = 0;
+
+                for (int i = 0; i < equippedMeshModifiersByMeshModifierCategory.Length; i++)
+                {
+                    if (equippedMeshModifiersByMeshModifierCategory[i] != null)
+                    {
+                        equippedModifierCategories |= (MeshModifierCategories)(0b1 << i);
+                    }
+                }
+                for (int i = 0; i < fallbackModifiers.Length; i++)
+                {
+                    MeshModifierCategories fallbackCategories = fallbackModifiers[i].Categories;
+
+                    if ((equippedModifierCategories & fallbackCategories) == 0)
+                    {
+                        if(TryEquipMeshModifier(fallbackModifiers[i]))
+                        {
+                            equippedModifierCategories |= fallbackCategories;
+                        }
+                    }
+                }
+
+
+                //Empty category check
+                {
+                    string missingCategories = "";
+                    for (int i = 0; i < (int)MeshModifierCategories.Length; i++)
+                    {
+                        MeshModifierCategories category = ((MeshModifierCategories)(0b1 << i));
+                        if ((equippedModifierCategories & category) == 0)
+                        {
+                            missingCategories += category.ToString() + ", ";
+                        }
+                    }
+                    if (missingCategories != "")
+                    {
+                        Debug.LogWarning("Missing modifier categories post-TryEquipFallbackPieces: " + missingCategories);
+                    }
+
+                }
+            }
+
         }
 
         private void EquipMesh(CharacterMesh mesh)
@@ -124,7 +217,7 @@ namespace CharacterCreation
                     TransformProperties offset = characterStaticMesh.TransformOffset;
                     meshRendererTransform.localPosition = offset.position;
                     meshRendererTransform.localRotation = offset.rotation;
-                    meshRendererTransform.localScale = offset.scale;
+                    meshRendererTransform.localScale =    offset.scale;
                          
                 }
                 else if (mesh is CharacterSkinnedMesh)
@@ -196,6 +289,8 @@ namespace CharacterCreation
                     {
                         if(equippedMeshesByMeshCategory[i] != null)
                         {
+                            //Wouldn't it be simpler to do a for loop on equippedMeshesByMeshCategory 
+                            //and nullify any equippedMeshesByMeshCategory[i] we find ?
                             MeshCategories overlappingCategories =
                                 ((equippedMeshesByMeshCategory[i].Categories ^ meshCategories) & equippedMeshesByMeshCategory[i].Categories);
                             for (int j = 0; j < length; j++)
@@ -217,7 +312,13 @@ namespace CharacterCreation
                 }
             }
 
-            List<CharacterMeshModifier> compatibleModifiers = GetCompatableModifiers(mesh);
+            ApplyCompatibleModifiers(mesh, renderer);
+        }
+
+        private void ApplyCompatibleModifiers(CharacterMesh mesh, Renderer renderer)
+        {
+
+            List<CharacterMeshModifier> compatibleModifiers = GetCompatibleEquippedModifiers(mesh);
             string report = null;
             if (compatibleModifiers.Count == 0)
             {
@@ -243,37 +344,40 @@ namespace CharacterCreation
             Debug.Log(report);
         }
 
-        private void EquipMeshModifier(CharacterMeshModifier modifier)
+        private void RemoveUnusedModifiers()
+        {
+            for (int i = 0; i < equippedMeshModifiersByMeshModifierCategory.Length; i++)
+            {
+                CharacterMeshModifier modifier = equippedMeshModifiersByMeshModifierCategory[i];
+                if (modifier != null)
+                {
+                    if (!HasCompatibleEquippedMeshes(modifier))
+                    {
+                        Debug.LogWarning("Removing a modifier that has no compatible meshes");
+                        equippedMeshModifiersByMeshModifierCategory[i] = null;
+                    }
+                }
+
+            }
+        }
+
+        private bool TryEquipMeshModifier(CharacterMeshModifier modifier)
         {
             if (modifier.Categories == 0)
             {
                 Debug.LogError("Modifier has no categories associated with it!");
-                return;
+                return false;
             }
             List<Renderer> compatibleRenderers = GetCompatableRenderers(modifier);
-
-            //Replace modifier:
-            {
-                MeshModifierCategories modifierCategories = modifier.Categories;
-                int length = (int)MeshModifierCategories.Length;
-                for (int i = 0; i < length; i++)
-                {
-                    MeshModifierCategories categoryIndex = (MeshModifierCategories)(0b1 << i);
-                    if ((modifierCategories & categoryIndex) != 0)
-                    {
-                        equippedMeshModifiersByMeshModifierCategory[i] = modifier;
-                    }
-                }
-            }
+            int modifiedMeshes = 0;
 
             string warning = null;
             if (compatibleRenderers.Count == 0)
             {
-                warning = "No compatibleRenderers detected. Modifier was equipped without effecting existing meshes";
+                warning = $"No compatibleRenderers detected for {modifier.name}.";
             }
             else
             {
-                int modifiedMeshes = 0;
                 for (int i = 0; i < compatibleRenderers.Count; i++)
                 {
                     Renderer renderer = compatibleRenderers[i];
@@ -285,12 +389,49 @@ namespace CharacterCreation
 
                 if (modifiedMeshes == 0)
                 {
-                    warning = "No meshes were despite there being compatible renderers.";
+                    warning = $"No meshes were found despite there being compatible renderers for {modifier.name}.";
                 }
             }
             if (warning != null)
             {
                 Debug.LogWarning(warning);
+            }
+
+            //Replace modifier:
+            if(modifiedMeshes > 0)
+            {
+                MeshModifierCategories modifierCategories = modifier.Categories;
+                int length = (int)MeshModifierCategories.Length;
+                for (int i = 0; i < length; i++)
+                {
+                    MeshModifierCategories categoryIndex = (MeshModifierCategories)(0b1 << i);
+                    if ((modifierCategories & categoryIndex) != 0)
+                    {
+                        //Wouldn't it be simpler to do a for loop on equippedMeshesByMeshCategory 
+                        //and nullify any equippedMeshesByMeshCategory[i] we find ?
+                        if(equippedMeshModifiersByMeshModifierCategory[i] != null)
+                        {
+                            MeshModifierCategories overlappingCategories =
+                               ((equippedMeshModifiersByMeshModifierCategory[i].Categories ^ modifierCategories) 
+                                 & equippedMeshModifiersByMeshModifierCategory[i].Categories);
+                            for (int j = 0; j < length; j++)
+                            {
+                                if (equippedMeshModifiersByMeshModifierCategory[j] != null && 
+                                    (equippedMeshModifiersByMeshModifierCategory[j].Categories & overlappingCategories) != 0)
+                                {
+                                    equippedMeshModifiersByMeshModifierCategory[j] = null;
+                                }
+                            }
+                        }
+                       
+                        equippedMeshModifiersByMeshModifierCategory[i] = modifier;
+                    }
+                }
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
 
@@ -306,6 +447,11 @@ namespace CharacterCreation
                 {
                     CharacterTextures.MaterialTexture materialTexture = materialTextures[j];
                     int materialIndex = materialTexture.materialIndex;
+                    if(materialIndex < 0 || materialIndex >= renderer.materials.Length)
+                    {
+                        Debug.LogError("Illegal material index!");
+                        continue;
+                    }
                     renderer.GetPropertyBlock(materialPropertyBlock, materialIndex);
                     Texture texture = materialTexture.texture2D != null ? materialTexture.texture2D : Texture2D.whiteTexture;
                     materialPropertyBlock.SetTexture("_MainTex", texture);
@@ -341,14 +487,14 @@ namespace CharacterCreation
         #endregion
 
         #region Compatibility:
-        private List<Renderer> GetCompatableRenderers(CharacterMeshModifier modifier)
+
+        private bool HasCompatibleEquippedMeshes(CharacterMeshModifier modifier)
         {
             List<Renderer> compatibleRenderers = new List<Renderer>();
 
             CharacterMesh[] modifierCompatibleMeshes = modifier.CompatibleMeshes;
             if (modifierCompatibleMeshes == null || modifierCompatibleMeshes.Length == 0)
             {
-                Debug.LogWarning("compatibleRenderers is empty or nonexistent. Resorting to check compatability by categories.");
                 MeshCategories compatibleMeshCategories = CategoriesCompatability.GetCompatableMeshCategories(modifier.Categories);
                 for (int i = 0; i < equippedMeshesByMeshCategory.Length; i++)
                 {
@@ -356,7 +502,7 @@ namespace CharacterCreation
                     {
                         if ((equippedMeshesByMeshCategory[i].Categories & compatibleMeshCategories) != 0)
                         {
-                            compatibleRenderers.Add(characterRenderersByMeshCategory[i]);
+                            return true;
                         }
                     }
                 }
@@ -371,6 +517,46 @@ namespace CharacterCreation
                         {
                             if (equippedMeshesByMeshCategory[j] == modifierCompatibleMeshes[i])
                             {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private List<Renderer> GetCompatableRenderers(CharacterMeshModifier modifier)
+        {
+            List<Renderer> compatibleRenderers = new List<Renderer>();
+
+            CharacterMesh[] modifierCompatibleMeshes = modifier.CompatibleMeshes;
+            if (modifierCompatibleMeshes == null || modifierCompatibleMeshes.Length == 0)
+            {
+                Debug.LogWarning("compatibleRenderers is empty or nonexistent. Resorting to check compatability by categories.");
+                MeshCategories compatibleMeshCategories = CategoriesCompatability.GetCompatableMeshCategories(modifier.Categories);
+                for (int i = 0; i < equippedMeshesByMeshCategory.Length; i++)
+                {
+                    if (equippedMeshesByMeshCategory[i] != null)
+                    {
+                        if ((equippedMeshesByMeshCategory[i].Categories & compatibleMeshCategories) != 0 && characterRenderersByMeshCategory[i] != null)
+                        {
+                            compatibleRenderers.Add(characterRenderersByMeshCategory[i]);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 0; i < modifierCompatibleMeshes.Length; i++)
+                {
+                    for (int j = 0; j < equippedMeshesByMeshCategory.Length; j++)
+                    {
+                        if (equippedMeshesByMeshCategory[j] != null)
+                        {
+                            if (equippedMeshesByMeshCategory[j] == modifierCompatibleMeshes[i] && characterRenderersByMeshCategory[i] != null)
+                            {
                                 compatibleRenderers.Add(characterRenderersByMeshCategory[j]);
                             }
                         }
@@ -378,10 +564,30 @@ namespace CharacterCreation
                 }
             }
 
+            //Cleanup
+            {
+                //Debug.Log("Pre-clenup compatibleRenderers.Count:" + compatibleRenderers.Count);
+                for (int i = 0; i < compatibleRenderers.Count - 1; i++)
+                {
+                    for (int j = i + 1; j < compatibleRenderers.Count;)
+                    {
+                        if (compatibleRenderers[i] == compatibleRenderers[j])
+                        {
+                            compatibleRenderers.RemoveAt(j);
+                        }
+                        else
+                        {
+                            j++;
+                        }
+                    }
+                }
+               // Debug.Log("Post-clenup compatibleRenderers.Count:" + compatibleRenderers.Count);
+            }
+
             return compatibleRenderers;
         }
 
-        private List<CharacterMeshModifier> GetCompatableModifiers(CharacterMesh characterMesh)
+        private List<CharacterMeshModifier> GetCompatibleEquippedModifiers(CharacterMesh characterMesh)
         {
             List<CharacterMeshModifier> compatibleModifiers = new List<CharacterMeshModifier>();
 
@@ -396,7 +602,7 @@ namespace CharacterCreation
                     CharacterMesh[] modifierCompatibleMeshes = modifier.CompatibleMeshes;
                     if (modifierCompatibleMeshes == null || modifierCompatibleMeshes.Length == 0)
                     {
-                        Debug.LogWarning("compatibleRenderers is empty or nonexistent. Resorting to check compatability by categories.");
+                        //Debug.LogWarning("compatibleRenderers is empty or nonexistent. Resorting to check compatability by categories.");
                         //MeshCategories compatibleMeshCategories = CategoriesCompatability.GetCompatableMeshCategories(modifier.Categories);
 
                         if ((modifier.Categories & compatibleModifierCategories) != 0)
@@ -416,11 +622,32 @@ namespace CharacterCreation
                         }
                     }
 
+                    //TODO: We can check if the modifier exists in the list here instead of cleanin up afterwards
                     if (modifierIsCompatible)
                     {
                         compatibleModifiers.Add(modifier);
                     }
                 }
+            }
+ 
+            //Cleanup
+            {
+                //Debug.Log("Pre-clenup compatibleModifiers.Count:" + compatibleModifiers.Count);
+                for (int i = 0; i < compatibleModifiers.Count - 1; i++)
+                {
+                    for (int j = i + 1; j < compatibleModifiers.Count;)
+                    {
+                        if (compatibleModifiers[i] == compatibleModifiers[j])
+                        {
+                            compatibleModifiers.RemoveAt(j);
+                        }
+                        else
+                        {
+                            j++;
+                        }
+                    }
+                }
+               // Debug.Log("Post-clenup compatibleModifiers.Count:" + compatibleModifiers.Count);
             }
 
             return compatibleModifiers;

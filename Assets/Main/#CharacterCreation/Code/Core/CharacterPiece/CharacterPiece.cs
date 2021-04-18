@@ -46,9 +46,11 @@ namespace CharacterCreation
         FeetTextures =       0b_0000_0000_1000_0000,
         LegsTextures =       0b_0000_0001_0000_0000,
         TorsoTextures =      0b_0000_0010_0000_0000,
+        EyeColourTextures =  0b_0000_0100_0000_0000,
+        FullBodyTextures = LegsTextures | TorsoTextures,
 
         /*Last = 0b10000000,*/
-        Length = 10
+        Length = 12
     }
 
     public abstract class CharacterMeshModifier : CharacterPiece

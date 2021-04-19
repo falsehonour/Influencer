@@ -8,11 +8,15 @@ namespace CharacterCreation
         [SerializeField] private Image icon;
 
         private ButtonBehaviour behaviour;
-
-        public void Initialise(ButtonBehaviour behaviour)
+        private CharacterCreationPanel panel;
+        public void Initialise(ButtonBehaviour behaviour, CharacterCreationPanel panel)
         {
+            //TODO: Check if this only compiles on editor
+#if UNITY_EDITOR
             gameObject.name = behaviour.name;
+#endif
             this.behaviour = behaviour;
+            this.panel = panel;
             DrawGraphics();
         }
 
@@ -28,7 +32,7 @@ namespace CharacterCreation
 
         public virtual void OnClick()
         {
-            CharacterCreationManager.OnButtonClicked(behaviour);
+            CharacterCreationManager.OnButtonClicked(behaviour, panel);
         }
     }
 }

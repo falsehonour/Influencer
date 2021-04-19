@@ -8,26 +8,13 @@ namespace CharacterCreation
     {
 
         [SerializeField] private Character[] characterPreFabs;
-        private int currentCharacterBaseIndex = 0;
+        private static int currentCharacterBaseIndex = 0;
         private static Character character;
 
-        /* [SerializeField] private Character character;
-         [SerializeField] private CharacterMesh[] initialMeshes;
-         [SerializeField] private CharacterMeshModifier[] initialMeshModifiers;*/
-
-        //[SerializeField] private List <CharacterPiece> initialPieceParts;
-        /*[SerializeField] private CharacterPiece[] allCharacterPieces;
-        private static CharacterPiece[][] characterPiecesByCategory;
-        [SerializeField] private CharacterMorph[] allCharacterMorphs;
-        private static CharacterMorph[][] characterMorphsByCategory;*/
-
         private static ButtonBehaviour lastClickedButtonBehaviour;
-        #region GUI
-        [Header("GUI")]
-        [SerializeField] private CharacterCreationButton[] leftPanelButtons;
-        [SerializeField] private CharacterCreationButton[] rightPanelButtons;
 
-        #endregion
+        [SerializeField] private CharacterCreationPanel leftPanel;
+        [SerializeField] private CharacterCreationPanel rightPanel;
         private static CharacterCreationManager instance;
 
         void Start()
@@ -76,8 +63,8 @@ namespace CharacterCreation
                 }
             }
             character.TryEquipFallbackPieces();
-            ShowButtons(leftPanelButtons, character.BaseProperties.initialButtonBehaviours, false);
-            ShowButtons(rightPanelButtons, new ButtonBehaviour[0], false);
+            leftPanel.Initialise(character.BaseProperties.initialButtonBehaviours, false);
+            rightPanel.Initialise(new ButtonBehaviour[0], false);
         }
 
         public void SwitchCharacter()
@@ -101,7 +88,7 @@ namespace CharacterCreation
 
         #region GUI:
 
-        public static void OnButtonClicked(ButtonBehaviour buttonBehaviour)
+        public static void OnButtonClicked(ButtonBehaviour buttonBehaviour, CharacterCreationPanel buttonPanel)
         {
             if(buttonBehaviour == lastClickedButtonBehaviour)
             {
@@ -126,34 +113,12 @@ namespace CharacterCreation
             ButtonBehaviour[] linkedButtonBehaviours = buttonBehaviour.LinkedButtonBehaviours;
             if (linkedButtonBehaviours != null && linkedButtonBehaviours.Length > 0)
             {
-                instance.ShowButtons(instance.rightPanelButtons, linkedButtonBehaviours, false);
+                CharacterCreationPanel rightPanel = instance.rightPanel;
+                rightPanel.Initialise(linkedButtonBehaviours, (rightPanel == buttonPanel));
             }
         }
 
-        private void ShowButtons(CharacterCreationButton[] buttons, ButtonBehaviour[] buttonBehaviours, bool addBackButton)
-        {
-            for (byte i = 0; i < buttons.Length; i++)
-            {
-                CharacterCreationButton button = buttons[i];
-                
-                if (i < buttonBehaviours.Length)
-                {                   
-                    button.gameObject.SetActive(true);
-                    button.Initialise(buttonBehaviours[i]);
-                }
-                else
-                {
-                    button.gameObject.SetActive(false);
-                }
-            }
-            if (addBackButton)
-            {
-                return; //TODO: Add functionality
-               /* CharacterCreationButton backButton = buttons[buttonBehaviours.Length];
-                backButton.gameObject.SetActive(true);
-                backButton.Initialise(TextReverser.Reverse("חזור"), piece.Category);*/
-            }
-        }
+        
         #endregion
 
     }

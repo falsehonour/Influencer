@@ -11,7 +11,6 @@ namespace CharacterCreation
         private static int currentCharacterBaseIndex = 0;
         private static Character character;
 
-        private static ButtonBehaviour lastClickedButtonBehaviour;
 
         [SerializeField] private CharacterCreationPanel leftPanel;
         [SerializeField] private CharacterCreationPanel rightPanel;
@@ -63,8 +62,8 @@ namespace CharacterCreation
                 }
             }
             character.TryEquipFallbackPieces();
-            leftPanel.Initialise(character.BaseProperties.initialButtonBehaviours, false);
-            rightPanel.Initialise(new ButtonBehaviour[0], false);
+            leftPanel.Initialise(character.BaseProperties.initialButtonBehaviours,this, rightPanel);
+            rightPanel.Initialise(new ButtonBehaviour[0], this, rightPanel);
         }
 
         public void SwitchCharacter()
@@ -88,15 +87,8 @@ namespace CharacterCreation
 
         #region GUI:
 
-        public static void OnButtonClicked(ButtonBehaviour buttonBehaviour, CharacterCreationPanel buttonPanel)
+        public void OnButtonClicked(ButtonBehaviour buttonBehaviour)
         {
-            if(buttonBehaviour == lastClickedButtonBehaviour)
-            {
-                Debug.LogWarning("Tried to click the same object more than once in a row. Aborting");
-                return;
-            }
-
-            lastClickedButtonBehaviour = buttonBehaviour;
 
             CharacterPiece[] characterPieces = buttonBehaviour.CharacterPieces;
 
@@ -109,16 +101,7 @@ namespace CharacterCreation
                 }
                 character.TryEquipFallbackPieces();
             }
-
-            ButtonBehaviour[] linkedButtonBehaviours = buttonBehaviour.LinkedButtonBehaviours;
-            if (linkedButtonBehaviours != null && linkedButtonBehaviours.Length > 0)
-            {
-                CharacterCreationPanel rightPanel = instance.rightPanel;
-                rightPanel.Initialise(linkedButtonBehaviours, (rightPanel == buttonPanel));
-            }
-        }
-
-        
+        }     
         #endregion
 
     }

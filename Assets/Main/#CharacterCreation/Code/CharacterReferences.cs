@@ -73,8 +73,9 @@ namespace CharacterCreation
             {
                 Debug.LogError("one of your collections has a lenghth greater/equal to byte.MaxValue!");
             }
-
+#if UNITY_EDITOR
             UnityEditor.EditorUtility.SetDirty(this);
+#endif
         }
     }
 }

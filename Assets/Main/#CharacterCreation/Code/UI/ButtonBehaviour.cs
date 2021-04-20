@@ -5,6 +5,7 @@ namespace CharacterCreation
     [CreateAssetMenu(fileName = "ButtonBehaviour", menuName = "Character Creation/ButtonBehaviour")]
     public class ButtonBehaviour : ScriptableObject
     {
+
         [SerializeField] private CharacterPiece[] characterPieces;
         public CharacterPiece[] CharacterPieces => characterPieces;
         [SerializeField] private ButtonBehaviour[] linkedButtonBehaviours;

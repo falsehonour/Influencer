@@ -22,21 +22,21 @@ namespace CharacterCreation
 
             // LocalPlayerData.Initialise();
 
-            PlayerSkinData playerSkinData = SaveAndLoadManager.Load<PlayerSkinData>(new PlayerSkinData());
+            PlayerSkinDataHolder playerSkinData = SaveAndLoadManager.Load<PlayerSkinDataHolder>(new PlayerSkinDataHolder());
 
             InitialiseCharacter(playerSkinData);
         }
 
-        private void InitialiseCharacter(PlayerSkinData skinData)
+        private void InitialiseCharacter(PlayerSkinDataHolder skinDataHolder)
         {
 
             if (character != null)
             {
                 Destroy(character.gameObject);
             }
-            if (skinData != null)
+            if (skinDataHolder != null)
             {
-                Character preFab = CharacterCreationReferencer.References.GetCharacterPreFab(skinData.characterPrefabIndex);
+                Character preFab = CharacterCreationReferencer.References.GetCharacterPreFab(skinDataHolder.data.characterPrefabIndex);
                 for (byte i = 0; i < characterPreFabs.Length; i++)
                 {
                     if(preFab == characterPreFabs[i])
@@ -50,8 +50,9 @@ namespace CharacterCreation
             character.transform.rotation = Quaternion.identity;
             character.Initialise();
 
-            if (skinData != null)
+            if (skinDataHolder != null)
             {
+                PlayerSkinDataHolder.Data skinData = skinDataHolder.data;
                 for (int i = 0; i < skinData.meshIndexes.Length; i++)
                 {
                     character.EquipCharacterPiece(CharacterCreationReferencer.References.GetCharacterMesh(skinData.meshIndexes[i]));
@@ -66,23 +67,28 @@ namespace CharacterCreation
             rightPanel.Initialise(new ButtonBehaviour[0], this, rightPanel);
         }
 
-        public void SwitchCharacter()
+        public void SwitchCharacter(int indexModifier)
         {
-            currentCharacterBaseIndex++;
+
+            currentCharacterBaseIndex += indexModifier;
             if (currentCharacterBaseIndex >= characterPreFabs.Length)
             {
                 currentCharacterBaseIndex = 0;
             }
-
+            else if(currentCharacterBaseIndex < 0)
+            {
+                currentCharacterBaseIndex = characterPreFabs.Length -1;
+            }
+            //TODO: going out of bounds will not give the results one might expect
             InitialiseCharacter(null);
         }
 
         public void SaveCharacter()
         {
-            PlayerSkinData playerSkinData = PlayerSkinData.CreatePlayerSkinData
+            PlayerSkinDataHolder playerSkinDataHolder = PlayerSkinDataHolder.CreatePlayerSkinData
                 (characterPreFabs[currentCharacterBaseIndex], character.equippedMeshesByMeshCategory, character.equippedMeshModifiersByMeshModifierCategory);
 
-            SaveAndLoadManager.Save<PlayerSkinData>(playerSkinData);
+            SaveAndLoadManager.Save<PlayerSkinDataHolder>(playerSkinDataHolder);
         }
 
         #region GUI:

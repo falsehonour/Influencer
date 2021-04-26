@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using Mirror;
@@ -22,6 +20,7 @@ public class PlayerController : NetworkBehaviour
         public RepeatingTimer healthReductionTimer;
         public RepeatingTimer nearbyPlayersDetectionTimer;
         public SingleCycleTimer trapTimer;
+        public SingleCycleTimer freezeTimer;
 
         public PlayerServerData()
         {
@@ -29,6 +28,8 @@ public class PlayerController : NetworkBehaviour
             healthReductionTimer = new RepeatingTimer(HEALTH_LOSS_INTERVAL);
             nearbyPlayersDetectionTimer = new RepeatingTimer(NEARBY_PLAYERS_DETECTION_INTERVAL);
             trapTimer = new SingleCycleTimer();
+            freezeTimer = new SingleCycleTimer();
+
         }
     }
 
@@ -55,6 +56,8 @@ public class PlayerController : NetworkBehaviour
     private Vector3[] pathWayPoints;
     private int pathWayPointsCount;
     private Vector3 currentWayPoint;
+
+
     private int currentPathIndex;
     private InteractableAccessPoint desiredInteractableAccessPoint;
     private bool PathFindingIsActive
@@ -76,13 +79,22 @@ public class PlayerController : NetworkBehaviour
     [SerializeField] private GameObject hashTag;
     [SyncVar(hook = nameof(OnCanTagChange))] private bool canTag;
     [SerializeField] private GameObject tagButton;
+    [SyncVar(hook = nameof(OnIsFrozenChanged))] private bool isFrozen;
     #endregion
     #region Health:
     [SyncVar(hook = nameof(OnHealthChanged))] private byte health;
     [SerializeField] private TMPro.TextMeshPro healthGUI;
     #endregion
+    [SerializeField] CharacterCreation.NetworkedCharacterSkin skin;
     public static PlayerController localPlayerController;
-    
+    public static List<PlayerController> allPlayers = new List<PlayerController>();
+
+    [Server]
+    public static void AddPlayer(PlayerController player)
+    {
+        allPlayers.Add(player);
+    }
+
 
     private void Start()
     {
@@ -92,9 +104,11 @@ public class PlayerController : NetworkBehaviour
         {
             Server_Initialise();
         }
+
         if (isLocalPlayer)
         {
             localPlayerController = this;
+
             pathCache = new NavMeshPath();
             pathWayPoints = new Vector3[16];
             joystick = FindObjectOfType<Joystick>();
@@ -103,42 +117,57 @@ public class PlayerController : NetworkBehaviour
             characterCamera.Initialise(myTransform, cameraAnchor.localPosition, cameraAnchor.rotation);
             camera = characterCamera.GetComponent<Camera>();
 
-            Cmd_SetTagger(GameManager.Tagger);
+            //Cmd_SetTagger(GameManager.Tagger);
         }
         else
         {
             hashTag.SetActive(tagger);
         }
+
+        skin.Initialise();
+
     }
 
     [Server]
     private void Server_Initialise()
     {
+
         serverData = new PlayerServerData();
-        PlayerManager.AddPlayer(this);
+        AddPlayer(this);
+        SetTagger(allPlayers.Count == 1);
         health = PlayerServerData.MAX_HEALTH;
         maxMovementSpeed = PlayerServerData.MAX_HEALTHY_MOVEMENT_SPEED;
+
     }
 
     #region Tagging:
-    [Command]
+
+    /*[Command]
     private void Cmd_SetTagger(bool value)
     {
         SetTagger(value);
-    }
+    }*/
 
     [Server]
     private void SetTagger(bool value)
     {
-        if(value)
+        tagger = value;
+
+        if (value)
         {
             serverData.healthReductionTimer.Reset();
         }
-        tagger = value;
-        if (!value)
+        else
         {
             canTag = false;
         }
+    }
+
+    [Server]
+    private void Freeze()
+    {
+        isFrozen = true;
+        serverData.freezeTimer.Start(3);//HARDCODED
     }
 
     [Client]
@@ -167,11 +196,11 @@ public class PlayerController : NetworkBehaviour
             List<PlayerController> playersInRange = serverData.playersInRange;
             playersInRange.Clear();
             Vector3 myPosition = myTransform.position;
-            List<PlayerController> players = PlayerManager.allPlayers;
+            
             //bool playerFound = false;
-            for (int i = 0; i < players.Count; i++)
+            for (int i = 0; i < allPlayers.Count; i++)
             {
-                PlayerController playerController = players[i];
+                PlayerController playerController = allPlayers[i];
                 if (playerController != null && playerController != this)
                 {
                     float squaredDistance = Vector3.SqrMagnitude
@@ -185,8 +214,7 @@ public class PlayerController : NetworkBehaviour
             }
 
             canTag = playersInRange.Count > 0;
-        }
-        
+        }     
     }
 
     [Server]
@@ -202,6 +230,12 @@ public class PlayerController : NetworkBehaviour
     private void OnHealthChanged (byte oldHealth, byte newHealth)
     {
         healthGUI.text = newHealth.ToString();
+    }
+
+    [Client]
+    private void OnIsFrozenChanged(bool oldValue, bool newValue)
+    {
+        healthGUI.color = (newValue ? Color.blue : Color.green);
     }
 
     [Client]
@@ -222,7 +256,9 @@ public class PlayerController : NetworkBehaviour
             return;
         }
 
-        serverData.playersInRange[0].SetTagger(true);
+        PlayerController nextTagger = serverData.playersInRange[0];
+        nextTagger.Freeze();
+        nextTagger.SetTagger(true);
         SetTagger(false);
     }
     #endregion
@@ -260,10 +296,21 @@ public class PlayerController : NetworkBehaviour
         {
             if (tagger)
             {
-                HandleNearbyPlayersDetection(deltaTime);
-                if (health > 0)
+                if (isFrozen)
                 {
-                    HandleTaggerHealthReduction(deltaTime);
+                   bool unFreeze = serverData.freezeTimer.Update(deltaTime);
+                   if (unFreeze)
+                   {
+                        isFrozen = false;
+                   }
+                }
+                else
+                {
+                    HandleNearbyPlayersDetection(deltaTime);
+                    if (health > 0)
+                    {
+                        HandleTaggerHealthReduction(deltaTime);
+                    }
                 }
             }
             if (serverData.trapTimer.IsActive)
@@ -313,7 +360,7 @@ public class PlayerController : NetworkBehaviour
         Vector3 movement = new Vector3();
         //Debug.Log($"Vertical: {verticalInput.ToString("f2")}  + Horizontal: {horizontalInput.ToString("f2")}");
 
-        if (verticalInput != 0 || horizontalInput != 0)
+        if ( (!isFrozen) && (verticalInput != 0 || horizontalInput != 0))
         {
             Vector3 inputVector3 = new Vector3(horizontalInput, 0, verticalInput);
             desiredRotation = Quaternion.LookRotation(inputVector3);
@@ -387,7 +434,10 @@ public class PlayerController : NetworkBehaviour
             velocityPercentage = 0;
         }
         //Debug.Log($"velocitySquaredMagnitude: {velocitySquaredMagnitude.ToString("f2")}");
-        animator.SetFloat("Speed", velocityPercentage);
+        if(animator != null)
+        {
+            animator.SetFloat("Speed", velocityPercentage);
+        }
 
         characterController.Move(velocity * deltaTime);
 
@@ -470,6 +520,10 @@ public class PlayerController : NetworkBehaviour
     }
     #endregion
 
+    public void SetAnimator(Animator animator)
+    {
+        this.animator = animator;
+    }
 
     private void OnTriggerEnter(Collider other)
     {

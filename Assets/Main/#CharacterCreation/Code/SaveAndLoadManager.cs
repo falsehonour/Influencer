@@ -20,10 +20,20 @@ public static class SaveAndLoadManager
             BinaryFormatter binaryFormatter = new BinaryFormatter();
             FileStream fileStream = File.Open(path, FileMode.Open);
             //T savedData = new ;
-            data = (T)binaryFormatter.Deserialize(fileStream);
-            fileStream.Close();
             Debug.Log("Loading from " + path);
-            return data;
+
+            object obj = binaryFormatter.Deserialize(fileStream);
+            if(obj is T)
+            {
+                data = (T)obj;
+                fileStream.Close();
+                return data;
+            }
+            else
+            {
+                Debug.LogError("Load Failed! The file was found but did not to the type of "+ typeof(T).ToString());
+                Debug.LogError(path);
+            }
         }
         return null;
     }

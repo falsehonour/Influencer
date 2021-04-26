@@ -653,7 +653,10 @@ namespace CharacterCreation
             return compatibleModifiers;
         }
 
-
+        public Animator GetAnimator()
+        {
+            return animator;
+        }
         /*private static bool IsCompatible(CharacterMeshModifier modifier,CharacterMesh mesh)
         {
             CharacterMesh[] modifierCompatibleMeshes = modifier.CompatibleMeshes;

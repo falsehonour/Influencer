@@ -6,19 +6,28 @@ using System.Collections.Generic;
 namespace CharacterCreation
 {
     [Serializable]
-    public class PlayerSkinData : ISavable
+    public class PlayerSkinDataHolder : ISavable
     {
-        public byte characterPrefabIndex;
-        public byte[] meshIndexes;
-        public byte[] meshModifierIndexes;
-
-        public PlayerSkinData() { }
-
-        public PlayerSkinData(byte characterPrefabIndex, byte[] meshIndexes, byte[] meshModifierIndexes)
+        [Serializable]
+        public struct Data
         {
-            this.characterPrefabIndex = characterPrefabIndex;
-            this.meshIndexes = meshIndexes;
-            this.meshModifierIndexes = meshModifierIndexes;
+            public byte characterPrefabIndex;
+            public byte[] meshIndexes;
+            public byte[] meshModifierIndexes;
+            public Data(byte characterPrefabIndex, byte[] meshIndexes, byte[] meshModifierIndexes)
+            {
+                this.characterPrefabIndex = characterPrefabIndex;
+                this.meshIndexes = meshIndexes;
+                this.meshModifierIndexes = meshModifierIndexes;
+            }
+        }
+        public Data data;
+
+        public PlayerSkinDataHolder() { }
+
+        public PlayerSkinDataHolder(byte characterPrefabIndex, byte[] meshIndexes, byte[] meshModifierIndexes)
+        {
+            data = new Data(characterPrefabIndex, meshIndexes, meshModifierIndexes);
         }
 
         public string GetSaveFileName()
@@ -26,7 +35,7 @@ namespace CharacterCreation
             return "player_skin";
         }
 
-        public static PlayerSkinData CreatePlayerSkinData(Character characterPreFab, CharacterMesh[] meshes, CharacterMeshModifier[] modifiers)
+        public static PlayerSkinDataHolder CreatePlayerSkinData(Character characterPreFab, CharacterMesh[] meshes, CharacterMeshModifier[] modifiers)
         {
             CharacterReferences references = CharacterCreationReferencer.References;
             byte characterPrefabIndex = (byte)references.GetCharacterPreFabIndex(characterPreFab);
@@ -55,13 +64,13 @@ namespace CharacterCreation
                 }
             }
 
-            return new PlayerSkinData(characterPrefabIndex, meshIndexes.ToArray(), modifierIndexes.ToArray());
+            return new PlayerSkinDataHolder(characterPrefabIndex, meshIndexes.ToArray(), modifierIndexes.ToArray());
         }
 
     }
 }
 
-public static class LocalPlayerData
+/*public static class LocalPlayerData
 {
     private static PlayerSkinData skinData;
 
@@ -72,7 +81,7 @@ public static class LocalPlayerData
         {
             Debug.LogError("skinData == null");
         }
-    }
+    }*/
 
 
    /* public static void SaveChanges()
@@ -83,5 +92,5 @@ public static class LocalPlayerData
     public static LocalPlayerData LoadSavedData()
     {
        return SaveAndLoadManager.LoadPlayerSavedData();
-    }*/
-}
+    }
+}*/

@@ -8,86 +8,137 @@ namespace CharacterCreation
     public class NetworkedCharacterSkin : NetworkBehaviour
     {
 
-        [SerializeField] private CharacterMesh[] initialMeshes;
-        [SerializeField] private CharacterMeshModifier[] initialMeshModifiers;
         [SerializeField] private Character character;
-
-        private void BroadcastSkin()
-        {
-            byte[] indexes = new byte[initialMeshes.Length];
-            for (int i = 0; i < initialMeshes.Length; i++)
-            {
-                CharacterMesh mesh = initialMeshes[i];
-                // byte? meshIndex = CharacterPieceReferences.GetCharacterMeshIndex(mesh);
-                byte? meshIndex = CharacterCreationReferencer.References.GetCharacterMeshIndex(mesh);
-                if (meshIndex != null)
-                {
-                    indexes[i] = (byte)meshIndex;
-                }
-                // string path = mesh.name;//  AssetDatabase.GetAssetPath(mesh); //; PrefabUtility.path(initialMeshes[0]);
-                //paths[i] = path;
-            }
-
-            Cmd_BroadcastSkin(indexes);
-        }
+        private PlayerSkinDataHolder.Data serverCachedSkinData;
 
         [Command]
-        private void Cmd_BroadcastSkin(byte[] meshesIndexes)
+        private void Cmd_DownloadSkin(PlayerSkinDataHolder.Data skinData)
         {
-            Rpc_EquipSkin(meshesIndexes);
+            serverCachedSkinData = skinData;
+            if(serverCachedSkinData.meshIndexes == null || serverCachedSkinData.meshModifierIndexes == null)
+            {
+                Debug.LogError("skinData.meshIndexes == null || skinData.meshModifierIndexes == null");
+            }
+            Debug.Log("Cmd_DownloadSkin");
+            //Rpc_EquipSkin(skinData);
         }
 
-        [ClientRpc]
-        private void Rpc_EquipSkin(byte[] meshesIndexes)
+        private void EquipSkin(ref PlayerSkinDataHolder.Data skinData)
         {
-            Debug.LogError("Not implemented!");
-           /* initialMeshes = new CharacterMesh[meshesIndexes.Length];
-            for (int i = 0; i < meshesIndexes.Length; i++)
+            if (character != null)
             {
-               // CharacterMesh mesh = CharacterPieceReferences.GetCharacterMesh(meshesIndexes[i]);
-                CharacterMesh mesh = CharacterCreationReferencer.PieceRefferences.GetCharacterMesh(meshesIndexes[i]);
-
-                initialMeshes[i] = mesh;
+                Destroy(character.gameObject);
             }
-
-            for (int i = 0; i < initialMeshes.Length; i++)
+            Character preFab = CharacterCreationReferencer.References.GetCharacterPreFab(skinData.characterPrefabIndex);
+            character = Instantiate(preFab);
+            Transform characterTransform = character.transform;
+            characterTransform.SetParent(this.transform);
+            characterTransform.localPosition = Vector3.zero;
+            characterTransform.rotation = Quaternion.identity;
+            character.Initialise();
+            
+            for (int i = 0; i < skinData.meshIndexes.Length; i++)
             {
-                character.EquipCharacterPiece(initialMeshes[i]);
-            }*/
+                character.EquipCharacterPiece(CharacterCreationReferencer.References.GetCharacterMesh(skinData.meshIndexes[i]));
+            }
+            for (int i = 0; i < skinData.meshModifierIndexes.Length; i++)
+            {
+                character.EquipCharacterPiece(CharacterCreationReferencer.References.GetCharacterMeshModifier(skinData.meshModifierIndexes[i]));
+            }
+            character.TryEquipFallbackPieces();
+
+            //Animator references:
+            if(false)
+            {
+                Animator animator = character.GetAnimator();
+                if(animator != null)
+                {
+                    PlayerController playerController = GetComponent<PlayerController>();
+                    if(playerController != null)
+                    {
+                        playerController.SetAnimator(character.GetAnimator());
+                    }
+                    NetworkAnimator networkAnimator = GetComponent<NetworkAnimator>();
+                    if (networkAnimator != null)
+                    {
+                        networkAnimator.animator = animator;
+                    }
+                }
+            }
+        }
+
+        [Server]
+        private bool ServerCachedSkinDataInitialised()
+        {
+            return (serverCachedSkinData.meshIndexes != null && serverCachedSkinData.meshModifierIndexes != null);
+        }
+
+        [Command(ignoreAuthority = true)]
+        private void Cmd_SendSkin(NetworkConnectionToClient conn = null)
+        {
+            StartCoroutine(WaitForSkin(conn));    
+        }
+
+        [Server]
+        private IEnumerator WaitForSkin(NetworkConnectionToClient conn)
+        {
+            while (!ServerCachedSkinDataInitialised())
+            {
+                Debug.Log("Waiting for skin to be uploaded...");
+                yield return new WaitForSeconds(0.25f);
+            }
+            TargetRpc_EquipSkin(conn, serverCachedSkinData/*, new byte[16]*/);
+            
+        }
+
+        [TargetRpc]
+        private void TargetRpc_EquipSkin(NetworkConnection target, PlayerSkinDataHolder.Data skinData)
+        {
+           // Debug.LogError("testArray length: " + testArray.Length);
+
+            if (skinData.meshIndexes == null || skinData.meshModifierIndexes == null)
+            {
+                Debug.LogError("skinData.meshIndexes == null || skinData.meshModifierIndexes == null");
+            }
+            EquipSkin(ref skinData);
+        }
+
+        [Client]
+        public void Initialise()
+        {
+            if (isLocalPlayer)
+            {
+                PlayerSkinDataHolder.Data localSkinData = 
+                    SaveAndLoadManager.Load<PlayerSkinDataHolder>(new PlayerSkinDataHolder()).data;
+                Cmd_DownloadSkin(localSkinData);
+                EquipSkin(ref localSkinData);
+            }
+            else
+            {
+                /*Debug.Log("Initialise !isLocalPlayer");
+                // Cmd_SendSkin(this.netIdentity);*/
+                Cmd_SendSkin();
+
+            }
         }
 
         private void Update()
         {
-            //if (isLocalPlayer)
+            if (Input.GetKeyDown(KeyCode.S))
             {
-                if (Input.GetKeyDown(KeyCode.R))
+                //Debug.Log("serverCachedSkinData.meshIndexes == null ="+ serverCachedSkinData.meshIndexes == null);
+                if (!isLocalPlayer)
                 {
-                    BroadcastSkin();
-                }
-            }
-        }
+                    //Cmd_SendSkin(this.netIdentity);
+                    
+                    /*NetworkConnection conn = NetworkClient.tos ;
+                    this.netIdentity.
+                    Cmd_SendSkin((NetworkConnectionToClient)this.connectionToClient);*/
+                    Cmd_SendSkin();
 
-        private void Start()
-        {
-            character.Initialise();
+                }
+            }
         }
-        /*private void RebuildCharacterFromEquippedPieces()
-        {
-            for (int i = 0; i < equippedMeshesByMeshCategory.Length; i++)
-            {
-                if (equippedMeshesByMeshCategory[i] != null)
-                {
-                    EquipCharacterPiece(equippedMeshesByMeshCategory[i]);
-                }
-            }
-            for (int i = 0; i < equippedMeshModifiersByMeshModifierCategory.Length; i++)
-            {
-                if (equippedMeshModifiersByMeshModifierCategory[i] != null)
-                {
-                    EquipCharacterPiece(equippedMeshModifiersByMeshModifierCategory[i]);
-                }
-            }
-        }*/
 
     }
 }

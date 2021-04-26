@@ -14,4 +14,3 @@ namespace CharacterCreation
         public Sprite Icon => icon;
     }
 }
-

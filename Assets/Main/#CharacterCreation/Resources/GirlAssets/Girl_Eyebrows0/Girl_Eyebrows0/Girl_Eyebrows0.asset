@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cbe04ad90e3be3148ab4c334a6e53d1a, type: 3}
+  m_Name: Girl_Eyebrows0
+  m_EditorClassIdentifier: 
+  categories: 8
+  renderer: {fileID: 8391681830460142046, guid: c9e05eb5aa4d0d247a1b1e507cb866e2,
+    type: 3}
+  rootName: head
+  bones:
+  - head

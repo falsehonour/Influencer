@@ -15,6 +15,7 @@ MonoBehaviour:
   allCharacterPreFabs:
   - {fileID: 1810056552840752763, guid: 8a48997f8e03a974baf282effde8b701, type: 3}
   - {fileID: 7703304173854958031, guid: 4fe1802c3d6f1a349949a0a27f5e84b8, type: 3}
+  - {fileID: 3910250909956597060, guid: 7cfd410b582d3f84685d5231d3080112, type: 3}
   allCharacterMeshes:
   - {fileID: 11400000, guid: a50a8c548d28f7b47a5e5aaa451ae765, type: 2}
   - {fileID: 11400000, guid: 9492be609b0cf094a86a981e9ee2c7f3, type: 2}

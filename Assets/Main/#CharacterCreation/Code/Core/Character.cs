@@ -11,12 +11,13 @@ namespace CharacterCreation
         public CharacterBaseProperties BaseProperties => baseProperties;
         [SerializeField] private Transform myTransform;
         [SerializeField] private Transform root;
+        [SerializeField] private Animator animator;
+
         public CharacterMesh[] equippedMeshesByMeshCategory;
         public CharacterMeshModifier[] equippedMeshModifiersByMeshModifierCategory;
         private Renderer[] characterRenderersByMeshCategory;
 
         private Transform[] bones;
-        [SerializeField] private Animator animator;
         private MaterialPropertyBlock materialPropertyBlock;
         private bool initialised = false;
 
@@ -438,6 +439,7 @@ namespace CharacterCreation
         private bool ApplyModifierToRenderer(CharacterMeshModifier modifier, Renderer renderer)
         {
             bool succeeded = false;
+
             if (modifier is CharacterTextures)
             {
                 CharacterTextures characterTextures = (CharacterTextures)modifier;
@@ -447,7 +449,8 @@ namespace CharacterCreation
                 {
                     CharacterTextures.MaterialTexture materialTexture = materialTextures[j];
                     int materialIndex = materialTexture.materialIndex;
-                    if(materialIndex < 0 || materialIndex >= renderer.materials.Length)
+                    //NOTE: renderer.Materials.Length causes an instance of a modified material to be created!
+                    if (materialIndex < 0 || materialIndex >= renderer.sharedMaterials.Length)
                     {
                         Debug.LogError("Illegal material index!");
                         continue;

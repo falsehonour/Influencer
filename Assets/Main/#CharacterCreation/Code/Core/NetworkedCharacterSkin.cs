@@ -19,8 +19,6 @@ namespace CharacterCreation
             {
                 Debug.LogError("skinData.meshIndexes == null || skinData.meshModifierIndexes == null");
             }
-            Debug.Log("Cmd_DownloadSkin");
-            //Rpc_EquipSkin(skinData);
         }
 
         private void EquipSkin(ref PlayerSkinDataHolder.Data skinData)

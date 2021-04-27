@@ -8,7 +8,7 @@ public class PlayerController : NetworkBehaviour
     private class PlayerServerData
     {
         public const float MAX_HEALTHY_MOVEMENT_SPEED = 2.7f;
-        public const float MAX_TRAPPED__MOVEMENT_SPEED = 1f;
+        public const float MAX_TRAPPED_MOVEMENT_SPEED = 1f;
 
         public const float MIN_TAG_SQUARED_DISTANCE = 10f;
         public const byte MAX_HEALTH = 100;
@@ -94,7 +94,11 @@ public class PlayerController : NetworkBehaviour
     {
         allPlayers.Add(player);
     }
-
+    [Server]
+    public static void RemovePlayer(PlayerController player)
+    {
+        allPlayers.Remove(player);
+    }
 
     private void Start()
     {
@@ -119,10 +123,11 @@ public class PlayerController : NetworkBehaviour
 
             //Cmd_SetTagger(GameManager.Tagger);
         }
-        else
-        {
-            hashTag.SetActive(tagger);
-        }
+        /* else
+         {
+             hashTag.SetActive(tagger);
+         }*/
+        hashTag.SetActive(false);
 
         skin.Initialise();
 
@@ -134,7 +139,7 @@ public class PlayerController : NetworkBehaviour
 
         serverData = new PlayerServerData();
         AddPlayer(this);
-        SetTagger(allPlayers.Count == 1);
+       // SetTagger(allPlayers.Count == 1);
         health = PlayerServerData.MAX_HEALTH;
         maxMovementSpeed = PlayerServerData.MAX_HEALTHY_MOVEMENT_SPEED;
 
@@ -149,7 +154,7 @@ public class PlayerController : NetworkBehaviour
     }*/
 
     [Server]
-    private void SetTagger(bool value)
+    public void SetTagger(bool value)
     {
         tagger = value;
 
@@ -560,7 +565,7 @@ public class PlayerController : NetworkBehaviour
         else if(pickUp is Trap)
         {
             serverData.trapTimer.Start(PlayerServerData.TRAP_DURATION);
-            maxMovementSpeed = PlayerServerData.MAX_TRAPPED__MOVEMENT_SPEED;
+            maxMovementSpeed = PlayerServerData.MAX_TRAPPED_MOVEMENT_SPEED;
         }         
     }
 
@@ -576,5 +581,25 @@ public class PlayerController : NetworkBehaviour
     {
         Vector3 trapSpawnPosition = myTransform.position + (myTransform.forward * -1.1f);//HARDCODED
         Spawner.Spawn(Spawnables.Trap, trapSpawnPosition);
+    }
+
+    [TargetRpc]
+    public void TargetRpc_Teleport(Vector3 position, Quaternion rotation)
+    {
+        characterController.enabled = false;
+        myTransform.position = position;
+        myTransform.rotation = rotation;
+        characterController.enabled = true;
+
+    }
+
+    [Server]
+    private void OnDestroy()
+    {
+        RemovePlayer(this);
+        if (tagger)
+        {
+            GameManager.PromoteNewTagger();
+        }
     }
 }

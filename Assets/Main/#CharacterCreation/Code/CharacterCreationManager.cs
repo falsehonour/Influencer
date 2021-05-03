@@ -6,12 +6,10 @@ namespace CharacterCreation
 {
     public class CharacterCreationManager : MonoBehaviour
     {
-
-        [SerializeField] private Character[] characterPreFabs;
-        private static int currentCharacterBaseIndex = 0;
+        private static Character characterPreFab;
         private static Character character;
-
-
+        [SerializeField] private ButtonBehaviour characterSelectionButtonBehaviour;
+        [SerializeField] private ButtonBehaviour backButtonBehaviour;
         [SerializeField] private CharacterCreationPanel leftPanel;
         [SerializeField] private CharacterCreationPanel rightPanel;
         private static CharacterCreationManager instance;
@@ -19,7 +17,7 @@ namespace CharacterCreation
         void Start()
         {
             instance = this;
-
+            CharacterCreationButton.InitialiseBackButton(backButtonBehaviour);
             // LocalPlayerData.Initialise();
 
             PlayerSkinDataHolder playerSkinData = SaveAndLoadManager.Load<PlayerSkinDataHolder>(new PlayerSkinDataHolder());
@@ -27,25 +25,18 @@ namespace CharacterCreation
             InitialiseCharacter(playerSkinData);
         }
 
-        private void InitialiseCharacter(PlayerSkinDataHolder skinDataHolder)
+        private void InitialiseCharacter(PlayerSkinDataHolder skinDataHolder = null)
         {
-
+            //TODO: This function is kinda gross, should be split.
             if (character != null)
             {
                 Destroy(character.gameObject);
             }
             if (skinDataHolder != null)
             {
-                Character preFab = CharacterCreationReferencer.References.GetCharacterPreFab(skinDataHolder.data.characterPrefabIndex);
-                for (byte i = 0; i < characterPreFabs.Length; i++)
-                {
-                    if(preFab == characterPreFabs[i])
-                    {
-                        currentCharacterBaseIndex = i;
-                    }
-                }
+                characterPreFab = CharacterCreationReferencer.References.GetCharacterPreFab(skinDataHolder.data.characterPrefabIndex);
             }
-            character = Instantiate(characterPreFabs[currentCharacterBaseIndex]);
+            character = Instantiate(characterPreFab);
             character.transform.position = Vector3.zero;
             character.transform.rotation = Quaternion.identity;
             character.Initialise();
@@ -63,50 +54,57 @@ namespace CharacterCreation
                 }
             }
             character.TryEquipFallbackPieces();
-            leftPanel.Initialise(character.BaseProperties.initialButtonBehaviours,this, rightPanel);
-            rightPanel.Initialise(new ButtonBehaviour[0], this, rightPanel);
+            InitialisePanels();
         }
 
-        public void SwitchCharacter(int indexModifier)
-        {
 
-            currentCharacterBaseIndex += indexModifier;
-            if (currentCharacterBaseIndex >= characterPreFabs.Length)
-            {
-                currentCharacterBaseIndex = 0;
-            }
-            else if(currentCharacterBaseIndex < 0)
-            {
-                currentCharacterBaseIndex = characterPreFabs.Length -1;
-            }
-            //TODO: going out of bounds will not give the results one might expect
-            InitialiseCharacter(null);
-        }
 
         public void SaveCharacter()
         {
             PlayerSkinDataHolder playerSkinDataHolder = PlayerSkinDataHolder.CreatePlayerSkinData
-                (characterPreFabs[currentCharacterBaseIndex], character.equippedMeshesByMeshCategory, character.equippedMeshModifiersByMeshModifierCategory);
+                (characterPreFab, character.equippedMeshesByMeshCategory, character.equippedMeshModifiersByMeshModifierCategory);
 
             SaveAndLoadManager.Save<PlayerSkinDataHolder>(playerSkinDataHolder);
         }
 
         #region GUI:
 
+        private void InitialisePanels()
+        {
+            ButtonBehaviour[] characterInitialButtonBehaviours = character.BaseProperties.initialButtonBehaviours;
+            ButtonBehaviour[] leftPanelBehaviours = new ButtonBehaviour[characterInitialButtonBehaviours.Length + 1];
+            leftPanelBehaviours[0] = characterSelectionButtonBehaviour;
+            for (int i = 1; i < leftPanelBehaviours.Length; i++)
+            {
+                leftPanelBehaviours[i] = characterInitialButtonBehaviours[i - 1];
+            }
+            leftPanel.Initialise(leftPanelBehaviours, this, rightPanel);
+
+            rightPanel.Initialise(new ButtonBehaviour[0], this, rightPanel);
+        }
+
         public void OnButtonClicked(ButtonBehaviour buttonBehaviour)
         {
-
-            CharacterPiece[] characterPieces = buttonBehaviour.CharacterPieces;
-
-            if(characterPieces != null )
+            if (buttonBehaviour.CharacterPreFab != null)
             {
-                //Debug.Log("characterPieces.Length " + characterPieces.Length);
-                for (int i = 0; i < characterPieces.Length; i++)
-                {
-                   character.EquipCharacterPiece(characterPieces[i]);
-                }
-                character.TryEquipFallbackPieces();
+                CharacterCreationManager.characterPreFab = buttonBehaviour.CharacterPreFab;
+                InitialiseCharacter();
             }
+            else
+            {
+                CharacterPiece[] characterPieces = buttonBehaviour.CharacterPieces;
+
+                if (characterPieces != null)
+                {
+                    //Debug.Log("characterPieces.Length " + characterPieces.Length);
+                    for (int i = 0; i < characterPieces.Length; i++)
+                    {
+                        character.EquipCharacterPiece(characterPieces[i]);
+                    }
+                    character.TryEquipFallbackPieces();
+                }
+            }
+
         }     
         #endregion
 

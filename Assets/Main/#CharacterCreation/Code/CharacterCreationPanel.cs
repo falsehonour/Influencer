@@ -9,10 +9,10 @@ namespace CharacterCreation
         [SerializeField] private CharacterCreationButton[] buttons;
         [SerializeField] private GameObject pageTurner;
         [SerializeField] private TMPro.TextMeshProUGUI pageIndexText;
-        [SerializeField] private CharacterCreationButton backButton;
+        //[SerializeField] private CharacterCreationButton backButton;
         private CharacterCreationManager characterCreationManager;
         private ButtonBehaviour[] buttonBehaviours;
-        private ButtonBehaviour backButtonBehaviour;
+        //private ButtonBehaviour backButtonBehaviour;
         private CharacterCreationPanel linkedPanel;
         private int pageCount;
         private int pageIndex;
@@ -36,7 +36,7 @@ namespace CharacterCreation
         {
              this.characterCreationManager = characterCreationManager;
              this.linkedPanel = linkedPanel;
-             SetNewButtons(buttonBehaviours, null);
+             SetNewButtons(buttonBehaviours);
              UpdateButtons();
         }
 
@@ -47,22 +47,36 @@ namespace CharacterCreation
             ButtonBehaviour[] linkedButtonBehaviours = buttonBehaviour.LinkedButtonBehaviours;
             if(linkedButtonBehaviours != null && linkedButtonBehaviours.Length > 0)
             {
-                SetNewButtons(linkedButtonBehaviours, backButtonBehaviour);
+                ButtonBehaviour[] buttonBehaviours;
+                if(backButtonBehaviour == null)
+                {
+                    buttonBehaviours = linkedButtonBehaviours;
+                }
+                else
+                {
+                    buttonBehaviours = new ButtonBehaviour[linkedButtonBehaviours.Length + 1];
+                    for (int i = 0; i < linkedButtonBehaviours.Length; i++)
+                    {
+                        buttonBehaviours[i] = linkedButtonBehaviours[i];
+                    }
+                    buttonBehaviours[buttonBehaviours.Length - 1] = backButtonBehaviour;
+                }
+                SetNewButtons(buttonBehaviours/*, backButtonBehaviour*/);
                 UpdateButtons();
             }
 
         }
 
-        private void SetNewButtons(ButtonBehaviour[] buttonBehaviours, ButtonBehaviour backButtonBehaviour)
+        private void SetNewButtons(ButtonBehaviour[] buttonBehaviours/*, ButtonBehaviour backButtonBehaviour*/)
         {
             this.buttonBehaviours = buttonBehaviours;
             pageCount =
                 (buttonBehaviours != null && buttonBehaviours.Length > 0) ?
-                (buttonBehaviours.Length / buttons.Length) + 1 : 0;
+                (Mathf.CeilToInt((float)buttonBehaviours.Length / (float)buttons.Length) ) : 0;
             pageTurner.SetActive(pageCount > 1);
             pageIndex = 0;
 
-            this.backButtonBehaviour = backButtonBehaviour;
+            //this.backButtonBehaviour = backButtonBehaviour;
         }
 
         private void UpdateButtons()
@@ -86,7 +100,7 @@ namespace CharacterCreation
                 button.gameObject.SetActive(showButton);
 
             }
-            if (backButtonBehaviour != null)
+            /*if (backButtonBehaviour != null)
             {
                 backButton.gameObject.SetActive(true);
                 backButton.Initialise(backButtonBehaviour, linkedPanel, false);
@@ -94,7 +108,7 @@ namespace CharacterCreation
             else
             {
                 backButton.gameObject.SetActive(false);
-            }
+            }*/
 
             if (pageTurner.activeSelf)
             {

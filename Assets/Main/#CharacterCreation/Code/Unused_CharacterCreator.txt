@@ -465,3 +465,22 @@ public class SkinnedMeshManipulator : MonoBehaviour
                 EquipCharacterPiece(initialMeshes[i]);
             }
         }
+
+		                /*for (byte i = 0; i < characterPreFabs.Length; i++)
+                {
+                    if(preFab == characterPreFabs[i])
+                    {
+                        currentCharacterBaseIndex = i;
+                    }
+                }*/
+
+		           /* currentCharacterBaseIndex += indexModifier;
+            if (currentCharacterBaseIndex >= characterPreFabs.Length)
+            {
+                currentCharacterBaseIndex = 0;
+            }
+            else if(currentCharacterBaseIndex < 0)
+            {
+                currentCharacterBaseIndex = characterPreFabs.Length -1;
+            }*/
+            //TODO: going out of bounds will not give the results one might expect

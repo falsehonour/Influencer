@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Girl_LegsOptions
   m_EditorClassIdentifier: 
   characterPieces: []
+  characterPreFab: {fileID: 0}
   linkedButtonBehaviours:
   - {fileID: 11400000, guid: fce7693d2c1b2a94caeeda69183e323f, type: 2}
-  icon: {fileID: 0}
+  icon: {fileID: -7613267137544954820, guid: 44cee6c3285e72b4085cbd8554bd1598, type: 3}

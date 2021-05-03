@@ -29,6 +29,9 @@ TextureImporter:
   - first:
       213: 1109698441009972998
     second: uikit4K_19
+  - first:
+      213: -7369922474067895456
+    second: uikit4K_20
   externalObjects: {}
   serializedVersion: 10
   mipmaps:
@@ -140,9 +143,9 @@ TextureImporter:
       name: uikit4K_0
       rect:
         serializedVersion: 2
-        x: 86
-        y: 3696
-        width: 334
+        x: 81
+        y: 3695
+        width: 343
         height: 322
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
@@ -372,9 +375,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 1710
-        y: 3125
+        y: 3169
         width: 398
-        height: 395
+        height: 351
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -620,8 +623,8 @@ TextureImporter:
         serializedVersion: 2
         x: 2336
         y: 1816
-        width: 1708
-        height: 1154
+        width: 1057
+        height: 489
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 28, y: 41, z: 35, w: 24}
@@ -913,9 +916,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 150
-        y: 877
+        y: 857
         width: 436
-        height: 379
+        height: 399
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1103,7 +1106,7 @@ TextureImporter:
         serializedVersion: 2
         x: 1748
         y: 936
-        width: 425
+        width: 420
         height: 310
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
@@ -1123,9 +1126,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 2284
-        y: 944
+        y: 950
         width: 517
-        height: 331
+        height: 325
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1240,6 +1243,27 @@ TextureImporter:
       bones: []
       spriteID: 60744384ad0766f00800000000000000
       internalID: 1109698441009972998
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: uikit4K_20
+      rect:
+        serializedVersion: 2
+        x: 3481
+        y: 1805
+        width: 426
+        height: 486
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 06bd30fae86c8b990800000000000000
+      internalID: -7369922474067895456
       vertices: []
       indices: 
       edges: []

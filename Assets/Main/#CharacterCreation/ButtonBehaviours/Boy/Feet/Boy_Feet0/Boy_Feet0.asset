@@ -14,9 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   characterPieces:
   - {fileID: 11400000, guid: 5664c9a4e43aef64985a09728c243cff, type: 2}
+  characterPreFab: {fileID: 0}
   linkedButtonBehaviours:
   - {fileID: 11400000, guid: c3eb40d394dcc2f44adef2b222fc50fb, type: 2}
   - {fileID: 11400000, guid: d785301b8cf28a346865e0e9c5a508e2, type: 2}
   - {fileID: 11400000, guid: 9c4e468907497fd458fbcd299a8dcfe0, type: 2}
   - {fileID: 11400000, guid: 00d8ef6d6375c8646960c60b146ab6d3, type: 2}
-  icon: {fileID: 0}
+  icon: {fileID: -1656709828691170870, guid: 44cee6c3285e72b4085cbd8554bd1598, type: 3}

@@ -8,11 +8,17 @@ namespace CharacterCreation
     {
         private static ButtonBehaviour lastClickedButtonBehaviour;
         private static List<ButtonBehaviour> buttonHistory = new List<ButtonBehaviour>();
+        private static ButtonBehaviour backButton;// = new ButtonBehaviour();
+
 
         [SerializeField] private Image icon;
         private ButtonBehaviour behaviour;
         private CharacterCreationPanel linkedPanel;
 
+        public static void InitialiseBackButton(ButtonBehaviour button)
+        {
+            backButton = button;
+        }
 
         public void Initialise(ButtonBehaviour behaviour, CharacterCreationPanel panel, bool UpdateGraphics)
         {
@@ -73,8 +79,14 @@ namespace CharacterCreation
                 Continue:
                 buttonHistory.Add(this.behaviour);
             }
-            ButtonBehaviour backButtonBehaviour =
-               (buttonHistory.Count > 1 ? buttonHistory[buttonHistory.Count - 2] : null);
+
+            ButtonBehaviour backButtonBehaviour = null;
+            //(buttonHistory.Count > 1 ? buttonHistory[buttonHistory.Count - 2] : null);
+            if(buttonHistory.Count > 1)
+            {
+                backButton.CopyBehaviours(buttonHistory[buttonHistory.Count - 2]);
+                backButtonBehaviour = backButton;
+            }
             linkedPanel.OnButtonClicked(behaviour, backButtonBehaviour);
 
             string debug = "Button History: ";
@@ -83,7 +95,6 @@ namespace CharacterCreation
                 debug += buttonHistory[i].name + ", ";
             }
             Debug.Log(debug);
-
 
         }
 

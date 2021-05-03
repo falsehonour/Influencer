@@ -8,8 +8,11 @@ namespace CharacterCreation
 
         [SerializeField] private CharacterPiece[] characterPieces;
         public CharacterPiece[] CharacterPieces => characterPieces;
+        [SerializeField] private Character characterPreFab;
+        public Character CharacterPreFab => characterPreFab;
         [SerializeField] private ButtonBehaviour[] linkedButtonBehaviours;
         public ButtonBehaviour[] LinkedButtonBehaviours => linkedButtonBehaviours;
+
         [SerializeField] private Sprite icon;
         public Sprite Icon => icon;
     }

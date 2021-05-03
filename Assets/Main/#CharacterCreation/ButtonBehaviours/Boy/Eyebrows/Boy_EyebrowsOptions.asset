@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1b6afed888306604caa1c1786b2e3ca7, type: 3}
   m_Name: Boy_EyebrowsOptions
   m_EditorClassIdentifier: 
-  characterPieceParts: []
+  characterPieces: []
   linkedButtonBehaviours:
   - {fileID: 11400000, guid: 8842c91f8a2724a4db68981737391784, type: 2}
   - {fileID: 11400000, guid: ec5a777b26907364eb264abec0fb9c27, type: 2}
-  icon: {fileID: 0}
+  icon: {fileID: -2571651329294789576, guid: 44cee6c3285e72b4085cbd8554bd1598, type: 3}

@@ -52,3 +52,12 @@ velocity.x = movement.x;
 
         canTag = playersInRange.Count > 0;
     }    
+
+
+
+        public static void PromoteNewTagger(List <PlayerController> players)
+    {
+        int playerCount = PlayerController.allPlayers.Count;
+        int taggerIndex = Random.Range(0, playerCount);
+        PlayerController.allPlayers[taggerIndex].SetTagger(true);
+    }

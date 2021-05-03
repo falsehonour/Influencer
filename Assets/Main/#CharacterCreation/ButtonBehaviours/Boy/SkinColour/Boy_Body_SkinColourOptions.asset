@@ -12,9 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1b6afed888306604caa1c1786b2e3ca7, type: 3}
   m_Name: Boy_Body_SkinColourOptions
   m_EditorClassIdentifier: 
-  characterPiecePart: {fileID: 0}
+  characterPieces: []
   linkedButtonBehaviours:
   - {fileID: 11400000, guid: 56ee8fdd28dcf514eb38cb4486da1379, type: 2}
   - {fileID: 11400000, guid: cdda990a075be8a468266f60f0f27ca4, type: 2}
   - {fileID: 11400000, guid: 0f9673119db904a46a1f15df48fc04cf, type: 2}
   - {fileID: 11400000, guid: 546b87738156c8748aae85b7dd1132d1, type: 2}
+  icon: {fileID: -4511590233671894152, guid: 44cee6c3285e72b4085cbd8554bd1598, type: 3}

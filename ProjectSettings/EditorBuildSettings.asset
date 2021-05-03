@@ -12,6 +12,6 @@ EditorBuildSettings:
     path: Assets/Main/#CharacterCreation/Scenes/AvatarCreation.unity
     guid: a9811e8ca3c60cd4bb3ee76c83f5e30e
   - enabled: 1
-    path: Assets/Main/Scenes/OnlineMechanics.unity
-    guid: 90a5e73c1cc025540a79a22ecbb0a7fa
+    path: Assets/Main/Scenes/OnlineMechanicsNoCharacters.unity
+    guid: f90a7882985cc464d9e48845287e3fe6
   m_configObjects: {}

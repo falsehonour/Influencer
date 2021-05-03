@@ -17,4 +17,4 @@ MonoBehaviour:
   linkedButtonBehaviours:
   - {fileID: 11400000, guid: 071232f75c7f7b644a83089c2d4a1741, type: 2}
   - {fileID: 11400000, guid: eaebec1eab0a88245a70c21b262de972, type: 2}
-  icon: {fileID: 0}
+  icon: {fileID: 745380970108184318, guid: 44cee6c3285e72b4085cbd8554bd1598, type: 3}

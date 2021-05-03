@@ -10,6 +10,16 @@ public class TagNetworkManager : NetworkManager
     {
         base.OnStartServer();
         Spawner.Initialise();
+        StartCoroutine(InitialiseGameManager());
+    }
+
+    private IEnumerator InitialiseGameManager()
+    {
+        while (!gameManager.isActiveAndEnabled)
+        {
+            yield return new WaitForSeconds(0.1f);
+        }
         gameManager.OnServerStarted();
+
     }
 }

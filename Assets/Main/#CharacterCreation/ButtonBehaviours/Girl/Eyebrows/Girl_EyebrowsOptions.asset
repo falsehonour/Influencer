@@ -15,4 +15,4 @@ MonoBehaviour:
   characterPieces: []
   linkedButtonBehaviours:
   - {fileID: 11400000, guid: 51ee5d0ced900fd4d998e6496a15ea73, type: 2}
-  icon: {fileID: 0}
+  icon: {fileID: -2571651329294789576, guid: 44cee6c3285e72b4085cbd8554bd1598, type: 3}

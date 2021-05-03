@@ -8,6 +8,7 @@ namespace CharacterCreation
     {
         [SerializeField] private CharacterCreationButton[] buttons;
         [SerializeField] private GameObject pageTurner;
+        [SerializeField] private TMPro.TextMeshProUGUI pageIndexText;
         [SerializeField] private CharacterCreationButton backButton;
         private CharacterCreationManager characterCreationManager;
         private ButtonBehaviour[] buttonBehaviours;
@@ -16,14 +17,18 @@ namespace CharacterCreation
         private int pageCount;
         private int pageIndex;
 
-        public void SwitchPage()
+        public void SwitchPage(int indexModifier)
         {
-            pageIndex++;
+            //TODO: Right now going accross boundries doesn't result in the behaviours we'd want. Does it matter thogh?
+            pageIndex += indexModifier;
             if(pageIndex >= pageCount)
             {
                 pageIndex = 0;
             }
-
+            else if(pageIndex < 0)
+            {
+                pageIndex = pageCount -1;
+            }
             UpdateButtons();
         }
 
@@ -89,6 +94,11 @@ namespace CharacterCreation
             else
             {
                 backButton.gameObject.SetActive(false);
+            }
+
+            if (pageTurner.activeSelf)
+            {
+                pageIndexText.text = (pageIndex + 1).ToString() ;
             }
         }
 

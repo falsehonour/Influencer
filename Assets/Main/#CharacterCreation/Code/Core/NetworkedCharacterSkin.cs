@@ -120,23 +120,5 @@ namespace CharacterCreation
             }
         }
 
-        private void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.S))
-            {
-                //Debug.Log("serverCachedSkinData.meshIndexes == null ="+ serverCachedSkinData.meshIndexes == null);
-                if (!isLocalPlayer)
-                {
-                    //Cmd_SendSkin(this.netIdentity);
-                    
-                    /*NetworkConnection conn = NetworkClient.tos ;
-                    this.netIdentity.
-                    Cmd_SendSkin((NetworkConnectionToClient)this.connectionToClient);*/
-                    Cmd_SendSkin();
-
-                }
-            }
-        }
-
     }
 }

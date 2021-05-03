@@ -11,7 +11,7 @@ public class PlayerController : NetworkBehaviour
         public const float MAX_TRAPPED_MOVEMENT_SPEED = 1f;
 
         public const float MIN_TAG_SQUARED_DISTANCE = 10f;
-        public const byte MAX_HEALTH = 100;
+        public const byte MAX_HEALTH = 32;
         public const float TRAP_DURATION = 3f;
         private const float HEALTH_LOSS_INTERVAL = 1f;
         private const float NEARBY_PLAYERS_DETECTION_INTERVAL = 0.066f;
@@ -76,6 +76,10 @@ public class PlayerController : NetworkBehaviour
     //private bool isWalking;
     #region Tagging
     [SyncVar(hook = nameof(OnTaggerChange))] private bool tagger;
+    public bool Tagger
+    {
+        get { return tagger; }
+    }
     [SerializeField] private GameObject hashTag;
     [SyncVar(hook = nameof(OnCanTagChange))] private bool canTag;
     [SerializeField] private GameObject tagButton;
@@ -83,22 +87,18 @@ public class PlayerController : NetworkBehaviour
     #endregion
     #region Health:
     [SyncVar(hook = nameof(OnHealthChanged))] private byte health;
+    public byte Health
+    {
+        get { return health; }
+    }
     [SerializeField] private TMPro.TextMeshPro healthGUI;
+    //[SyncVar] private bool isAlive;//TODO: Is this noit overkill??
     #endregion
-    [SerializeField] CharacterCreation.NetworkedCharacterSkin skin;
+    [SerializeField] private CharacterCreation.NetworkedCharacterSkin skin;
+    [SerializeField] private GameObject placeholderGraphics;
     public static PlayerController localPlayerController;
     public static List<PlayerController> allPlayers = new List<PlayerController>();
 
-    [Server]
-    public static void AddPlayer(PlayerController player)
-    {
-        allPlayers.Add(player);
-    }
-    [Server]
-    public static void RemovePlayer(PlayerController player)
-    {
-        allPlayers.Remove(player);
-    }
 
     private void Start()
     {
@@ -115,8 +115,9 @@ public class PlayerController : NetworkBehaviour
 
             pathCache = new NavMeshPath();
             pathWayPoints = new Vector3[16];
-            joystick = FindObjectOfType<Joystick>();
+            joystick  = FindObjectOfType<Joystick>();
             tagButton = GameObject.Find("TagButton");
+            tagButton.SetActive(false);
             CharacterCamera characterCamera = FindObjectOfType<CharacterCamera>();
             characterCamera.Initialise(myTransform, cameraAnchor.localPosition, cameraAnchor.rotation);
             camera = characterCamera.GetComponent<Camera>();
@@ -124,13 +125,17 @@ public class PlayerController : NetworkBehaviour
             //Cmd_SetTagger(GameManager.Tagger);
         }
         /* else
-         {
-             hashTag.SetActive(tagger);
-         }*/
+        {
+              hashTag.SetActive(tagger);
+        }*/
         hashTag.SetActive(false);
+        healthGUI.color = Color.green;
 
-        skin.Initialise();
-
+        if (skin != null)
+        {
+           Destroy( placeholderGraphics);
+            skin.Initialise();
+        }
     }
 
     [Server]
@@ -139,7 +144,7 @@ public class PlayerController : NetworkBehaviour
 
         serverData = new PlayerServerData();
         AddPlayer(this);
-       // SetTagger(allPlayers.Count == 1);
+        //SetTagger(allPlayers.Count == 1);
         health = PlayerServerData.MAX_HEALTH;
         maxMovementSpeed = PlayerServerData.MAX_HEALTHY_MOVEMENT_SPEED;
 
@@ -190,11 +195,17 @@ public class PlayerController : NetworkBehaviour
         }
     }
     
+    [ClientRpc]
+    public void Rpc_Win()
+    {
+        healthGUI.color = Color.yellow;
+    }
+
     [Server]
-    private void HandleNearbyPlayersDetection(float deltaTime)
+    private void HandleNearbyPlayersDetection(float timePassed)
     {
         //The content of this method is executed when a timer finishes a cycle
-        if (serverData.nearbyPlayersDetectionTimer.Update(deltaTime))
+        if (serverData.nearbyPlayersDetectionTimer.Update(timePassed))
         {
             //Debug.Log("NearbyPlayersDetection");
             //TODO: Do these things in a unified method, cache all players locations
@@ -205,15 +216,15 @@ public class PlayerController : NetworkBehaviour
             //bool playerFound = false;
             for (int i = 0; i < allPlayers.Count; i++)
             {
-                PlayerController playerController = allPlayers[i];
-                if (playerController != null && playerController != this)
+                PlayerController otherPlayer = allPlayers[i];
+                if (otherPlayer != null && otherPlayer != this && otherPlayer.IsAlive)
                 {
                     float squaredDistance = Vector3.SqrMagnitude
-                        (myPosition - playerController.myTransform.position);
+                        (myPosition - otherPlayer.myTransform.position);
 
                     if (squaredDistance < PlayerServerData.MIN_TAG_SQUARED_DISTANCE )
                     {
-                        playersInRange.Add(playerController);
+                        playersInRange.Add(otherPlayer);
                     }
                 }
             }
@@ -222,21 +233,48 @@ public class PlayerController : NetworkBehaviour
         }     
     }
 
+    #region Health
     [Server]
     private void HandleTaggerHealthReduction(float deltaTime)
     {
         if (serverData.healthReductionTimer.Update(deltaTime))
         {
             health -= 1;
+            if(!IsAlive)
+            {
+                OnDeath();
+            }
         }
     }
-    
+
     [Client]
     private void OnHealthChanged (byte oldHealth, byte newHealth)
     {
         healthGUI.text = newHealth.ToString();
     }
 
+    public bool IsAlive
+    {
+        get
+        {
+            return health > 0;
+        }
+    }
+
+    [Server]
+    private void OnDeath()
+    {
+        SetTagger(false);
+        GameManager.UpdatePlayersState();
+        Rpc_OnDeath();
+    }
+
+    [ClientRpc]
+    private void Rpc_OnDeath()
+    {
+        healthGUI.color = Color.red;
+    }
+    #endregion
     [Client]
     private void OnIsFrozenChanged(bool oldValue, bool newValue)
     {
@@ -255,6 +293,10 @@ public class PlayerController : NetworkBehaviour
     {
         //TODO: In case there's more than one players, pick a player based on distance or something.
         //
+        if (!tagger)
+        {
+            Debug.LogWarning("A non-tagger is trying to tag!");
+        }
         if (serverData.playersInRange.Count == 0)
         {
             Debug.LogWarning("Can't tag, no players in range");
@@ -290,43 +332,46 @@ public class PlayerController : NetworkBehaviour
     private void FixedUpdate()
     {
         float deltaTime = Time.fixedDeltaTime;
-        if (isLocalPlayer)
+        GameStates gameState =  GameManager.State;
+        if (gameState == GameStates.Waiting || gameState == GameStates.TagGame)
         {
-            HandleMovement(ref deltaTime);
-            //TODO: That's alot of method calls bruh
-           /* bool showTagButton = (tagger && canTag);
-            tagButton.SetActive(showTagButton);   */      
-        }
-        if (isServer) //Lots of network activity
-        {
-            if (tagger)
+            if (isLocalPlayer)
             {
-                if (isFrozen)
+                HandleMovement(ref deltaTime);
+                //TODO: That's alot of method calls bruh
+                /*bool showTagButton = (tagger && canTag);
+                tagButton.SetActive(showTagButton);*/
+            }
+            if (isServer) //Lots of network activity
+            {
+                if (tagger)
                 {
-                   bool unFreeze = serverData.freezeTimer.Update(deltaTime);
-                   if (unFreeze)
-                   {
-                        isFrozen = false;
-                   }
-                }
-                else
-                {
-                    HandleNearbyPlayersDetection(deltaTime);
-                    if (health > 0)
+                    if (isFrozen)
                     {
+                        bool unFreeze = serverData.freezeTimer.Update(deltaTime);
+                        if (unFreeze)
+                        {
+                            isFrozen = false;
+                        }
+                    }
+                    else if (IsAlive) //TODO: Move up maybe?
+                    {
+                        HandleNearbyPlayersDetection(deltaTime);
                         HandleTaggerHealthReduction(deltaTime);
+
+                    }
+                }
+                if (serverData.trapTimer.IsActive)
+                {
+                    bool unTrap = serverData.trapTimer.Update(deltaTime);
+                    if (unTrap)
+                    {
+                        maxMovementSpeed = PlayerServerData.MAX_HEALTHY_MOVEMENT_SPEED;
                     }
                 }
             }
-            if (serverData.trapTimer.IsActive)
-            {
-                bool unTrap = serverData.trapTimer.Update(deltaTime);
-                if (unTrap)
-                {
-                    maxMovementSpeed = PlayerServerData.MAX_HEALTHY_MOVEMENT_SPEED;
-                }
-            }
         }
+        
     }
 
     private void ActivateNavMesh(InteractableAccessPoint interactableAccessPoint)
@@ -597,9 +642,18 @@ public class PlayerController : NetworkBehaviour
     private void OnDestroy()
     {
         RemovePlayer(this);
-        if (tagger)
-        {
-            GameManager.PromoteNewTagger();
-        }
+        GameManager.UpdatePlayersState();
     }
+
+    [Server]
+    public static void AddPlayer(PlayerController player)
+    {
+        allPlayers.Add(player);
+    }
+    [Server]
+    public static void RemovePlayer(PlayerController player)
+    {
+        allPlayers.Remove(player);
+    }
+
 }

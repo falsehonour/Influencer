@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1b6afed888306604caa1c1786b2e3ca7, type: 3}
   m_Name: Boy_Feet_Options
   m_EditorClassIdentifier: 
-  characterPieceParts: []
+  characterPieces: []
   linkedButtonBehaviours:
   - {fileID: 11400000, guid: f62b08c81d6d19a4eac73e7f019d7a02, type: 2}
   - {fileID: 11400000, guid: 8fb8bbc97fac1d04a8e91506237963b5, type: 2}
-  icon: {fileID: 0}
+  icon: {fileID: 745924094060934842, guid: 44cee6c3285e72b4085cbd8554bd1598, type: 3}

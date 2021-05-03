@@ -3,19 +3,27 @@ using UnityEngine;
 using Mirror;
 using System.Collections;
 
-public class GameManager : MonoBehaviour
+public enum GameStates
 {
-    public enum GameStates
-    {
-        Waiting, ChoosingTagger, TagGame
-    }
-    private static GameStates state;
+    Waiting, ChoosingTagger, TagGame, PostGame
+}
+public class GameManager : NetworkBehaviour
+{
+
+    [SyncVar] private GameStates state;
     public static GameStates State
     {
-        get { return state; }
+        get { return instance.state; }
     }
     [SerializeField] private Transform[] circleSpawnSpots;
-    // private static GameManager instance;
+    [SerializeField] private FirstTaggerPointer firstTaggerPointer;
+    [SerializeField] private MatchCountdown countdown;
+    private static GameManager instance;
+
+    private void Awake()
+    {
+        instance = this;
+    }
 
     [Server]
     public void OnServerStarted()
@@ -48,30 +56,121 @@ public class GameManager : MonoBehaviour
 
         int playerCount = PlayerController.allPlayers.Count;
         int taggerIndex = Random.Range(0, playerCount);
+
+        yield return new WaitForSeconds(2f);//Hardcoded
+
         for (int i = 0; i < playerCount; i++)
         {
             PlayerController player = PlayerController.allPlayers[i];
             player.TargetRpc_Teleport(circleSpawnSpots[i].position, circleSpawnSpots[i].rotation);
+        }
+
+        //Spinning sequence
+        firstTaggerPointer.Rpc_Spin(PlayerController.allPlayers[taggerIndex].transform.position);
+
+        yield return new WaitForSeconds(3f);//Hardcoded
+
+        for (int i = 0; i < playerCount; i++)
+        {
+            PlayerController player = PlayerController.allPlayers[i];
             player.SetTagger(i == taggerIndex);
         }
-        yield return new WaitForSeconds(3f);
 
-        state = GameStates.TagGame;
+        StartMatch();
 
     }
 
-    public static void PromoteNewTagger()
+    [Server]
+    private void StartMatch()
     {
-        int playerCount = PlayerController.allPlayers.Count;
-        int taggerIndex = Random.Range(0, playerCount);
-        PlayerController.allPlayers[taggerIndex].SetTagger(true);
+        state = GameStates.TagGame;
+        countdown.StartCounting(20f);
     }
-    /*[SerializeField] private bool tagger;
-public static bool Tagger
-{
-get
-{
-   return instance.tagger; 
-}
-}*/
+
+    private static List<PlayerController> GetRelevantPlayers()
+    {
+        List<PlayerController> relevantPlayers = new List<PlayerController>();
+
+        int playerCount = PlayerController.allPlayers.Count;
+        for (int i = 0; i < playerCount; i++)
+        {
+            PlayerController player = PlayerController.allPlayers[i];
+            if (player.IsAlive)
+            {
+                relevantPlayers.Add(player);
+            }
+        }
+        return relevantPlayers;
+    }
+
+    [Server]
+    public static void UpdatePlayersState()
+    {
+        List<PlayerController> relevantPlayers = GetRelevantPlayers();
+
+        int relevantPlayersCount = relevantPlayers.Count;
+        if(relevantPlayersCount == 0)
+        {
+            Debug.LogError("relevantPlayersCount == 0");
+        }
+        else if (relevantPlayersCount == 1)
+        {
+           instance.DeclareWinner(relevantPlayers[0]);
+        }
+        else 
+        {
+            //Let's check wheather a tagger exists in the game. if not, promote the player with the highest HP.
+
+            PlayerController nextTagger = relevantPlayers[ 0 ];
+            for (int i = 0; i < relevantPlayersCount; i++)
+            {
+                PlayerController player = relevantPlayers[i];
+
+                if (player.Tagger)
+                {
+                    return;
+                }
+                else if(player.Health > nextTagger.Health)
+                {
+                    nextTagger = player;
+                }
+            }
+            nextTagger.SetTagger(true); 
+        }
+
+    }
+
+    [Server]
+    public static void OnCounterStopped()
+    {
+        List<PlayerController> relevantPlayers = GetRelevantPlayers();
+        int relevantPlayersCount = relevantPlayers.Count;
+        if (relevantPlayersCount == 0)
+        {
+            Debug.LogError("relevantPlayersCount == 0");
+        }
+        else
+        {
+            //Let's check wheather a tagger exists in the game. if not, promote the player with the highest HP.
+
+            PlayerController winner = relevantPlayers[0];
+            for (int i = 0; i <  relevantPlayersCount; i++)
+            {
+                PlayerController player = relevantPlayers[i];
+                if (player.Health > winner.Health)
+                {
+                    winner = player;
+                }
+            }
+            instance.DeclareWinner(winner);
+        }
+    }
+
+    [Server]
+    private void DeclareWinner(PlayerController winner)
+    {
+        Debug.Log(winner.name + "WON THE MATCH!");
+        winner.Rpc_Win();
+        state = GameStates.PostGame;
+    }
 }

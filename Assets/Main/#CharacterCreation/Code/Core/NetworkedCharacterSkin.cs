@@ -46,7 +46,6 @@ namespace CharacterCreation
             character.TryEquipFallbackPieces();
 
             //Animator references:
-            if(false)
             {
                 Animator animator = character.GetAnimator();
                 if(animator != null)
@@ -56,14 +55,48 @@ namespace CharacterCreation
                     {
                         playerController.SetAnimator(character.GetAnimator());
                     }
-                    NetworkAnimator networkAnimator = GetComponent<NetworkAnimator>();
-                    if (networkAnimator != null)
+                    else
                     {
-                        networkAnimator.animator = animator;
+                        Debug.LogWarning("playerController == null");
+
                     }
+                    //TODO: Mirror sets its animator vars on awake so this approach is not working and I don't wanna mess with Mirror's Animator at the moment
+
+                    //if (hasAuthority)
+                   /* {
+                        NetworkAnimator networkAnimator = character.GetComponent<NetworkAnimator>();
+                        if (networkAnimator != null)
+                        {
+                            networkAnimator.animator = animator;
+                            networkAnimator.TryInitialise();
+                        }
+                        else
+                        {
+                            Debug.LogWarning("networkAnimator == null");
+                        }
+                    }*/
+                }
+                else
+                {
+                    Debug.LogWarning("animator == null");
                 }
             }
         }
+
+
+        /*[Command]
+        public void AssignNetworkAnimator(NetworkIdentity id)
+        {
+            NetworkAnimator networkAnimator = character.GetComponent<NetworkAnimator>();
+            if (networkAnimator != null)
+            {
+                networkAnimator.netIdentity.AssignClientAuthority(id.connectionToClient);
+            }
+            else
+            {
+                Debug.LogWarning("networkAnimator == null");
+            }
+        }*/
 
         [Server]
         private bool ServerCachedSkinDataInitialised()
@@ -110,6 +143,7 @@ namespace CharacterCreation
                     SaveAndLoadManager.Load<PlayerSkinDataHolder>(new PlayerSkinDataHolder()).data;
                 Cmd_DownloadSkin(localSkinData);
                 EquipSkin(ref localSkinData);
+                //AssignNetworkAnimator(this.netIdentity);
             }
             else
             {

@@ -600,7 +600,7 @@ Animator:
   m_GameObject: {fileID: 1810056552840752757}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: c67962b2dd7c7c04c82bf703b5b339f3, type: 2}
+  m_Controller: {fileID: 9100000, guid: 472e2041271d6d84f86802ba2ce7ff29, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -624,9 +624,9 @@ MonoBehaviour:
   baseProperties: {fileID: 11400000, guid: 616ee1dae6afaf64e8e183f0e9301599, type: 2}
   myTransform: {fileID: 3406345300471061606}
   root: {fileID: 4815300950402025051}
+  animator: {fileID: 1810056552840752762}
   equippedMeshesByMeshCategory: []
   equippedMeshModifiersByMeshModifierCategory: []
-  animator: {fileID: 1810056552840752762}
 --- !u!1 &2041549772478533455
 GameObject:
   m_ObjectHideFlags: 0

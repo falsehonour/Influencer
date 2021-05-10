@@ -10,7 +10,6 @@ namespace CharacterCreation
         private static List<ButtonBehaviour> buttonHistory = new List<ButtonBehaviour>();
         private static ButtonBehaviour backButton;// = new ButtonBehaviour();
 
-
         [SerializeField] private Image icon;
         private ButtonBehaviour behaviour;
         private CharacterCreationPanel linkedPanel;

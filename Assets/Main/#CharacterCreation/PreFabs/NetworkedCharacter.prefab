@@ -2059,7 +2059,7 @@ Animator:
   m_GameObject: {fileID: 8084390979059835690}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: c67962b2dd7c7c04c82bf703b5b339f3, type: 2}
+  m_Controller: {fileID: 9100000, guid: 472e2041271d6d84f86802ba2ce7ff29, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -2082,7 +2082,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sceneId: 0
   serverOnly: 0
-  visible: 0
   m_AssetId: 
   hasSpawned: 0
 --- !u!114 &8084390979059835687
@@ -2099,14 +2098,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
-  initialMeshes:
-  - {fileID: 11400000, guid: a50a8c548d28f7b47a5e5aaa451ae765, type: 2}
-  - {fileID: 11400000, guid: 9d17ce03858ef3f429c014a6ce83d4b4, type: 2}
-  - {fileID: 11400000, guid: b2c888777e23d0f40b1b8354fec068b1, type: 2}
-  - {fileID: 11400000, guid: 1b98babd6c2d52d45bf04fd5b9d1599c, type: 2}
-  initialMeshModifiers: []
-  characterCreationUtility: {fileID: 11400000, guid: 16f70dd59e062d944b35ae5159037e59,
-    type: 2}
   character: {fileID: 9045636826975445224}
 --- !u!114 &9045636826975445224
 MonoBehaviour:
@@ -2120,13 +2111,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00263ba0e6558be40a7b344afb1f525b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  characterCreationUtility: {fileID: 11400000, guid: 16f70dd59e062d944b35ae5159037e59,
-    type: 2}
+  baseProperties: {fileID: 0}
   myTransform: {fileID: 5074113240928948537}
   root: {fileID: 3169540903397968644}
+  animator: {fileID: 8084390979059835685}
   equippedMeshesByMeshCategory: []
   equippedMeshModifiersByMeshModifierCategory: []
-  animator: {fileID: 8084390979059835685}
 --- !u!1 &8465096765896901136
 GameObject:
   m_ObjectHideFlags: 0

@@ -8,29 +8,26 @@ public class MatchCountdown : NetworkBehaviour
 {
     //TODO: Perhaps seperate into 2 classed, one for server and one for client graphics??? 
     [SerializeField] private TMPro.TextMeshProUGUI text;
-    private float timeLeft;
-    private bool  isActive;
-    private UInt16 previousTimeLeftUInt16;
+    //private bool isActive;
+    //private UInt16 previousTimeLeftUInt16;
 
+    [Server]
     public void StartCounting(float time)
     {
-        timeLeft = time;
-        previousTimeLeftUInt16 = 0;
-        isActive = true;
+       /* timeLeft = time;
+        previousTimeLeftUInt16 = 0;*/
+        StartCoroutine(CountdownRoutine(time));
+       // isActive = true;
     }
 
-    [Server]
-    private void StopCounting()
+    private IEnumerator CountdownRoutine(float time)
     {
-        isActive = false;
-        GameManager.OnCounterStopped();
-    }
+        UInt16 previousTimeLeftUInt16 = 0;
+        float timeLeft = time;
 
-    [Server]
-    void Update()
-    {
-        if (isActive)
+        while (timeLeft > 0)
         {
+            //TODO: will it be more efficient to wait for seconds..?
             timeLeft -= Time.deltaTime;
             UInt16 currentTimeLeftUInt16 = (UInt16)timeLeft;
             if (currentTimeLeftUInt16 != previousTimeLeftUInt16)
@@ -38,11 +35,11 @@ public class MatchCountdown : NetworkBehaviour
                 Rpc_UpdateText(currentTimeLeftUInt16);
             }
             previousTimeLeftUInt16 = currentTimeLeftUInt16;
-            if(timeLeft < 0)
-            {
-                StopCounting();
-            }
+            yield return null;
         }
+
+        GameManager.OnCountdownStopped();
+
     }
 
     [ClientRpc]
@@ -50,4 +47,11 @@ public class MatchCountdown : NetworkBehaviour
     {
         text.text = timeLeft.ToString();
     }
+
+    /*[Server]
+private void StopCounting()
+{
+    isActive = false;
+    GameManager.OnCounterStopped();
+}*/
 }

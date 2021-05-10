@@ -57,7 +57,6 @@ public class GameManager : NetworkBehaviour
         int playerCount = PlayerController.allPlayers.Count;
         int taggerIndex = Random.Range(0, playerCount);
 
-        yield return new WaitForSeconds(2f);//Hardcoded
 
         for (int i = 0; i < playerCount; i++)
         {
@@ -65,8 +64,10 @@ public class GameManager : NetworkBehaviour
             player.TargetRpc_Teleport(circleSpawnSpots[i].position, circleSpawnSpots[i].rotation);
         }
 
+        yield return new WaitForSeconds(2f);//Hardcoded
+
         //Spinning sequence
-        firstTaggerPointer.Rpc_Spin(PlayerController.allPlayers[taggerIndex].transform.position);
+        firstTaggerPointer.Rpc_Spin(circleSpawnSpots[taggerIndex].transform.position);
 
         yield return new WaitForSeconds(3f);//Hardcoded
 
@@ -84,7 +85,7 @@ public class GameManager : NetworkBehaviour
     private void StartMatch()
     {
         state = GameStates.TagGame;
-        countdown.StartCounting(20f);
+        countdown.StartCounting(60f);
     }
 
     private static List<PlayerController> GetRelevantPlayers()
@@ -141,7 +142,7 @@ public class GameManager : NetworkBehaviour
     }
 
     [Server]
-    public static void OnCounterStopped()
+    public static void OnCountdownStopped()
     {
         List<PlayerController> relevantPlayers = GetRelevantPlayers();
         int relevantPlayersCount = relevantPlayers.Count;

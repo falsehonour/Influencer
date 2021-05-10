@@ -7,8 +7,8 @@ public class PlayerController : NetworkBehaviour
 {
     private class PlayerServerData
     {
-        public const float MAX_HEALTHY_MOVEMENT_SPEED = 2.7f;
-        public const float MAX_TRAPPED_MOVEMENT_SPEED = 1f;
+        public const float MAX_HEALTHY_MOVEMENT_SPEED = 5.5f;
+        public const float MAX_TRAPPED_MOVEMENT_SPEED = 2.2f;
 
         public const float MIN_TAG_SQUARED_DISTANCE = 10f;
         public const byte MAX_HEALTH = 32;
@@ -47,9 +47,13 @@ public class PlayerController : NetworkBehaviour
     [SyncVar] private float maxMovementSpeed;
     [SerializeField] private float maxRotationSpeed;
     private Quaternion desiredRotation;
-    private Vector3 velocity;
+    private Vector3 controlledVelocity;
+    private Vector3 externalForces;
+    private float EXTERNAL_FORCES_REDUCTION_SPEED = 6f;
+    private const float PUSH_FORCE = 6f;
     [SerializeField] private float gravity = -9.8f;
     private const float MIN_SQUARED_WAYPOINT_DISTANCE = 0.05f;
+    private static readonly Vector3 ZERO_VECTOR3 = Vector3.zero;
     #region Path Finding:
 
     private NavMeshPath pathCache;
@@ -96,6 +100,7 @@ public class PlayerController : NetworkBehaviour
     #endregion
     [SerializeField] private CharacterCreation.NetworkedCharacterSkin skin;
     [SerializeField] private GameObject placeholderGraphics;
+
     public static PlayerController localPlayerController;
     public static List<PlayerController> allPlayers = new List<PlayerController>();
 
@@ -133,9 +138,14 @@ public class PlayerController : NetworkBehaviour
 
         if (skin != null)
         {
-           Destroy( placeholderGraphics);
+            Destroy(placeholderGraphics);
             skin.Initialise();
         }
+    }
+
+    public void SetAnimator(Animator animator)
+    {
+        this.animator = animator;
     }
 
     [Server]
@@ -284,12 +294,11 @@ public class PlayerController : NetworkBehaviour
     [Client]
     public void TryTag()
     {
-        Debug.Log("tryTag()");
-        CmdTryTag();
+        Cmd_TryTag();
     }
 
     [Command]
-    private void CmdTryTag()
+    private void Cmd_TryTag()
     {
         //TODO: In case there's more than one players, pick a player based on distance or something.
         //
@@ -306,8 +315,24 @@ public class PlayerController : NetworkBehaviour
         PlayerController nextTagger = serverData.playersInRange[0];
         nextTagger.Freeze();
         nextTagger.SetTagger(true);
+        Push(nextTagger);
         SetTagger(false);
     }
+
+    [Server]
+    private void Push(PlayerController pushed)
+    {
+        Vector3 pushForce = myTransform.forward * PUSH_FORCE;
+        pushed.TargetRpc_OnPushed(pushForce);
+    }
+
+    [TargetRpc]
+    private void TargetRpc_OnPushed(Vector3 pushForce)
+    {
+        //TODO: merge with freeze perhaps?
+        externalForces += pushForce;
+    }
+
     #endregion
 
     private void Update()
@@ -327,6 +352,17 @@ public class PlayerController : NetworkBehaviour
                 }
             }
         }
+
+        #region Testing:
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            PushSelf();
+        }
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            ReportForward();
+        }
+        #endregion
     }
 
     private void FixedUpdate()
@@ -404,26 +440,28 @@ public class PlayerController : NetworkBehaviour
 
     private void HandleMovement(ref float deltaTime)
     {
+        if(externalForces != ZERO_VECTOR3)
+        {
+            externalForces = Vector3.MoveTowards(externalForces, ZERO_VECTOR3, EXTERNAL_FORCES_REDUCTION_SPEED * deltaTime);
+        }
+        controlledVelocity = ZERO_VECTOR3;
         //TODO: This area of th code must be revisited, it is probably outdated 
-        float verticalInput = joystick.Vertical;
+        float verticalInput   = joystick.Vertical;
         float horizontalInput = joystick.Horizontal;
-        Vector3 movement = new Vector3();
+
+        //Vector3 controlledMovement = new Vector3();
         //Debug.Log($"Vertical: {verticalInput.ToString("f2")}  + Horizontal: {horizontalInput.ToString("f2")}");
 
-        if ( (!isFrozen) && (verticalInput != 0 || horizontalInput != 0))
+        if ((!isFrozen) && (verticalInput != 0 || horizontalInput != 0))
         {
             Vector3 inputVector3 = new Vector3(horizontalInput, 0, verticalInput);
             desiredRotation = Quaternion.LookRotation(inputVector3);
 
-            movement = inputVector3 * maxMovementSpeed;// * deltaTime;
+            controlledVelocity = inputVector3 * maxMovementSpeed;// * deltaTime;
             DeactivateNavMesh();
-           /* if (!isWalking)
-            {
-                animator.SetBool("IsWalking",true);
-                isWalking = true;
-            }*/
             //Debug.Log($"movement magnitude: {movement.magnitude}"); Magnitude seems good!
         }
+
 
         #region Gravity
         /* if (navMeshAgent..isGrounded)
@@ -436,9 +474,11 @@ public class PlayerController : NetworkBehaviour
          }*/
         #endregion
 
-        if (PathFindingIsActive)
+        if (false && PathFindingIsActive)
         {
-            Vector3 difference = (currentWayPoint - myTransform.position);
+            Debug.LogError("Not implemented!");
+            return;
+           /* Vector3 difference = (currentWayPoint - myTransform.position);
             float squaredDistance = Vector3.SqrMagnitude(difference);
 
             if (squaredDistance < MIN_SQUARED_WAYPOINT_DISTANCE)
@@ -461,39 +501,37 @@ public class PlayerController : NetworkBehaviour
             else
             {
 
-                movement = difference.normalized * maxMovementSpeed;// * deltaTime;
-                velocity.x = movement.x;
-                velocity.z = movement.z;
+                controlledMovement = difference.normalized * maxMovementSpeed;// * deltaTime;
+                velocity.x = controlledMovement.x;
+                velocity.z = controlledMovement.z;
 
                 difference.y = 0;
                 desiredRotation = Quaternion.LookRotation(difference);
-            }
+            }*/
         }
 
-        velocity.x = movement.x;
-        velocity.z = movement.z;
-
-        float velocitySquaredMagnitude = velocity.sqrMagnitude;
+        float velocitySquaredMagnitude = controlledVelocity.sqrMagnitude;
         float maxVelocitySquaredMagnitude = maxMovementSpeed * maxMovementSpeed;//TODO: Pre-Calculate
         float velocityPercentage = (velocitySquaredMagnitude / maxVelocitySquaredMagnitude);
 
-        if(velocityPercentage < 0.15f)//HARDCODED
+        if(velocityPercentage < 0.1f)//HARDCODED
         {
-            velocity.x = 0;
-            velocity.z = 0;
+            //Stay in place if input is negligible
+            controlledVelocity = Vector3.zero;
             velocityPercentage = 0;
-        }
+        } 
         //Debug.Log($"velocitySquaredMagnitude: {velocitySquaredMagnitude.ToString("f2")}");
         if(animator != null)
         {
+            //TODO: do this in bigger intervals for performance
             animator.SetFloat("Speed", velocityPercentage);
         }
 
-        characterController.Move(velocity * deltaTime);
-
+        characterController.Move((controlledVelocity + externalForces) * deltaTime);
+        /*characterController.enabled = false;
+        myTransform.position += velocity * deltaTime;*/
         myTransform.rotation = Quaternion.RotateTowards
             (myTransform.rotation, desiredRotation, maxRotationSpeed * deltaTime);
-        // Debug.Log($"navMeshVelocity: {navMeshAgent.velocity}");
     }
 
     #region Interactables:
@@ -570,10 +608,6 @@ public class PlayerController : NetworkBehaviour
     }
     #endregion
 
-    public void SetAnimator(Animator animator)
-    {
-        this.animator = animator;
-    }
 
     private void OnTriggerEnter(Collider other)
     {
@@ -650,10 +684,27 @@ public class PlayerController : NetworkBehaviour
     {
         allPlayers.Add(player);
     }
+
     [Server]
     public static void RemovePlayer(PlayerController player)
     {
         allPlayers.Remove(player);
     }
 
+    #region Tests:
+
+    private void PushSelf()
+    {
+        //float max = 7f;
+        // externalForces = new Vector3(Random.Range(-max, max), 0, Random.Range(-max, max));
+        externalForces += myTransform.forward * PUSH_FORCE;
+
+    }
+
+    private void ReportForward()
+    {
+        Debug.Log("forward:" + myTransform.forward);
+        //Vector3.
+    }
+    #endregion
 }

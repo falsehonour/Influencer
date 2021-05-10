@@ -74,13 +74,31 @@ namespace Mirror
             }
         }
 
+
+        bool initialised = false;
+
         void Awake()
         {
+            TryInitialise();
+        }
+        
+        private void TryInitialise()
+        {
+            //NOTE: I moved the code from the Awake method and added the initialised boolian.
+            if (initialised)
+            {
+                Debug.LogWarning("already initialised");
+                return;
+            }
+            if(animator == null)
+            {
+                Debug.LogWarning("can't initialse without an animator");
+                return;
+            }
             // store the animator parameters in a variable - the "Animator.parameters" getter allocates
             // a new parameter array every time it is accessed so we should avoid doing it in a loop
             parameters = animator.parameters
-                .Where(par => !animator.IsParameterControlledByCurve(par.nameHash))
-                .ToArray();
+             .Where(par => !animator.IsParameterControlledByCurve(par.nameHash)).ToArray();
             lastIntParameters = new int[parameters.Length];
             lastFloatParameters = new float[parameters.Length];
             lastBoolParameters = new bool[parameters.Length];
@@ -88,35 +106,41 @@ namespace Mirror
             animationHash = new int[animator.layerCount];
             transitionHash = new int[animator.layerCount];
             layerWeight = new float[animator.layerCount];
+
+            initialised = true;
         }
 
         void FixedUpdate()
         {
-            if (!SendMessagesAllowed)
-                return;
-
-            if (!animator.enabled)
-                return;
-
-            CheckSendRate();
-
-            for (int i = 0; i < animator.layerCount; i++)
+            if (initialised)
             {
-                int stateHash;
-                float normalizedTime;
-                if (!CheckAnimStateChanged(out stateHash, out normalizedTime, i))
+                if (!SendMessagesAllowed)
+                    return;
+
+                if (!animator.enabled)
+                    return;
+
+                CheckSendRate();
+
+                for (int i = 0; i < animator.layerCount; i++)
                 {
-                    continue;
+                    int stateHash;
+                    float normalizedTime;
+                    if (!CheckAnimStateChanged(out stateHash, out normalizedTime, i))
+                    {
+                        continue;
+                    }
+
+                    using (PooledNetworkWriter writer = NetworkWriterPool.GetWriter())
+                    {
+                        WriteParameters(writer);
+                        SendAnimationMessage(stateHash, normalizedTime, i, layerWeight[i], writer.ToArray());
+                    }
                 }
 
-                using (PooledNetworkWriter writer = NetworkWriterPool.GetWriter())
-                {
-                    WriteParameters(writer);
-                    SendAnimationMessage(stateHash, normalizedTime, i, layerWeight[i], writer.ToArray());
-                }
+                CheckSpeed();
             }
-
-            CheckSpeed();
+            
         }
 
         void CheckSpeed()

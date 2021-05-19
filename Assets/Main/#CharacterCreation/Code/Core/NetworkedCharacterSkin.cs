@@ -32,7 +32,7 @@ namespace CharacterCreation
             Transform characterTransform = character.transform;
             characterTransform.SetParent(this.transform);
             characterTransform.localPosition = Vector3.zero;
-            characterTransform.rotation = Quaternion.identity;
+            characterTransform.localRotation = Quaternion.identity; //This used to be characterTransform.Rotation... Do not repeat this mistake...
             character.Initialise();
             
             for (int i = 0; i < skinData.meshIndexes.Length; i++)
@@ -48,33 +48,41 @@ namespace CharacterCreation
             //Animator references:
             {
                 Animator animator = character.GetAnimator();
-                if(animator != null)
+                if (animator != null)
                 {
                     PlayerController playerController = GetComponent<PlayerController>();
-                    if(playerController != null)
+                    if (playerController != null)
                     {
                         playerController.SetAnimator(character.GetAnimator());
                     }
                     else
                     {
                         Debug.LogWarning("playerController == null");
-
                     }
+
+                    NetworkAnimator networkAnimator = GetComponent<NetworkAnimator>();
+                    if (networkAnimator != null)
+                    {
+                        networkAnimator.animator = animator;
+                    }
+
                     //TODO: Mirror sets its animator vars on awake so this approach is not working and I don't wanna mess with Mirror's Animator at the moment
 
                     //if (hasAuthority)
-                   /* {
-                        NetworkAnimator networkAnimator = character.GetComponent<NetworkAnimator>();
-                        if (networkAnimator != null)
-                        {
-                            networkAnimator.animator = animator;
-                            networkAnimator.TryInitialise();
-                        }
-                        else
-                        {
-                            Debug.LogWarning("networkAnimator == null");
-                        }
-                    }*/
+                    /* {
+                         NetworkAnimator networkAnimator = character.GetComponent<NetworkAnimator>();
+                         if (networkAnimator != null)
+                         {
+                             networkAnimator.animator = animator;
+                             networkAnimator.TryInitialise();
+                         }
+                         else
+                         {
+                             Debug.LogWarning("networkAnimator == null");
+                         }
+                     }*/
+
+
                 }
                 else
                 {

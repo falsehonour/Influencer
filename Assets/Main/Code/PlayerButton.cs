@@ -13,4 +13,9 @@ public class PlayerButton : MonoBehaviour
     {
         PlayerController.localPlayerController.TryPlaceTrap();
     }
+
+    public void TryShoot()
+    {
+        PlayerController.localPlayerController.TryPlaceTrap();
+    }
 }

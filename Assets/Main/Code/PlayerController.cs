@@ -11,7 +11,7 @@ public class PlayerController : NetworkBehaviour
         public const float MAX_TRAPPED_MOVEMENT_SPEED = 2.2f;
 
         public const float MIN_TAG_SQUARED_DISTANCE = 10f;
-        public const byte MAX_HEALTH = 32;
+        public const sbyte MAX_HEALTH = 32;
         public const float TRAP_DURATION = 3f;
         private const float HEALTH_LOSS_INTERVAL = 1f;
         private const float NEARBY_PLAYERS_DETECTION_INTERVAL = 0.066f;
@@ -49,6 +49,7 @@ public class PlayerController : NetworkBehaviour
     private Quaternion desiredRotation;
     private Vector3 controlledVelocity;
     private Vector3 externalForces;
+    private float currentGravity = 0;
     private float EXTERNAL_FORCES_REDUCTION_SPEED = 6f;
     private const float PUSH_FORCE = 6f;
     [SerializeField] private float gravity = -9.8f;
@@ -60,7 +61,6 @@ public class PlayerController : NetworkBehaviour
     private Vector3[] pathWayPoints;
     private int pathWayPointsCount;
     private Vector3 currentWayPoint;
-
 
     private int currentPathIndex;
     private InteractableAccessPoint desiredInteractableAccessPoint;
@@ -84,30 +84,39 @@ public class PlayerController : NetworkBehaviour
     {
         get { return tagger; }
     }
-    [SerializeField] private GameObject hashTag;
+    //[SerializeField] private GameObject hashTag;
     [SyncVar(hook = nameof(OnCanTagChange))] private bool canTag;
     [SerializeField] private GameObject tagButton;
     [SyncVar(hook = nameof(OnIsFrozenChanged))] private bool isFrozen;
     #endregion
     #region Health:
-    [SyncVar(hook = nameof(OnHealthChanged))] private byte health;
-    public byte Health
+    [SyncVar(hook = nameof(OnHealthChanged))] private sbyte DT_health;
+    public sbyte Health
     {
-        get { return health; }
+        get { return DT_health; }
     }
-    [SerializeField] private TMPro.TextMeshPro healthGUI;
+    //[SerializeField] private TMPro.TextMeshPro healthGUI;
     //[SyncVar] private bool isAlive;//TODO: Is this noit overkill??
     #endregion
     [SerializeField] private CharacterCreation.NetworkedCharacterSkin skin;
     [SerializeField] private GameObject placeholderGraphics;
-
+    [SerializeField] private Transform playerUIAnchor;
+    private PlayerUI playerUI;
     public static PlayerController localPlayerController;
     public static List<PlayerController> allPlayers = new List<PlayerController>();
 
+    private void Awake()
+    {
+        myTransform = transform;
+        playerUI = PlayerUIManager.CreatePlayerUI(playerUIAnchor);
+        char character = ' ';
+        playerUI.SetCharacter(character);
+
+    }
 
     private void Start()
     {
-        myTransform = transform;
+
 
         if (isServer)
         {
@@ -129,12 +138,6 @@ public class PlayerController : NetworkBehaviour
 
             //Cmd_SetTagger(GameManager.Tagger);
         }
-        /* else
-        {
-              hashTag.SetActive(tagger);
-        }*/
-        hashTag.SetActive(false);
-        healthGUI.color = Color.green;
 
         if (skin != null)
         {
@@ -155,7 +158,7 @@ public class PlayerController : NetworkBehaviour
         serverData = new PlayerServerData();
         AddPlayer(this);
         //SetTagger(allPlayers.Count == 1);
-        health = PlayerServerData.MAX_HEALTH;
+        DT_health = PlayerServerData.MAX_HEALTH;
         maxMovementSpeed = PlayerServerData.MAX_HEALTHY_MOVEMENT_SPEED;
 
     }
@@ -192,8 +195,10 @@ public class PlayerController : NetworkBehaviour
 
     [Client]
     private void OnTaggerChange(bool oldValue, bool newValue)
-    { 
-        hashTag.SetActive(newValue);
+    {
+        char character = newValue ? '#' : ' ';
+        playerUI.SetCharacter(character);
+       // hashTag.SetActive(newValue);
     }
 
     [Client]
@@ -208,7 +213,9 @@ public class PlayerController : NetworkBehaviour
     [ClientRpc]
     public void Rpc_Win()
     {
-        healthGUI.color = Color.yellow;
+        char character = 'V';
+        playerUI.SetCharacter(character);
+       // healthGUI.color = Color.yellow;
     }
 
     [Server]
@@ -245,34 +252,60 @@ public class PlayerController : NetworkBehaviour
 
     #region Health
     [Server]
+    private void ModifyHealth(sbyte by)
+    {
+        sbyte health = DT_health;
+        health += by;
+        if(health < 0)
+        {
+            health = 0;
+        }
+        else if (health > PlayerServerData.MAX_HEALTH)
+        {
+            health = PlayerServerData.MAX_HEALTH;
+        }
+
+        DT_health = health;
+
+        if (!IsAlive)
+        {
+            Server_OnDeath();
+        }
+    }
+
+    [Server]
     private void HandleTaggerHealthReduction(float deltaTime)
     {
         if (serverData.healthReductionTimer.Update(deltaTime))
         {
-            health -= 1;
-            if(!IsAlive)
-            {
-                OnDeath();
-            }
+            ModifyHealth(-1);
         }
     }
 
     [Client]
-    private void OnHealthChanged (byte oldHealth, byte newHealth)
+    private void OnHealthChanged (sbyte oldHealth, sbyte newHealth)
     {
-        healthGUI.text = newHealth.ToString();
+        //healthGUI.text = newHealth.ToString();
+        //TODO: maybe MAX_HEALTH should not reside in PlayerServerData,.,.
+        SetHealthBarFill(newHealth);
+    }
+
+    private void SetHealthBarFill(sbyte health)
+    {
+        float fill = ((float)health / (float)PlayerServerData.MAX_HEALTH);
+        playerUI.SetHealthBarFill(fill);
     }
 
     public bool IsAlive
     {
         get
         {
-            return health > 0;
+            return Health > 0;
         }
     }
 
     [Server]
-    private void OnDeath()
+    private void Server_OnDeath()
     {
         SetTagger(false);
         GameManager.UpdatePlayersState();
@@ -282,13 +315,19 @@ public class PlayerController : NetworkBehaviour
     [ClientRpc]
     private void Rpc_OnDeath()
     {
-        healthGUI.color = Color.red;
+        //healthGUI.color = Color.red;
+        char character = 'X';
+        playerUI.SetCharacter(character);
+        playerUI.gameObject.SetActive(false);
+
     }
+
     #endregion
     [Client]
     private void OnIsFrozenChanged(bool oldValue, bool newValue)
     {
-        healthGUI.color = (newValue ? Color.blue : Color.green);
+        //TODO: Add indicators
+       // healthGUI.color = (newValue ? Color.blue : Color.green);
     }
 
     [Client]
@@ -350,6 +389,10 @@ public class PlayerController : NetworkBehaviour
                         interactable.GetClosestAccessPoint(myTransform.position);
                     ActivateNavMesh(accessPoint);
                 }
+            }
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                TryShoot();
             }
         }
 
@@ -464,14 +507,15 @@ public class PlayerController : NetworkBehaviour
 
 
         #region Gravity
-        /* if (navMeshAgent..isGrounded)
+         bool isGrounded = characterController.isGrounded; //navMeshAgent.isGrounded;
+         if (isGrounded)
          {
-             velocity.y = 0;
+            currentGravity = 0;
          }
          else
          {
-             velocity.y += gravity * deltaTime;
-         }*/
+            currentGravity += gravity * deltaTime;
+         }
         #endregion
 
         if (false && PathFindingIsActive)
@@ -527,7 +571,9 @@ public class PlayerController : NetworkBehaviour
             animator.SetFloat("Speed", velocityPercentage);
         }
 
-        characterController.Move((controlledVelocity + externalForces) * deltaTime);
+        Vector3 velocity = (controlledVelocity + externalForces);
+        velocity.y += currentGravity;
+        characterController.Move(velocity * deltaTime);
         /*characterController.enabled = false;
         myTransform.position += velocity * deltaTime;*/
         myTransform.rotation = Quaternion.RotateTowards
@@ -608,7 +654,6 @@ public class PlayerController : NetworkBehaviour
     }
     #endregion
 
-
     private void OnTriggerEnter(Collider other)
     {
         if (isServer)
@@ -634,12 +679,8 @@ public class PlayerController : NetworkBehaviour
         pickUp.Collect();
         if(pickUp is HealthPickUp)
         {
-            byte healthAddition = 8;//TODO: Hardcoded
-            health += healthAddition;
-            if (health > PlayerServerData.MAX_HEALTH)
-            {
-                health = PlayerServerData.MAX_HEALTH;
-            }
+            sbyte healthAddition = 8;//TODO: Hardcoded
+            ModifyHealth(healthAddition);
         }
         else if(pickUp is Trap)
         {
@@ -648,18 +689,42 @@ public class PlayerController : NetworkBehaviour
         }         
     }
 
+    #region Shooting:
+    [Client]
+    public void TryShoot()
+    {
+        //Debug.Log("TryShoot");
+        Cmd_TryShoot(myTransform.position, myTransform.rotation);
+    }
+
+    [Command]
+    private void Cmd_TryShoot(Vector3 clientPlayerPosition, Quaternion clientRotation)
+    {
+        Vector3 bulletSpawnPosition = 
+            (clientPlayerPosition + (myTransform.forward * 1f) +  (Vector3.up * 0.4f)) ;//HARDCODED
+        Quaternion bulletSpawnRotation = clientRotation;
+        Spawner.Spawn(Spawnables.Bullet, bulletSpawnPosition, bulletSpawnRotation);
+    }
+
+    [Server]
+    public void OnBulletHit()
+    {
+        ModifyHealth(-1); 
+    }
+
+    #endregion
     [Client]
     public void TryPlaceTrap()
     {
         Debug.Log("TryPlaceTrap");
-        Cmd_PlaceTrap();
+        Cmd_TryPlaceTrap();
     }
 
     [Command]
-    private void Cmd_PlaceTrap()
+    private void Cmd_TryPlaceTrap()
     {
         Vector3 trapSpawnPosition = myTransform.position + (myTransform.forward * -1.1f);//HARDCODED
-        Spawner.Spawn(Spawnables.Trap, trapSpawnPosition);
+        Spawner.Spawn(Spawnables.Trap, trapSpawnPosition, Quaternion.identity);
     }
 
     [TargetRpc]
@@ -669,15 +734,25 @@ public class PlayerController : NetworkBehaviour
         myTransform.position = position;
         myTransform.rotation = rotation;
         characterController.enabled = true;
+    }
 
+    private void OnDestroy()
+    {
+        //if (isServer)
+        {
+            Server_OnDestroy();
+        }
+        Destroy(playerUI.gameObject);
     }
 
     [Server]
-    private void OnDestroy()
+    private void Server_OnDestroy()
     {
         RemovePlayer(this);
+        //TODO: Players who quit befor the game starts cause bugs. 
         GameManager.UpdatePlayersState();
     }
+
 
     [Server]
     public static void AddPlayer(PlayerController player)
@@ -698,7 +773,6 @@ public class PlayerController : NetworkBehaviour
         //float max = 7f;
         // externalForces = new Vector3(Random.Range(-max, max), 0, Random.Range(-max, max));
         externalForces += myTransform.forward * PUSH_FORCE;
-
     }
 
     private void ReportForward()

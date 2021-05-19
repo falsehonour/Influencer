@@ -16,7 +16,7 @@ public class GameManager : NetworkBehaviour
         get { return instance.state; }
     }
     [SerializeField] private Transform[] circleSpawnSpots;
-    [SerializeField] private FirstTaggerPointer firstTaggerPointer;
+    [SerializeField] private Kevin kevin;
     [SerializeField] private MatchCountdown countdown;
     private static GameManager instance;
 
@@ -67,7 +67,7 @@ public class GameManager : NetworkBehaviour
         yield return new WaitForSeconds(2f);//Hardcoded
 
         //Spinning sequence
-        firstTaggerPointer.Rpc_Spin(circleSpawnSpots[taggerIndex].transform.position);
+        kevin.Spin(circleSpawnSpots[taggerIndex].transform.position);
 
         yield return new WaitForSeconds(3f);//Hardcoded
 
@@ -85,6 +85,7 @@ public class GameManager : NetworkBehaviour
     private void StartMatch()
     {
         state = GameStates.TagGame;
+        kevin.StartDropRoutine();
         countdown.StartCounting(60f);
     }
 

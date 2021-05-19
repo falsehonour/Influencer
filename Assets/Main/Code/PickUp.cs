@@ -1,5 +1,4 @@
-﻿
-using UnityEngine;
+﻿using UnityEngine;
 using Mirror;
 
 public class PickUp : Spawnable
@@ -7,6 +6,12 @@ public class PickUp : Spawnable
     [Server]
     public void Collect()
     {
-        Disappear();
+        Die();
+    }
+
+    protected override void OnDeath()
+    {
+        base.OnDeath();
+        Hide();
     }
 }

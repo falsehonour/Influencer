@@ -3,42 +3,68 @@ using Mirror;
 
 public class Spawnable : NetworkBehaviour
 {
-    static Vector3 HIDDEN_LOCATION = new Vector3(0, -10, 0);
-
-    [Server]
-    public void Spawn(Vector3 spawnPosition)
+    private static readonly Vector3 HIDDEN_LOCATION = new Vector3(0, -10, 0);
+    //private NetworkTransform networkTransform;
+    protected Transform myTransform;
+    private bool isAlive = false;
+    protected bool IsAlive => isAlive;
+    private void Awake()
     {
-       // gameObject.SetActive(true);
-        gameObject.transform.position = spawnPosition;
-        Rpc_Spawn(spawnPosition);
-    }
-
-    [ClientRpc]
-    private void Rpc_Spawn(Vector3 spawnPosition)
-    {
-        //gameObject.SetActive(true);
-        gameObject.transform.position = spawnPosition;
+        myTransform = transform;
+       // networkTransform = GetComponent<NetworkTransform>();
     }
 
     [Server]
-    public void Disappear()
+    public void Spawn(Vector3 position, Quaternion rotation)
     {
-        Hide();
-        Rpc_Disappear();
+        OnSpawn(position, rotation);
+        Rpc_Spawn(position, rotation);
     }
 
     [ClientRpc]
-    private void Rpc_Disappear()
+    private void Rpc_Spawn(Vector3 position, Quaternion rotation)
     {
-        Hide();
+        if (isClientOnly)
+        {
+            OnSpawn(position, rotation);
+        }
     }
 
-    private void Hide()
+    protected virtual void OnSpawn(Vector3 position, Quaternion rotation)
+    {
+        // gameObject.SetActive(true);
+        myTransform.position = position;
+        myTransform.rotation = rotation;
+        isAlive = true;
+    }
+
+    [Server]
+    public void Die()
+    {
+        OnDeath();
+        Rpc_Die();
+    }
+
+    [ClientRpc]
+    private void Rpc_Die()
+    {
+        if (isClientOnly)
+        {
+            OnDeath();
+        }
+    }
+
+    protected virtual void OnDeath() 
+    {
+        isAlive = false;
+    }
+
+    protected void Hide()
     {
         // TODO: For some reason Mirror doesnt spawn inactive objects on clients that connect to the server. 
         // This solution might not be optimal cause it does not stop behaviours executing
         // gameObject.SetActive(false);
 
-        gameObject.transform.position = HIDDEN_LOCATION;
+        myTransform.position = HIDDEN_LOCATION;
     }
 }

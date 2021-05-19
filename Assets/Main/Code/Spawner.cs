@@ -5,7 +5,8 @@ using Mirror;
 
 public enum Spawnables : byte
 {
-    Trap = 0 , Length = 1
+    Trap = 0, Bullet = 1, HealthPickup = 2,
+    Length = 3
 }
 
 public class Spawner : MonoBehaviour//NetworkBehaviour
@@ -74,7 +75,7 @@ public class Spawner : MonoBehaviour//NetworkBehaviour
                     /*spawnable.transform.SetParent(parent);
                     spawnable.gameObject.SetActive(false);*/
                     NetworkServer.Spawn(spawnable.gameObject);
-                    spawnable.Disappear();
+                    spawnable.Die();
                 }
             }
         }
@@ -87,13 +88,14 @@ public class Spawner : MonoBehaviour//NetworkBehaviour
     }*/
 
     [Server]
-    public static Spawnable Spawn(Spawnables spawnableName, Vector3 spawnPosition)
+    public static Spawnable Spawn(Spawnables spawnableName, Vector3 spawnPosition, Quaternion spawnRotation)
     {
         int spawnableArrayIndex = (int)spawnableName;
         ref int spawnableIndex = ref spawnableIndices[spawnableArrayIndex];
 
+        //TODO: Make sure the spawnable is not alive..?
         Spawnable spawnedObject = spawnablesPools[spawnableArrayIndex][spawnableIndex];
-        spawnedObject.Spawn(spawnPosition);
+        spawnedObject.Spawn(spawnPosition, spawnRotation);
 
         spawnableIndex++;
         if (spawnableIndex >= spawnablesPools[spawnableArrayIndex].Length)
@@ -104,7 +106,7 @@ public class Spawner : MonoBehaviour//NetworkBehaviour
         return spawnedObject;
     }
 
-    private void Update()
+    /*private void Update()
     {
         //For testing purposes:
         if (Input.GetKeyDown(KeyCode.S))
@@ -113,5 +115,5 @@ public class Spawner : MonoBehaviour//NetworkBehaviour
             Vector3 spawnPosition = new Vector3(Random.Range(-offset, offset), 0, Random.Range(-offset, offset));
             Spawn(Spawnables.Trap, spawnPosition);
         }
-    }
+    }*/
 }

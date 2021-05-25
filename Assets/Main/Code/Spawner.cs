@@ -21,8 +21,10 @@ public class Spawner : MonoBehaviour//NetworkBehaviour
 
     public static Spawner instance;
     [SerializeField] private SpawnableObjectDefinition[] spawnableObjectDefinitions;
+    SpawnableObjectDefinition nullDefinition = new SpawnableObjectDefinition();
     private static Spawnable[][] spawnablesPools;
-    private static int[] spawnableIndices;
+    private Transform allSpawnablesParent;
+    //private static int[] spawnableIndices;
 
     private void Awake()
     {
@@ -38,56 +40,106 @@ public class Spawner : MonoBehaviour//NetworkBehaviour
     [Server]
     private void InitialisePools()
     {
-        Transform allSpawnablesParent = new GameObject("AllSpawnables").transform;
-        allSpawnablesParent.position = new Vector3();
+        allSpawnablesParent = new GameObject("AllSpawnables").transform;
+        allSpawnablesParent.position = Vector3.zero;
 
         int spawnableObjectsLength = (int)Spawnables.Length;
         spawnablesPools = new Spawnable[spawnableObjectsLength][];
-        spawnableIndices = new int[spawnableObjectsLength];
+        //spawnableIndices = new int[spawnableObjectsLength];
 
         for (int i = 0; i < spawnableObjectsLength; i++)
         {
             Spawnables spawnableObjectName = (Spawnables)i;
-            SpawnableObjectDefinition spawnableObjectDefinition = new SpawnableObjectDefinition();
-            //Look for definition:
-            for (int j = 0; j < spawnableObjectDefinitions.Length; j++)
-            {
-                if (spawnableObjectDefinitions[j].name == spawnableObjectName)
-                {
-                    spawnableObjectDefinition = spawnableObjectDefinitions[j];
-                    goto DefinitionFound;
-                }
-            }
-
-            Debug.LogError($"There is a missing spawnable definition for '{ spawnableObjectName.ToString()}'! Fix that.");
-            continue;
-
-            DefinitionFound:
-            {
-                /* Transform parent = new GameObject(spawnableObjectName.ToString() + "s").transform;
-                 parent.position = new Vector3();
-                 parent.SetParent(allSpawnablesParent);*/
-
-                Spawnable[] spawnableArray = spawnablesPools[i] = new Spawnable[spawnableObjectDefinition.poolSize];
-                for (int j = 0; j < spawnableArray.Length; j++)
-                {
-                    Spawnable spawnable = spawnableArray[j] = Instantiate(spawnableObjectDefinition.preFab);
-                    /*spawnable.transform.SetParent(parent);
-                    spawnable.gameObject.SetActive(false);*/
-                    NetworkServer.Spawn(spawnable.gameObject);
-                    spawnable.Die();
-                }
-            }
+            ref SpawnableObjectDefinition spawnableDefinition = ref GetSpawnableDefinition(spawnableObjectName);
+            spawnablesPools[i] = CreateDeadPool(spawnableDefinition.preFab,spawnableDefinition.poolSize);// new Spawnable[spawnableObjectDefinition.poolSize];
         }
     }
 
-   /* [Server]
-    public static Spawnable Spawn(Spawnables spawnableName, Vector3 spawnPosition)
-    {
-        return instance.Spawn(spawnableName, spawnPosition);
-    }*/
+    /* [Server]
+     public static Spawnable Spawn(Spawnables spawnableName, Vector3 spawnPosition)
+     {
+         return instance.Spawn(spawnableName, spawnPosition);
+     }*/
 
     [Server]
+    public static Spawnable Spawn(Spawnables spawnableName, Vector3 spawnPosition, Quaternion spawnRotation)
+    {
+        Spawnable validSpawnable = null;
+        int spawnableArrayIndex = (int)spawnableName;
+        Spawnable[] spawnableArray = spawnablesPools[spawnableArrayIndex];
+
+        //ref int spawnableIndex = ref spawnableIndices[spawnableArrayIndex];
+        for (int i = 0; i < spawnableArray.Length; i++)
+        {
+            //TODO: maybe split the pool into living and dead spawnables for quicker lookups
+            Spawnable spawnable = spawnableArray[i];
+            if (!spawnable.IsAlive)
+            {
+                validSpawnable = spawnable;
+                goto ValidSpawnableFound;
+            }
+        }
+        //Resize:
+        {
+            Debug.Log($"Resizein' {spawnableName}'s pool++");
+            ref SpawnableObjectDefinition spawnableDefinition = ref instance.GetSpawnableDefinition(spawnableName);
+            //TODO: What's the ideal length..?
+            int oldLength = spawnableArray.Length;
+            int deadPoolLength = (int)(oldLength / 2);
+            Spawnable[] deadPool = instance.CreateDeadPool(spawnableDefinition.preFab, deadPoolLength);
+            Spawnable[] newSpawnableArray =  new Spawnable[deadPoolLength + oldLength];
+            for (int i = 0; i < oldLength; i++)
+            {
+                newSpawnableArray[i] = spawnableArray[i];
+            }
+            for (int i = 0; i < deadPoolLength; i++)
+            {
+                newSpawnableArray[i + oldLength] = deadPool[i];
+            }
+
+            spawnablesPools[spawnableArrayIndex] = newSpawnableArray;
+            validSpawnable = newSpawnableArray[oldLength];    
+        }
+        ValidSpawnableFound:
+        if(validSpawnable == null)
+        {
+            Debug.LogWarning("No dead spawnables were found... ");
+        }
+        validSpawnable.Spawn(spawnPosition, spawnRotation);
+        return validSpawnable;
+
+        /* Debug.LogWarning("No dead spawnables were found... ");
+         return null;*/
+    }
+
+    private ref SpawnableObjectDefinition GetSpawnableDefinition(Spawnables spawnableName)
+    {
+        //Look for definition:
+        for (int j = 0; j < spawnableObjectDefinitions.Length; j++)
+        {
+            if (spawnableObjectDefinitions[j].name == spawnableName)
+            {
+                return ref spawnableObjectDefinitions[j];
+            }
+        }
+
+        Debug.LogError($"There is a missing spawnable definition for '{ spawnableName.ToString()}'! Fix that.");
+        return ref nullDefinition;
+    }
+
+    private Spawnable[] CreateDeadPool(Spawnable preFab, int arrayLength)
+    {       
+        Spawnable[] spawnableArray = new Spawnable[arrayLength];
+        for (int i = 0; i < arrayLength; i++)
+        {
+            Spawnable spawnable = spawnableArray[i] = 
+                Instantiate(preFab, allSpawnablesParent);
+            NetworkServer.Spawn(spawnable.gameObject);
+            spawnable.Die();
+        }
+        return spawnableArray;
+    }
+    /*[Server]
     public static Spawnable Spawn(Spawnables spawnableName, Vector3 spawnPosition, Quaternion spawnRotation)
     {
         int spawnableArrayIndex = (int)spawnableName;
@@ -104,7 +156,7 @@ public class Spawner : MonoBehaviour//NetworkBehaviour
         }
 
         return spawnedObject;
-    }
+    }*/
 
     /*private void Update()
     {

@@ -7,7 +7,7 @@ public class Spawnable : NetworkBehaviour
     //private NetworkTransform networkTransform;
     protected Transform myTransform;
     private bool isAlive = false;
-    protected bool IsAlive => isAlive;
+    public bool IsAlive => isAlive;
     private void Awake()
     {
         myTransform = transform;

@@ -75,6 +75,9 @@ public class PlayerController : NetworkBehaviour
     [SerializeField] private Transform cameraAnchor;
      private Camera camera;
     [SerializeField] private Animator animator;
+    [SerializeField] private NetworkAnimator networkAnimator;
+
+    //private int animatorSpeedParameter;
     private Liftable liftable;// TODO: make it more generic;
     [SerializeField] private Transform grabbingHand;
     //private bool isWalking;
@@ -105,6 +108,8 @@ public class PlayerController : NetworkBehaviour
     public static PlayerController localPlayerController;
     public static List<PlayerController> allPlayers = new List<PlayerController>();
 
+
+
     private void Awake()
     {
         myTransform = transform;
@@ -133,7 +138,7 @@ public class PlayerController : NetworkBehaviour
             tagButton = GameObject.Find("TagButton");
             tagButton.SetActive(false);
             CharacterCamera characterCamera = FindObjectOfType<CharacterCamera>();
-            characterCamera.Initialise(myTransform, cameraAnchor.localPosition, cameraAnchor.rotation);
+            characterCamera.Initialise(myTransform, cameraAnchor);
             camera = characterCamera.GetComponent<Camera>();
 
             //Cmd_SetTagger(GameManager.Tagger);
@@ -146,9 +151,10 @@ public class PlayerController : NetworkBehaviour
         }
     }
 
-    public void SetAnimator(Animator animator)
+    public void SetAnimator(Animator animator, NetworkAnimator networkAnimator)
     {
         this.animator = animator;
+        this.networkAnimator = networkAnimator;
     }
 
     [Server]
@@ -190,7 +196,7 @@ public class PlayerController : NetworkBehaviour
     private void Freeze()
     {
         isFrozen = true;
-        serverData.freezeTimer.Start(3);//HARDCODED
+        serverData.freezeTimer.Start(2);//HARDCODED
     }
 
     [Client]
@@ -326,6 +332,10 @@ public class PlayerController : NetworkBehaviour
     [Client]
     private void OnIsFrozenChanged(bool oldValue, bool newValue)
     {
+        if(hasAuthority && !newValue)
+        {
+            networkAnimator.SetTrigger(AnimatorParameters.Recover);
+        }
         //TODO: Add indicators
        // healthGUI.color = (newValue ? Color.blue : Color.green);
     }
@@ -333,6 +343,8 @@ public class PlayerController : NetworkBehaviour
     [Client]
     public void TryTag()
     {
+        //TODO: cache param name
+        networkAnimator.SetTrigger(AnimatorParameters.Push);
         Cmd_TryTag();
     }
 
@@ -369,6 +381,7 @@ public class PlayerController : NetworkBehaviour
     private void TargetRpc_OnPushed(Vector3 pushForce)
     {
         //TODO: merge with freeze perhaps?
+        networkAnimator.SetTrigger(AnimatorParameters.FlipForward);
         externalForces += pushForce;
     }
 
@@ -390,10 +403,16 @@ public class PlayerController : NetworkBehaviour
                     ActivateNavMesh(accessPoint);
                 }
             }
+            #region Testing:
             if (Input.GetKeyDown(KeyCode.Space))
             {
                 TryShoot();
             }
+            if (Input.GetKeyDown(KeyCode.T))
+            {
+                TryTag();
+            }
+            #endregion
         }
 
         #region Testing:
@@ -568,7 +587,7 @@ public class PlayerController : NetworkBehaviour
         if(animator != null)
         {
             //TODO: do this in bigger intervals for performance
-            animator.SetFloat("Speed", velocityPercentage);
+            animator.SetFloat(AnimatorParameters.Speed, velocityPercentage);
         }
 
         Vector3 velocity = (controlledVelocity + externalForces);
@@ -700,6 +719,7 @@ public class PlayerController : NetworkBehaviour
     [Command]
     private void Cmd_TryShoot(Vector3 clientPlayerPosition, Quaternion clientRotation)
     {
+        networkAnimator.SetTrigger(AnimatorParameters.Slap);
         Vector3 bulletSpawnPosition = 
             (clientPlayerPosition + (myTransform.forward * 1f) +  (Vector3.up * 0.4f)) ;//HARDCODED
         Quaternion bulletSpawnRotation = clientRotation;

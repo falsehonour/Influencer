@@ -50,21 +50,25 @@ namespace CharacterCreation
                 Animator animator = character.GetAnimator();
                 if (animator != null)
                 {
+                    NetworkAnimator networkAnimator = GetComponent<NetworkAnimator>();
+                    if (networkAnimator != null)
+                    {
+                        Animator placeHolderAnimator = networkAnimator.animator;
+                        networkAnimator.animator = animator;
+                        Destroy(placeHolderAnimator);
+
+                    }
+
                     PlayerController playerController = GetComponent<PlayerController>();
                     if (playerController != null)
                     {
-                        playerController.SetAnimator(character.GetAnimator());
+                        playerController.SetAnimator(character.GetAnimator(), networkAnimator);
                     }
                     else
                     {
                         Debug.LogWarning("playerController == null");
                     }
 
-                    NetworkAnimator networkAnimator = GetComponent<NetworkAnimator>();
-                    if (networkAnimator != null)
-                    {
-                        networkAnimator.animator = animator;
-                    }
 
                     //TODO: Mirror sets its animator vars on awake so this approach is not working and I don't wanna mess with Mirror's Animator at the moment
 

@@ -29,6 +29,8 @@ public class GameManager : NetworkBehaviour
     public void OnServerStarted()
     {
         StartCoroutine(WaitForPlayers());
+        //kevin.StartDropRoutine();
+
     }
 
     [Server]
@@ -86,7 +88,7 @@ public class GameManager : NetworkBehaviour
     {
         state = GameStates.TagGame;
         kevin.StartDropRoutine();
-        countdown.StartCounting(60f);
+        countdown.Server_StartCounting(60f);
     }
 
     private static List<PlayerController> GetRelevantPlayers()

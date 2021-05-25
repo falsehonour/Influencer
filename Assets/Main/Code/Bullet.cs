@@ -20,6 +20,7 @@ public class Bullet : Spawnable
         {
             CancelInvoke("Die");
         }
+        Invoke("Die", 8f);
         //cachedFixedUpdateMovement = myTransform.forward * SPEED * Time.fixedDeltaTime;
         rigidbody.isKinematic = false;
         rigidbody.useGravity = false;

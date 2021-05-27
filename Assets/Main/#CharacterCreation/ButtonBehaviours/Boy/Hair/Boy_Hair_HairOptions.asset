@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: Boy_Hair_HairOptions
   m_EditorClassIdentifier: 
   characterPieces: []
+  characterPreFab: {fileID: 0}
   linkedButtonBehaviours:
   - {fileID: 11400000, guid: 4b0105b809965b2478183a166488e93e, type: 2}
-  - {fileID: 11400000, guid: 5ef94758627613a45b93caee82fba1f2, type: 2}
   - {fileID: 11400000, guid: 96c96f4b7b90f8f4587648eb42347d5a, type: 2}
   icon: {fileID: 407995032968058514, guid: 44cee6c3285e72b4085cbd8554bd1598, type: 3}
+  iconTint: {r: 1, g: 1, b: 1, a: 1}

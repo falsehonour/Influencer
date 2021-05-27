@@ -14,7 +14,10 @@ namespace CharacterCreation
         public ButtonBehaviour[] LinkedButtonBehaviours => linkedButtonBehaviours;
 
         [SerializeField] private Sprite icon;
-        public Sprite Icon => icon;
+        [SerializeField] private Color iconTint = Color.white;
+
+        public Sprite IconSprite => icon;
+        public Color IconTint => iconTint;
 
         public void CopyBehaviours(ButtonBehaviour from)
         {

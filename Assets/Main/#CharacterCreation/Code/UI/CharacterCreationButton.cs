@@ -36,10 +36,11 @@ namespace CharacterCreation
         private void DrawGraphics()
         {
             //TODO: Get rid of this mess
-            bool hasIcon = behaviour.Icon != null;
-            Sprite iconSprite = (hasIcon ? behaviour.Icon : null);
+            bool hasIcon = behaviour.IconSprite != null;
+            Sprite iconSprite = (hasIcon ? behaviour.IconSprite : null);
             string text = (hasIcon ? "" : behaviour.name);
             icon.sprite = iconSprite;
+            icon.color = behaviour.IconTint;
             GetComponentInChildren<Text>().text = text;
         }
 

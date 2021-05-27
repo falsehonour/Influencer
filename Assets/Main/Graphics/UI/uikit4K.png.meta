@@ -32,6 +32,9 @@ TextureImporter:
   - first:
       213: -7369922474067895456
     second: uikit4K_20
+  - first:
+      213: 8131123870852940960
+    second: uikit4K_21
   externalObjects: {}
   serializedVersion: 10
   mipmaps:
@@ -1083,13 +1086,13 @@ TextureImporter:
       name: uikit4K_54
       rect:
         serializedVersion: 2
-        x: 434
+        x: 433
         y: 84
-        width: 990
+        width: 993
         height: 238
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
+      border: {x: 59, y: 57, z: 49, w: 33}
       outline: []
       physicsShape: []
       tessellationDetail: 0
@@ -1264,6 +1267,27 @@ TextureImporter:
       bones: []
       spriteID: 06bd30fae86c8b990800000000000000
       internalID: -7369922474067895456
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: uikit4K_21
+      rect:
+        serializedVersion: 2
+        x: 1472
+        y: 81
+        width: 997
+        height: 242
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 56, y: 68, z: 44, w: 42}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0a483ea741e87d070800000000000000
+      internalID: 8131123870852940960
       vertices: []
       indices: 
       edges: []

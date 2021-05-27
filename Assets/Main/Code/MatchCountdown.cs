@@ -8,8 +8,9 @@ using UnityEngine.UI;
 public class MatchCountdown : NetworkBehaviour
 {
     //TODO: Perhaps seperate into 2 classed, one for server and one for client graphics??? 
+    [SerializeField] private GameObject UIObject;
     [SerializeField] private TMPro.TextMeshProUGUI text;
-    [SerializeField] private Image backgorundImage;
+    [SerializeField] private Image fillImage;
 
     private float initialTime;
     float timeLeft;
@@ -18,7 +19,7 @@ public class MatchCountdown : NetworkBehaviour
 
     private void Start()
     {
-        HideGraphics();
+        ShowGraphics(false);
     }
 
     [Server]
@@ -42,6 +43,8 @@ public class MatchCountdown : NetworkBehaviour
 
     private IEnumerator CountdownRoutine(float time)
     {
+        ShowGraphics(true);
+
         UInt16 previousTimeLeftUInt16 = 0;
         initialTime = time;
         timeLeft = time;
@@ -71,10 +74,9 @@ public class MatchCountdown : NetworkBehaviour
 
     }
 
-    private void HideGraphics()
+    private void ShowGraphics(bool value)
     {
-        text.text = "";
-        backgorundImage.fillAmount = 0;
+        UIObject.SetActive(value);
     }
 
     private void UpdateText(UInt16 timeLeft)
@@ -84,7 +86,7 @@ public class MatchCountdown : NetworkBehaviour
 
     private void UpdateBackgroundImage()
     {
-        backgorundImage.fillAmount = (timeLeft / initialTime);
+        fillImage.fillAmount = (timeLeft / initialTime);
     }
     /* [ClientRpc]
      private void Rpc_UpdateText(UInt16 timeLeft)

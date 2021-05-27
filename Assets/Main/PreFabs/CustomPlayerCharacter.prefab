@@ -25,7 +25,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1843534165324223653}
   m_LocalRotation: {x: 0.42261827, y: 0, z: 0, w: 0.9063079}
-  m_LocalPosition: {x: 0, y: 38, z: -32}
+  m_LocalPosition: {x: 0, y: 34, z: -29}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1843534166062372998}
@@ -147,12 +147,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   syncMode: 0
-  syncInterval: 0.1
+  syncInterval: 0.08
   characterController: {fileID: 1843534166062372999}
   maxRotationSpeed: 500
   gravity: -9.8
   cameraAnchor: {fileID: 1843534165324223648}
   animator: {fileID: 0}
+  networkAnimator: {fileID: 0}
   grabbingHand: {fileID: 0}
   tagButton: {fileID: 0}
   skin: {fileID: 8320585343824001797}

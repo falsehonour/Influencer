@@ -10,11 +10,11 @@ public class PlayerController : NetworkBehaviour
         public const float MAX_HEALTHY_MOVEMENT_SPEED = 5.5f;
         public const float MAX_TRAPPED_MOVEMENT_SPEED = 2.2f;
 
-        public const float MIN_TAG_SQUARED_DISTANCE = 10f;
+        public static readonly float MIN_TAG_SQUARED_DISTANCE = (2f * 2f);
         public const sbyte MAX_HEALTH = 32;
         public const float TRAP_DURATION = 3f;
         private const float HEALTH_LOSS_INTERVAL = 1f;
-        private const float NEARBY_PLAYERS_DETECTION_INTERVAL = 0.066f;
+        private const float NEARBY_PLAYERS_DETECTION_INTERVAL = 0.05f;
 
         public List<PlayerController> playersInRange;
         public RepeatingTimer healthReductionTimer;
@@ -195,8 +195,9 @@ public class PlayerController : NetworkBehaviour
     [Server]
     private void Freeze()
     {
+        //TODO: combine with push
         isFrozen = true;
-        serverData.freezeTimer.Start(2);//HARDCODED
+        serverData.freezeTimer.Start(3);//HARDCODED
     }
 
     [Client]
@@ -233,6 +234,7 @@ public class PlayerController : NetworkBehaviour
             //Debug.Log("NearbyPlayersDetection");
             //TODO: Do these things in a unified method, cache all players locations
             List<PlayerController> playersInRange = serverData.playersInRange;
+            //TODO: No need for this clear, we use an array instead
             playersInRange.Clear();
             Vector3 myPosition = myTransform.position;
             
@@ -251,7 +253,7 @@ public class PlayerController : NetworkBehaviour
                     }
                 }
             }
-
+            //TODO: perhaps using a syncvar is too slow for this
             canTag = playersInRange.Count > 0;
         }     
     }
@@ -343,7 +345,6 @@ public class PlayerController : NetworkBehaviour
     [Client]
     public void TryTag()
     {
-        //TODO: cache param name
         networkAnimator.SetTrigger(AnimatorParameters.Push);
         Cmd_TryTag();
     }
@@ -352,22 +353,48 @@ public class PlayerController : NetworkBehaviour
     private void Cmd_TryTag()
     {
         //TODO: In case there's more than one players, pick a player based on distance or something.
-        //
         if (!tagger)
         {
             Debug.LogWarning("A non-tagger is trying to tag!");
+            return;
         }
-        if (serverData.playersInRange.Count == 0)
+
+        int playersInRangeCount = serverData.playersInRange.Count;
+
+        if (playersInRangeCount > 0)
+        {
+            PlayerController nextTagger = null; // = serverData.playersInRange[0];
+
+            if (playersInRangeCount == 1)
+            {
+                nextTagger = serverData.playersInRange[0];
+            }
+            else
+            {
+                Vector3 myPosition = this.myTransform.position;
+                float smallestSquaredDistance = float.MaxValue;
+                for (int i = 0; i < playersInRangeCount; i++)
+                {
+                    PlayerController player = serverData.playersInRange[i];
+
+                    float squaredDistance = Vector3.SqrMagnitude(myPosition - player.myTransform.position);
+                    if(squaredDistance < smallestSquaredDistance)
+                    {
+                        nextTagger = player;
+                    }
+                }
+            }
+            nextTagger.Freeze();
+            nextTagger.SetTagger(true);
+            Push(nextTagger);
+            SetTagger(false);
+        }
+        else
         {
             Debug.LogWarning("Can't tag, no players in range");
             return;
         }
 
-        PlayerController nextTagger = serverData.playersInRange[0];
-        nextTagger.Freeze();
-        nextTagger.SetTagger(true);
-        Push(nextTagger);
-        SetTagger(false);
     }
 
     [Server]
@@ -412,19 +439,16 @@ public class PlayerController : NetworkBehaviour
             {
                 TryTag();
             }
+            if (Input.GetKeyDown(KeyCode.P))
+            {
+                PushSelf();
+            }
+            if (Input.GetKeyDown(KeyCode.F))
+            {
+                ReportForward();
+            }
             #endregion
         }
-
-        #region Testing:
-        if (Input.GetKeyDown(KeyCode.P))
-        {
-            PushSelf();
-        }
-        if (Input.GetKeyDown(KeyCode.F))
-        {
-            ReportForward();
-        }
-        #endregion
     }
 
     private void FixedUpdate()

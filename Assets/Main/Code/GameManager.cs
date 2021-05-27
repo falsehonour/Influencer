@@ -36,6 +36,7 @@ public class GameManager : NetworkBehaviour
     [Server]
     private IEnumerator WaitForPlayers()
     {
+        //HARDCODED values, can we store these in a file seperate to the game so that we don't have to rebuild the game every time we change these
         Debug.Log("WaitForPlayers()");
 
         state = GameStates.Waiting;
@@ -43,7 +44,7 @@ public class GameManager : NetworkBehaviour
         int requiredPlayerNumber = 3;
         while (PlayerController.allPlayers.Count < requiredPlayerNumber)
         {
-            yield return new WaitForSeconds(0.2f);
+            yield return new WaitForSeconds(0.25f);
         }
         StartCoroutine(ChooseTagger());
 
@@ -88,7 +89,7 @@ public class GameManager : NetworkBehaviour
     {
         state = GameStates.TagGame;
         kevin.StartDropRoutine();
-        countdown.Server_StartCounting(60f);
+        countdown.Server_StartCounting(120f);
     }
 
     private static List<PlayerController> GetRelevantPlayers()

@@ -72,7 +72,6 @@ MonoBehaviour:
   - {fileID: 0}
   pageTurner: {fileID: 1061136392873345492}
   pageIndexText: {fileID: 4908779951591905048}
-  backButton: {fileID: 3562613869716837497}
 --- !u!1 &309426763382444576
 GameObject:
   m_ObjectHideFlags: 0
@@ -90,7 +89,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &6415918980910827772
 RectTransform:
   m_ObjectHideFlags: 0
@@ -872,15 +871,3 @@ RectTransform:
     type: 3}
   m_PrefabInstance: {fileID: 9202342299483253277}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &3562613869716837497 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5676149479709490788, guid: e2e4c59072447654681a1e9388435483,
-    type: 3}
-  m_PrefabInstance: {fileID: 9202342299483253277}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bcb4fbbc2d982bc4e89eb09ad133a3b1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 

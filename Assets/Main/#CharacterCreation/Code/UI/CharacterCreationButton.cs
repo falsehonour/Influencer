@@ -40,8 +40,8 @@ namespace CharacterCreation
             Sprite iconSprite = (hasIcon ? behaviour.IconSprite : null);
             string text = (hasIcon ? "" : behaviour.name);
             icon.sprite = iconSprite;
-            icon.color = behaviour.IconTint;
-            GetComponentInChildren<Text>().text = text;
+            icon.color = hasIcon ? behaviour.IconTint : Color.clear;
+            GetComponentInChildren<TMPro.TextMeshProUGUI>().text = text;
         }
 
         public void OnClick()

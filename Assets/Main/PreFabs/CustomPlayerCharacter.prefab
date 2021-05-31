@@ -147,7 +147,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   syncMode: 0
-  syncInterval: 0.08
+  syncInterval: 0.06
   characterController: {fileID: 1843534166062372999}
   maxRotationSpeed: 500
   gravity: -9.8
@@ -155,7 +155,6 @@ MonoBehaviour:
   animator: {fileID: 0}
   networkAnimator: {fileID: 0}
   grabbingHand: {fileID: 0}
-  tagButton: {fileID: 0}
   skin: {fileID: 8320585343824001797}
   placeholderGraphics: {fileID: 4370205383554667044}
   playerUIAnchor: {fileID: 8757102476550614701}
@@ -221,7 +220,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   syncMode: 0
-  syncInterval: 0.12
+  syncInterval: 0.1
   clientAuthority: 1
   animator: {fileID: 6256768153988644273}
 --- !u!95 &6256768153988644273

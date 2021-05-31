@@ -75,4 +75,4 @@ velocity.x = movement.x;
             rigidbody.MovePosition(rigidbody.position + cachedFixedUpdateMovement);
             //myTransform.position += movement;
         }
-    }
+    

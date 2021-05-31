@@ -5,8 +5,8 @@ using Mirror;
 
 public enum Spawnables : byte
 {
-    Trap = 0, Bullet = 1, HealthPickup = 2,
-    Length = 3
+    Trap = 0, Bullet = 1, HealthPickup = 2, ThrownFootball = 3, FootballPickup = 4,
+    Length = 5
 }
 
 public class Spawner : MonoBehaviour//NetworkBehaviour
@@ -136,6 +136,7 @@ public class Spawner : MonoBehaviour//NetworkBehaviour
                 Instantiate(preFab, allSpawnablesParent);
             NetworkServer.Spawn(spawnable.gameObject);
             spawnable.Die();
+
         }
         return spawnableArray;
     }

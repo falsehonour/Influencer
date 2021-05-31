@@ -8,9 +8,12 @@ public class CharacterCamera : MonoBehaviour
     private Transform myTransform;
     private Transform target;
     //private Vector3 desiredOffset;
-    private Transform targetOffset;
+    [SerializeField] private float distanceFromTarget = 4f;
+    //private Transform targetOffset;
 
     [SerializeField] private float lerpSpeed;
+    public float distanceMultiplier = 1;
+
     bool Initialised
     {
         get { return target != null; }
@@ -36,20 +39,23 @@ public class CharacterCamera : MonoBehaviour
     private void MoveTowardsTarget(ref float deltaTime)
     {
         // Vector3 currentPosition = myTransform.position;
-        Vector3 newPosition = Vector3.Lerp
-            (myTransform.position, target.position + targetOffset.localPosition, lerpSpeed * deltaTime);
-        myTransform.position = newPosition;
+
+        /* Vector3 newPosition = Vector3.Lerp
+             (myTransform.position, target.position + targetOffset.localPosition, lerpSpeed * deltaTime);*/
+        Vector3 destination = target.position - (myTransform.forward * distanceFromTarget * distanceMultiplier);
+        Vector3 newPosition = Vector3.Lerp (myTransform.position, destination, lerpSpeed * deltaTime); 
+         myTransform.position = newPosition;
         //myTransform.position = target.position + targetOffset.localPosition;
         //TODO: No need to change every frame, this is here for testing purposes
-        myTransform.rotation = targetOffset.localRotation;
+       // myTransform.rotation = targetOffset.localRotation;
 
     }
 
-    internal void Initialise(Transform target, Transform targetOffset)
+    internal void Initialise(Transform target/*, Transform targetOffset*/)
     {
         myTransform = transform;
         this.target = target;
-        this.targetOffset = targetOffset;
+        //this.targetOffset = targetOffset;
         myTransform.parent = null;
     }
 

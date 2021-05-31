@@ -13,7 +13,8 @@ public class MatchCountdown : NetworkBehaviour
     [SerializeField] private Image fillImage;
 
     private float initialTime;
-    float timeLeft;
+    private float timeLeft;
+    private Coroutine countRoutine;
     //private bool isActive;
     //private UInt16 previousTimeLeftUInt16;
 
@@ -25,9 +26,9 @@ public class MatchCountdown : NetworkBehaviour
     [Server]
     public void Server_StartCounting(float time)
     {
-       /* timeLeft = time;
-        previousTimeLeftUInt16 = 0;*/
-        StartCoroutine(CountdownRoutine(time));
+        /* timeLeft = time;
+         previousTimeLeftUInt16 = 0;*/
+        countRoutine = StartCoroutine(CountdownRoutine(time));
         Rpc_StartCounting(time);
        // isActive = true;
     }
@@ -37,7 +38,7 @@ public class MatchCountdown : NetworkBehaviour
     {
         if (isClientOnly)
         {
-            StartCoroutine(CountdownRoutine(time));
+            countRoutine = StartCoroutine(CountdownRoutine(time));
         }
     }
 
@@ -67,6 +68,7 @@ public class MatchCountdown : NetworkBehaviour
             yield return null;
         }
 
+        //TODO: cache his bool so we don't call a getter..?
         if (isServer)
         {
             GameManager.OnCountdownStopped();
@@ -88,11 +90,27 @@ public class MatchCountdown : NetworkBehaviour
     {
         fillImage.fillAmount = (timeLeft / initialTime);
     }
+
+    [Server]
+    public void Server_StopCounting()
+    {
+        StopCoroutine(countRoutine);
+        Rpc_StopCounting();
+    }
+
+    [ClientRpc]
+    public void Rpc_StopCounting()
+    {
+        if (isClientOnly)
+        {
+            StopCoroutine(countRoutine);
+        }
+    }
     /* [ClientRpc]
-     private void Rpc_UpdateText(UInt16 timeLeft)
-     {
-         text.text = timeLeft.ToString();
-     }*/
+private void Rpc_UpdateText(UInt16 timeLeft)
+{
+    text.text = timeLeft.ToString();
+}*/
 
     /*[Server]
 private void StopCounting()

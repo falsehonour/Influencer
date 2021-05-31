@@ -9,28 +9,33 @@ public enum GameStates
 }
 public class GameManager : NetworkBehaviour
 {
-
     [SyncVar] private GameStates state;
     public static GameStates State
     {
         get { return instance.state; }
     }
+
+    //private RoomSettings roomSettings;
+
     [SerializeField] private Transform[] circleSpawnSpots;
     [SerializeField] private Kevin kevin;
     [SerializeField] private MatchCountdown countdown;
+    [SerializeField] private RoomManager roomManager;
+    [SerializeField] private GameObject roomManagementCanvas;
+
     private static GameManager instance;
 
     private void Awake()
     {
         instance = this;
+        //roomSettings = 
     }
 
     [Server]
     public void OnServerStarted()
     {
+        roomManagementCanvas.SetActive(false);
         StartCoroutine(WaitForPlayers());
-        //kevin.StartDropRoutine();
-
     }
 
     [Server]
@@ -41,8 +46,7 @@ public class GameManager : NetworkBehaviour
 
         state = GameStates.Waiting;
 
-        int requiredPlayerNumber = 3;
-        while (PlayerController.allPlayers.Count < requiredPlayerNumber)
+        while (PlayerController.allPlayers.Count < roomManager.settings.playerCount)
         {
             yield return new WaitForSeconds(0.25f);
         }
@@ -70,15 +74,20 @@ public class GameManager : NetworkBehaviour
         yield return new WaitForSeconds(2f);//Hardcoded
 
         //Spinning sequence
-        kevin.Spin(circleSpawnSpots[taggerIndex].transform.position);
-
-        yield return new WaitForSeconds(3f);//Hardcoded
+        /*kevin.Spin(circleSpawnSpots[taggerIndex].transform.position);
+        IEnumerator spinCoroutine = kevin.SpinCoroutine(circleSpawnSpots[taggerIndex].transform.position);
+        yield return new wait(spinCoroutine != null);*/
+        yield return kevin.SpinCoroutine(circleSpawnSpots[taggerIndex].transform.position);
+        //yield return new WaitForSeconds(3f);//Hardcoded
+        yield return new WaitForSeconds(0.2f);//Hardcoded
 
         for (int i = 0; i < playerCount; i++)
         {
             PlayerController player = PlayerController.allPlayers[i];
             player.SetTagger(i == taggerIndex);
         }
+
+        yield return new WaitForSeconds(0.2f);//Hardcoded
 
         StartMatch();
 
@@ -89,7 +98,7 @@ public class GameManager : NetworkBehaviour
     {
         state = GameStates.TagGame;
         kevin.StartDropRoutine();
-        countdown.Server_StartCounting(120f);
+        countdown.Server_StartCounting(roomManager.settings.countdown);
     }
 
     private static List<PlayerController> GetRelevantPlayers()
@@ -120,7 +129,8 @@ public class GameManager : NetworkBehaviour
         }
         else if (relevantPlayersCount == 1)
         {
-           instance.DeclareWinner(relevantPlayers[0]);
+            instance.countdown.Server_StopCounting();
+            instance.DeclareWinner(relevantPlayers[0]);
         }
         else 
         {
@@ -178,4 +188,8 @@ public class GameManager : NetworkBehaviour
         winner.Rpc_Win();
         state = GameStates.PostGame;
     }
+
+
+
+
 }

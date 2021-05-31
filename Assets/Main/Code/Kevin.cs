@@ -26,6 +26,7 @@ public class Kevin : MonoBehaviour
     private Transform myTransform;
     private Spawnables[] allowedDroppedItems;
     [SerializeField] private Animator animator;
+    [SerializeField] private NetworkAnimator networkAnimator;
 
     private void Start()
     {
@@ -36,7 +37,7 @@ public class Kevin : MonoBehaviour
             myTransform = transform;
             navAgent.enabled = false;
             state = KevinStates.ChoosingTagger;
-            allowedDroppedItems = new Spawnables[] { Spawnables.HealthPickup, Spawnables.Trap };
+            allowedDroppedItems = new Spawnables[] { Spawnables.HealthPickup, Spawnables.FootballPickup/*, Spawnables.Trap*/ };
         }
         else
         {
@@ -144,8 +145,11 @@ public class Kevin : MonoBehaviour
     }
 
     [Server]
-    private IEnumerator SpinCoroutine(Vector3 lookAtPoint)
+    public IEnumerator SpinCoroutine(Vector3 lookAtPoint)
     {
+        networkAnimator.SetTrigger("PointAt");
+        yield return new WaitForSeconds(0.5f);
+
         Keyframe lastKeyFrame = rotationCurve.keys[rotationCurve.keys.Length - 1];
         if (lastKeyFrame.value != 1)
         {

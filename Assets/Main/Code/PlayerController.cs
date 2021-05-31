@@ -1,16 +1,20 @@
 ﻿using System.Collections.Generic;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.UI;
 using Mirror;
 
 public class PlayerController : NetworkBehaviour
 {
     private class PlayerServerData
     {
-        public const float MAX_HEALTHY_MOVEMENT_SPEED = 5.5f;
+        public const float MAX_NONTAGGER_SPEED = 5.5f;
+        public const float MAX_TAGGER_SPEED = MAX_NONTAGGER_SPEED;
+    
         public const float MAX_TRAPPED_MOVEMENT_SPEED = 2.2f;
 
-        public static readonly float MIN_TAG_SQUARED_DISTANCE = (2f * 2f);
+        public static readonly float MIN_TAG_SQUARED_DISTANCE = (2.33f * 2.33f);
         public const sbyte MAX_HEALTH = 32;
         public const float TRAP_DURATION = 3f;
         private const float HEALTH_LOSS_INTERVAL = 1f;
@@ -44,14 +48,14 @@ public class PlayerController : NetworkBehaviour
     private Transform myTransform;
     private Joystick joystick;
 
-    [SyncVar] private float maxMovementSpeed;
+    [SyncVar] private float currentMaxMovementSpeed;
     [SerializeField] private float maxRotationSpeed;
     private Quaternion desiredRotation;
     private Vector3 controlledVelocity;
     private Vector3 externalForces;
     private float currentGravity = 0;
     private float EXTERNAL_FORCES_REDUCTION_SPEED = 6f;
-    private const float PUSH_FORCE = 6f;
+    private const float PUSH_FORCE = 7.5f;
     [SerializeField] private float gravity = -9.8f;
     private const float MIN_SQUARED_WAYPOINT_DISTANCE = 0.05f;
     private static readonly Vector3 ZERO_VECTOR3 = Vector3.zero;
@@ -72,8 +76,9 @@ public class PlayerController : NetworkBehaviour
         }
     }
     #endregion
-    [SerializeField] private Transform cameraAnchor;
-     private Camera camera;
+    [SerializeField] private Transform cameraAnchor;//TODO: I believe this is nop longer needed
+    private CharacterCamera characterCamera;
+    //private Camera camera;
     [SerializeField] private Animator animator;
     [SerializeField] private NetworkAnimator networkAnimator;
 
@@ -89,7 +94,9 @@ public class PlayerController : NetworkBehaviour
     }
     //[SerializeField] private GameObject hashTag;
     [SyncVar(hook = nameof(OnCanTagChange))] private bool canTag;
-    [SerializeField] private GameObject tagButton;
+    //[SerializeField] private GameObject tagButton;
+    private FakeButton fakeTagButton;
+
     [SyncVar(hook = nameof(OnIsFrozenChanged))] private bool isFrozen;
     #endregion
     #region Health:
@@ -107,7 +114,6 @@ public class PlayerController : NetworkBehaviour
     private PlayerUI playerUI;
     public static PlayerController localPlayerController;
     public static List<PlayerController> allPlayers = new List<PlayerController>();
-
 
 
     private void Awake()
@@ -132,14 +138,23 @@ public class PlayerController : NetworkBehaviour
         {
             localPlayerController = this;
 
-            pathCache = new NavMeshPath();
-            pathWayPoints = new Vector3[16];
+            //TODO: Remove path finding stuff if it's not gonna be used after all
+            /*pathCache = new NavMeshPath();
+            pathWayPoints = new Vector3[16];*/
+
             joystick  = FindObjectOfType<Joystick>();
-            tagButton = GameObject.Find("TagButton");
-            tagButton.SetActive(false);
-            CharacterCamera characterCamera = FindObjectOfType<CharacterCamera>();
-            characterCamera.Initialise(myTransform, cameraAnchor);
-            camera = characterCamera.GetComponent<Camera>();
+            /*tagButton = GameObject.Find("TagButton");
+            tagButton.SetActive(false);*/
+
+            fakeTagButton = GameObject.Find("FakeTagButton").GetComponent<FakeButton>();
+            fakeTagButton.Disable();
+
+            fakeFootballButton = GameObject.Find("FakeFootballButton").GetComponent<FakeButton>();
+            UpdateFakeFootballButtonText();
+
+            characterCamera = FindObjectOfType<CharacterCamera>();
+            characterCamera.Initialise(myTransform/*, cameraAnchor*/);
+            //camera = characterCamera.GetComponent<Camera>();
 
             //Cmd_SetTagger(GameManager.Tagger);
         }
@@ -165,31 +180,27 @@ public class PlayerController : NetworkBehaviour
         AddPlayer(this);
         //SetTagger(allPlayers.Count == 1);
         DT_health = PlayerServerData.MAX_HEALTH;
-        maxMovementSpeed = PlayerServerData.MAX_HEALTHY_MOVEMENT_SPEED;
+        currentMaxMovementSpeed = PlayerServerData.MAX_NONTAGGER_SPEED;
 
     }
 
     #region Tagging:
 
-    /*[Command]
-    private void Cmd_SetTagger(bool value)
-    {
-        SetTagger(value);
-    }*/
-
     [Server]
     public void SetTagger(bool value)
     {
         tagger = value;
+        currentMaxMovementSpeed = value ? PlayerServerData.MAX_TAGGER_SPEED : PlayerServerData.MAX_NONTAGGER_SPEED;
+        
+        //This is done in order to prevent a new tagger from tagging previously stored players somehow
+        canTag = false;
+        serverData.playersInRange.Clear();
 
         if (value)
         {
             serverData.healthReductionTimer.Reset();
         }
-        else
-        {
-            canTag = false;
-        }
+
     }
 
     [Server]
@@ -197,7 +208,7 @@ public class PlayerController : NetworkBehaviour
     {
         //TODO: combine with push
         isFrozen = true;
-        serverData.freezeTimer.Start(3);//HARDCODED
+        serverData.freezeTimer.Start(3.5f);//HARDCODED
     }
 
     [Client]
@@ -213,16 +224,40 @@ public class PlayerController : NetworkBehaviour
     {
         if (isLocalPlayer)
         {
-            tagButton.SetActive(newValue);
+            //tagButton.SetActive(newValue);
+
+            if (newValue)
+            {
+                fakeTagButton.Enable();
+            }
+            else 
+            {
+                if (tagger)
+                {
+                    fakeTagButton.Disable();
+                }
+                else
+                {
+                    fakeTagButton.Invoke("Disable", 0.75f);//LAAAAZY....
+                }
+            }
+
         }
     }
     
     [ClientRpc]
     public void Rpc_Win()
     {
-        char character = 'V';
-        playerUI.SetCharacter(character);
-       // healthGUI.color = Color.yellow;
+        /*char character = 'V';
+        playerUI.SetCharacter(character);*/
+        if (hasAuthority)
+        {
+            networkAnimator.SetTrigger(AnimatorParameters.Win);
+            characterCamera.distanceMultiplier = 0.8f;
+            StartCoroutine(RotateRoutine(Quaternion.Euler(new Vector3(0, 180, 0)), 0.5f));
+
+        }
+        // healthGUI.color = Color.yellow;
     }
 
     [Server]
@@ -234,7 +269,7 @@ public class PlayerController : NetworkBehaviour
             //Debug.Log("NearbyPlayersDetection");
             //TODO: Do these things in a unified method, cache all players locations
             List<PlayerController> playersInRange = serverData.playersInRange;
-            //TODO: No need for this clear, we use an array instead
+            //TODO: No need for this clear, we could use an array instead
             playersInRange.Clear();
             Vector3 myPosition = myTransform.position;
             
@@ -324,9 +359,43 @@ public class PlayerController : NetworkBehaviour
     private void Rpc_OnDeath()
     {
         //healthGUI.color = Color.red;
-        char character = 'X';
-        playerUI.SetCharacter(character);
+        /*char character = 'X';
+        playerUI.SetCharacter(character);*/
         playerUI.gameObject.SetActive(false);
+
+        if (hasAuthority)
+        {
+            //HARDCODED
+            networkAnimator.SetTrigger(AnimatorParameters.Lose);
+            characterCamera.distanceMultiplier = 0.8f;
+            StartCoroutine(RotateRoutine(Quaternion.Euler (new Vector3(0,180,0)),0.5f));
+        }
+    }
+
+    private IEnumerator RotateRoutine(Quaternion targetRotation ,float timeToComplete)
+    {
+        Quaternion startRotation = myTransform.rotation;
+        Quaternion currentRotation = startRotation;
+
+        /*float currentY = myTransform.rotation.eulerAngles.y
+        myTransform.rotation = Quaternion.Euler(0, 180, 0);*/
+        float timePassed = 0;
+        Debug.Log("target:" + targetRotation.eulerAngles.ToString());
+        while(timePassed < timeToComplete)
+        {
+            float t = (timePassed / timeToComplete);
+            //Debug.Log("t:" + t.ToString("f3"));
+            currentRotation = Quaternion.Lerp(startRotation, targetRotation, t);
+            myTransform.rotation = currentRotation;
+
+            //TODO: maybe use fixed update instead
+            timePassed += Time.deltaTime;
+            yield return null;
+        }
+
+        myTransform.rotation = targetRotation;
+
+        Debug.Log("RotateRoutine finished");
 
     }
 
@@ -334,9 +403,14 @@ public class PlayerController : NetworkBehaviour
     [Client]
     private void OnIsFrozenChanged(bool oldValue, bool newValue)
     {
-        if(hasAuthority && !newValue)
+
+        if(hasAuthority)
         {
-            networkAnimator.SetTrigger(AnimatorParameters.Recover);
+            if (!newValue)
+            {
+                networkAnimator.SetTrigger(AnimatorParameters.Recover);
+            }
+            characterCamera.distanceMultiplier = newValue ? 0.7f : 1;
         }
         //TODO: Add indicators
        // healthGUI.color = (newValue ? Color.blue : Color.green);
@@ -345,8 +419,16 @@ public class PlayerController : NetworkBehaviour
     [Client]
     public void TryTag()
     {
+        fakeTagButton.Press();
         networkAnimator.SetTrigger(AnimatorParameters.Push);
         Cmd_TryTag();
+
+        /*if (canTag)
+        {
+            networkAnimator.SetTrigger(AnimatorParameters.Push);
+            Cmd_TryTag();
+        }*/
+
     }
 
     [Command]
@@ -431,9 +513,10 @@ public class PlayerController : NetworkBehaviour
                 }
             }
             #region Testing:
+           // Debug.Log("canTag: " + canTag);
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                TryShoot();
+                TryThrowFootball();
             }
             if (Input.GetKeyDown(KeyCode.T))
             {
@@ -447,6 +530,11 @@ public class PlayerController : NetworkBehaviour
             {
                 ReportForward();
             }
+            if (Input.GetKeyDown(KeyCode.R))
+            {
+                Vector3 rotation = new Vector3(Random.Range(0, 360), Random.Range(0, 360), Random.Range(0, 360));
+                StartCoroutine(RotateRoutine(Quaternion.Euler(rotation), 2f));
+            }
             #endregion
         }
     }
@@ -457,7 +545,7 @@ public class PlayerController : NetworkBehaviour
         GameStates gameState =  GameManager.State;
         if (gameState == GameStates.Waiting || gameState == GameStates.TagGame)
         {
-            if (isLocalPlayer)
+            if (isLocalPlayer && IsAlive)
             {
                 HandleMovement(ref deltaTime);
                 //TODO: That's alot of method calls bruh
@@ -485,11 +573,12 @@ public class PlayerController : NetworkBehaviour
                 }
                 if (serverData.trapTimer.IsActive)
                 {
-                    bool unTrap = serverData.trapTimer.Update(deltaTime);
+                    Debug.LogError("NOT IMPLEMENTED anymore..");
+                   /* bool unTrap = serverData.trapTimer.Update(deltaTime);
                     if (unTrap)
                     {
                         maxMovementSpeed = PlayerServerData.MAX_HEALTHY_MOVEMENT_SPEED;
-                    }
+                    }*/
                 }
             }
         }
@@ -543,7 +632,7 @@ public class PlayerController : NetworkBehaviour
             Vector3 inputVector3 = new Vector3(horizontalInput, 0, verticalInput);
             desiredRotation = Quaternion.LookRotation(inputVector3);
 
-            controlledVelocity = inputVector3 * maxMovementSpeed;// * deltaTime;
+            controlledVelocity = inputVector3 * currentMaxMovementSpeed;// * deltaTime;
             DeactivateNavMesh();
             //Debug.Log($"movement magnitude: {movement.magnitude}"); Magnitude seems good!
         }
@@ -598,7 +687,7 @@ public class PlayerController : NetworkBehaviour
         }
 
         float velocitySquaredMagnitude = controlledVelocity.sqrMagnitude;
-        float maxVelocitySquaredMagnitude = maxMovementSpeed * maxMovementSpeed;//TODO: Pre-Calculate
+        float maxVelocitySquaredMagnitude = currentMaxMovementSpeed * currentMaxMovementSpeed;//TODO: Pre-Calculate
         float velocityPercentage = (velocitySquaredMagnitude / maxVelocitySquaredMagnitude);
 
         if(velocityPercentage < 0.1f)//HARDCODED
@@ -619,6 +708,7 @@ public class PlayerController : NetworkBehaviour
         characterController.Move(velocity * deltaTime);
         /*characterController.enabled = false;
         myTransform.position += velocity * deltaTime;*/
+        //NOTE: Might interfere with RotateRoutine
         myTransform.rotation = Quaternion.RotateTowards
             (myTransform.rotation, desiredRotation, maxRotationSpeed * deltaTime);
     }
@@ -628,7 +718,8 @@ public class PlayerController : NetworkBehaviour
     {
         Interactable interactable = null;
         Vector2 mousePosition = Input.mousePosition;
-        Ray ray = camera.ScreenPointToRay(mousePosition);
+        //NOTE: this is destroyed
+        Ray ray = new Ray();// camera.ScreenPointToRay(mousePosition);
         RaycastHit raycastHit;
 
         if (Physics.Raycast(ray, out raycastHit))
@@ -727,9 +818,16 @@ public class PlayerController : NetworkBehaviour
         }
         else if(pickUp is Trap)
         {
+            Debug.LogError("TRAP has to be re-implemented");
+            /*
             serverData.trapTimer.Start(PlayerServerData.TRAP_DURATION);
-            maxMovementSpeed = PlayerServerData.MAX_TRAPPED_MOVEMENT_SPEED;
-        }         
+            maxMovementSpeed = PlayerServerData.MAX_TRAPPED_MOVEMENT_SPEED;*/
+        }      
+        else if(pickUp is FootballPickup)
+        {
+            footballCount++;
+            UpdateFakeFootballButtonText();
+        }
     }
 
     #region Shooting:
@@ -754,6 +852,48 @@ public class PlayerController : NetworkBehaviour
     public void OnBulletHit()
     {
         ModifyHealth(-1); 
+    }
+
+    #endregion
+
+    #region FootballThrowing:
+
+    private sbyte footballCount = 3;
+    private FakeButton fakeFootballButton;
+
+    private void UpdateFakeFootballButtonText()
+    {
+        fakeFootballButton.GetComponentInChildren<TMPro.TextMeshProUGUI>().text = footballCount.ToString();
+    }
+
+    [Client]
+    public void TryThrowFootball()
+    {
+        //Debug.Log("TryShoot");
+        fakeFootballButton.Press();
+
+        if (footballCount > 0)
+        {
+            networkAnimator.SetTrigger(AnimatorParameters.Throw);
+            Cmd_TryThrowFootball(myTransform.position, myTransform.rotation);
+            footballCount--;
+            UpdateFakeFootballButtonText();
+        }
+    }
+
+    [Command]
+    private void Cmd_TryThrowFootball(Vector3 clientPlayerPosition, Quaternion clientRotation)
+    {
+        Vector3 ballSpawnPosition =
+            (clientPlayerPosition + (myTransform.forward * 1f) + (Vector3.up * 0.5f));//HARDCODED
+        Quaternion ballSpawnRotation = clientRotation;
+        Spawner.Spawn(Spawnables.ThrownFootball, ballSpawnPosition, ballSpawnRotation);
+    }
+
+    [Server]
+    public void OnFootballHit()
+    {
+        ModifyHealth(-2);
     }
 
     #endregion

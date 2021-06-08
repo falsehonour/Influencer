@@ -1,0 +1,176 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93e385b20f6cdf54f89b327c2248de7a, type: 3}
+  m_Name: NewTextureGrid 1
+  m_EditorClassIdentifier: 
+  gridColorMode: 1
+  gridColor: {r: 0, g: 1, b: 0, a: 1}
+  gridsList:
+  - handlesPos: 0
+    vLinesOnCanvasGrid:
+    - 0
+    - 31.375
+    - 62.75
+    - 94.125
+    - 125.5
+    - 156.875
+    - 188.25
+    - 219.625
+    - 251
+    - 282.375
+    - 313.75
+    - 345.125
+    - 376.5
+    - 407.875
+    - 439.25
+    - 470.625
+    - 502
+    hLinesOnCanvasGrid:
+    - 502
+    - 470.625
+    - 439.25
+    - 407.875
+    - 376.5
+    - 345.125
+    - 313.75
+    - 282.375
+    - 251
+    - 219.625
+    - 188.25
+    - 156.875
+    - 125.5
+    - 94.125
+    - 62.75
+    - 31.375
+    - 0
+    tg: {fileID: 11400000}
+    gridOnCanvas:
+      serializedVersion: 2
+      x: 0
+      y: 502
+      width: 502
+      height: 502
+    mouseInsideRectPos: {x: 695, y: 164}
+    gridColor:
+      serializedVersion: 2
+      rgba: 4278255360
+    gridLabel: Flat Color Grid
+    editGridName: 0
+    isSelected: 0
+    showGridOptions: 1
+    isSelectionLocked: 0
+    isHandleSelected: 0
+    isGridPosLocked: 0
+    isOverlapping: 0
+    handleID: -1
+    vLinesOnTexGrid: 0000000004000000080000000c0000001000000014000000180000001c0000002000000024000000280000002c0000003000000034000000380000003c00000040000000
+    hLinesOnTexGrid: 0000000004000000080000000c0000001000000014000000180000001c0000002000000024000000280000002c0000003000000034000000380000003c00000040000000
+    tintColor:
+      serializedVersion: 2
+      rgba: 4294967295
+    emptySpaceColor:
+      serializedVersion: 2
+      rgba: 4294967295
+    gridPos: {x: 0, y: 0}
+    gridWidth: 64
+    gridHeight: 64
+    gridColumns: 16
+    gridRows: 16
+    hasEmptySpace: 0
+    isTexPattern: 0
+  - handlesPos: 0
+    vLinesOnCanvasGrid:
+    - 0
+    - 31.375
+    - 62.75
+    - 94.125
+    - 125.5
+    - 156.875
+    - 188.25
+    - 219.625
+    - 251
+    - 282.375
+    - 313.75
+    - 345.125
+    - 376.5
+    - 407.875
+    - 439.25
+    - 470.625
+    - 502
+    hLinesOnCanvasGrid:
+    - 502
+    - 470.625
+    - 439.25
+    - 407.875
+    - 376.5
+    - 345.125
+    - 313.75
+    - 282.375
+    - 251
+    - 219.625
+    - 188.25
+    - 156.875
+    - 125.5
+    - 94.125
+    - 62.75
+    - 31.375
+    - 0
+    tg: {fileID: 11400000}
+    gridOnCanvas:
+      serializedVersion: 2
+      x: 502
+      y: 502
+      width: 502
+      height: 502
+    mouseInsideRectPos: {x: 547, y: 110}
+    gridColor:
+      serializedVersion: 2
+      rgba: 4278255360
+    gridLabel: Flat Color Grid
+    editGridName: 0
+    isSelected: 0
+    showGridOptions: 1
+    isSelectionLocked: 0
+    isHandleSelected: 0
+    isGridPosLocked: 0
+    isOverlapping: 0
+    handleID: -1
+    vLinesOnTexGrid: 0000000004000000080000000c0000001000000014000000180000001c0000002000000024000000280000002c0000003000000034000000380000003c00000040000000
+    hLinesOnTexGrid: 0000000004000000080000000c0000001000000014000000180000001c0000002000000024000000280000002c0000003000000034000000380000003c00000040000000
+    tintColor:
+      serializedVersion: 2
+      rgba: 4294967295
+    emptySpaceColor:
+      serializedVersion: 2
+      rgba: 4294902015
+    gridPos: {x: 64, y: 0}
+    gridWidth: 64
+    gridHeight: 64
+    gridColumns: 16
+    gridRows: 16
+    hasEmptySpace: 1
+    isTexPattern: 0
+  copyList: []
+  texAtlas: {fileID: 2800000, guid: 744245356ca822e459518d2ec08eb038, type: 3}
+  originTexAtlas: {fileID: 0}
+  originOffset: {x: 256, y: -136}
+  sizeOffset: {x: 876, y: 876}
+  showShortcuts: 0
+  zoomSpeed: 80
+  handleSize: 10
+  canvasBorder: 50
+  panelDefaultWidth: 250
+  sidePanelWidth: 250
+  showPanel: 1
+  drawAxes: 1
+  drawGrid: 1
+  texAtlasSize: {x: 128, y: 128}

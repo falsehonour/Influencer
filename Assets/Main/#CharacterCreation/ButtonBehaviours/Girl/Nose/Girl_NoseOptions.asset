@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b6afed888306604caa1c1786b2e3ca7, type: 3}
+  m_Name: Girl_NoseOptions
+  m_EditorClassIdentifier: 
+  characterPieces: []
+  linkedButtonBehaviours:
+  - {fileID: 11400000, guid: 41cbeef436b5a87428619523ed3cec4a, type: 2}
+  - {fileID: 11400000, guid: 28023bf069be58646be36ad69f708a9d, type: 2}
+  - {fileID: 11400000, guid: 559e9172ef755a147b9c8b7f4108fa48, type: 2}
+  - {fileID: 11400000, guid: a6a63acc58602494e89d05ff8070d74b, type: 2}
+  icon: {fileID: -6248417260972543788, guid: 44cee6c3285e72b4085cbd8554bd1598, type: 3}

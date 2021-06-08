@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b6afed888306604caa1c1786b2e3ca7, type: 3}
+  m_Name: Boy_FaceOptions
+  m_EditorClassIdentifier: 
+  characterPieces: []
+  linkedButtonBehaviours:
+  - {fileID: 11400000, guid: aea670bee9d68e948ba30eb14e3e9d9b, type: 2}
+  - {fileID: 11400000, guid: ecb7af4afbcbff24792fee4f1fade87c, type: 2}
+  - {fileID: 11400000, guid: d04a4dfdfec3c8645a16e2f0aefd5daf, type: 2}
+  - {fileID: 11400000, guid: ea52ca7a66bf87242ba0ccb1971273f9, type: 2}
+  icon: {fileID: -2275850027723196004, guid: 44cee6c3285e72b4085cbd8554bd1598, type: 3}

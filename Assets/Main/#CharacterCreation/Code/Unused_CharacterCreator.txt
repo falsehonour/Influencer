@@ -1,0 +1,486 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class SkinnedMeshManipulator : MonoBehaviour
+{
+    [SerializeField] private SkinnedMeshRenderer mySkinnedMeshRenderer;
+    [SerializeField] private SkinnedMeshRenderer otherSkinnedMeshRenderer;
+
+    void Start()
+    {
+        Manipulate();
+    }
+
+
+    private void Manipulate()
+    {
+        mySkinnedMeshRenderer.bones = otherSkinnedMeshRenderer.bones;
+    }
+}
+
+
+
+        public static void OnButtonClicked(CharacterCreationButton characterCreationButton)
+        {
+            //TODO: Mark the buttons or something,
+            //the way we connect buttons to their functionality at the moment seems way too complex
+            bool buttonFound = false;
+            CharacterCreationButton.ButtonFunctions buttonFunction = characterCreationButton.Function;
+
+            byte index = 0;
+            {
+                CharacterCreationButton[] leftPanelButtons = instance.leftPanelButtons;
+                //Find the button
+
+                for (index = 0; index < leftPanelButtons.Length; index++)
+                {
+                    if (leftPanelButtons[index] == characterCreationButton)
+                    {
+                        buttonFound = true;
+                        break;
+                    }
+                }
+            }
+            if (buttonFound)
+            {
+                //Switch categories
+                categoryBeingBrowsedIndex = index;
+                CharacterPiece[] currentCategoryPieces = characterPiecesByCategory[categoryBeingBrowsedIndex];
+                if (currentCategoryPieces.Length > 1)
+                {
+                    instance.ShowPieces(currentCategoryPieces);
+                    selectionState = SelectionStates.Pieces;
+                }
+                else
+                {
+                    pieceBeingBrowsedIndex = 0;
+                    CharacterPiece piece = characterPiecesByCategory[categoryBeingBrowsedIndex][0];
+                    instance.ShowPieceMaterials(piece, false);
+                    selectionState = SelectionStates.Materials;
+                }
+
+            }
+            else //Look for button in the other array
+            {
+                CharacterCreationButton[] rightPanelButtons = instance.rightPanelButtons;
+
+                for (index = 0; index < rightPanelButtons.Length; index++)
+                {
+                    if (rightPanelButtons[index] == characterCreationButton)
+                    {
+                        buttonFound = true;
+                        break;
+                    }
+                }
+                if (buttonFound)
+                {
+                    if (selectionState == SelectionStates.Pieces)
+                    {
+                        pieceBeingBrowsedIndex = index;
+                        CharacterPiece piece = characterPiecesByCategory[categoryBeingBrowsedIndex][pieceBeingBrowsedIndex];
+                        if (piece.Materials.Length > 0)
+                        {
+                            instance.ShowPieceMaterials(piece, true);
+                            selectionState = SelectionStates.Materials;
+                        }
+                        else
+                        {
+                            materialBeingBrowsedIndex = 0;
+                            EquipCharacterPiece(piece, true);
+                        }
+                    }
+                    else if (selectionState == SelectionStates.Materials)
+                    {
+                        switch (buttonFunction)
+                        {
+                            case CharacterCreationButton.ButtonFunctions.Selection:
+                                {
+                                    materialBeingBrowsedIndex = index;
+                                    CharacterPiece piece =
+                                        characterPiecesByCategory[categoryBeingBrowsedIndex][pieceBeingBrowsedIndex];
+                                    EquipCharacterPiece(piece, true);
+                                }
+                                break;
+                            case CharacterCreationButton.ButtonFunctions.Back:
+                                {
+                                    CharacterPiece[] currentCategoryPieces = characterPiecesByCategory[categoryBeingBrowsedIndex];
+                                    instance.ShowPieces(currentCategoryPieces);
+                                    selectionState = SelectionStates.Pieces;
+                                }
+                                break;
+                        }
+                    }
+                }
+            }
+
+            Debug.Log("buttonFound: " + buttonFound);
+        }
+
+
+          private void Initialise()
+        {
+            //selectionState = SelectionStates.Pieces;
+           // int pieceCategoriesLength = (int)PieceCategories.Length;
+           // currentlyEquippedPieces = new CharacterPieceProperties[pieceCategoriesLength];
+            //pieceSelectionPanels = new GameObject[skinCategoriesLength];
+
+            CheckForErrorsInAllCharacterPieces();
+            InitialiseCharacterPiecesByCategory();
+            InitialiseCharacterMorphsByCategory();
+            InitialiseCharacter();
+            InitialiseGUIPanels();
+        }
+
+
+
+		        private static void EquipCharacterPiece(PieceSelection pieceSelection, bool checkForRedundantEquipment)
+        {
+            /*CharacterPieceProperties pieceProperties =
+                new CharacterPieceProperties(pieceBeingBrowsedIndex, materialBeingBrowsedIndex);
+            if (checkForRedundantEquipment && currentlyEquippedPieces[(byte)piece.Category].Equals(pieceProperties))
+            {
+                Debug.LogWarning("Trying to swap a piece by itself... Aborting.");
+                return;
+            }
+
+            currentlyEquippedPieces[(int)piece.Category] = pieceProperties;*/
+
+            CharacterPiece piece = pieceSelection.characterPiece;
+            Transform character = instance.character;
+            Transform parent = null;
+
+            //Find the appropriate parent for the piece
+            for (int i = 0; i < character.childCount; i++)
+            {
+                Transform child = character.GetChild(i);
+                if (child.name == piece.Category.ToString())
+                {
+                    parent = child;
+                    break;
+                }
+            }
+
+            // Destroy existing pieces of the same category
+            int parentChildCount = parent.childCount;
+            if (parentChildCount > 0)
+            {
+                for (int i = 0; i < parentChildCount; i++)
+                {
+                    Destroy(parent.GetChild(i).gameObject);
+                }
+            }
+
+            if (piece.SkinnedMesh != null)
+            {
+                SkinnedMeshRenderer skinnedMesh = Instantiate(piece.SkinnedMesh);
+                skinnedMesh.transform.SetParent(parent);
+                Transform[] characterBones = instance.characterBones;
+                Transform[] newBones = skinnedMesh.bones;
+
+                //Debug.Log("skinnedMesh bones:" + newBones.Length);
+                for (int i = 0; i < newBones.Length; i++)
+                {
+                    string boneName = piece.Bones[i];
+
+                    foreach (Transform bone in characterBones)
+                    {
+                        if (bone.name == boneName)
+                        {
+                            newBones[i] = bone;
+                            //Debug.Log("Bone assigned");
+                            break;
+                        }
+                    }
+
+                    if (newBones[i] == null)
+                    {
+                        Debug.LogError("Failed to find a bone!");
+                    }
+                }
+
+                skinnedMesh.bones = newBones;
+
+                foreach (Transform bone in characterBones)
+                {
+                    if (bone.name == piece.RootName)
+                    {
+                        skinnedMesh.rootBone = bone;
+                        Debug.Log("rootBone assigned");
+                        break;
+                    }
+                }
+
+                if (piece.Materials.Length > 0)
+                {
+                    Material mat = piece.Materials[pieceSelection.materialIndex];
+                    skinnedMesh.sharedMaterial = mat;
+                }
+            }
+            else
+            {
+                Debug.Log("piece.SkinnedMesh is null, no mesh will be instantiated");
+            }
+
+        }
+
+
+
+
+		private void ShowPieces(CharacterPiece[] currentCategoryPieces)
+        {
+            CharacterCreationButton[] buttons = rightPanelButtons;
+
+            for (int i = 0; i < buttons.Length; i++)
+            {
+                CharacterCreationButton button = buttons[i];
+
+                if (i < currentCategoryPieces.Length)
+                {
+                    button.gameObject.SetActive(true);
+                    CharacterPiece piece = currentCategoryPieces[i];
+                    buttons[i].Initialise(piece.name, piece);
+                }
+                else
+                {
+                    button.gameObject.SetActive(false);
+                }
+            }
+        }
+
+        private void ShowPieceMaterials(CharacterPiece piece, bool addBackButton)
+        {
+            Material[] materials = piece.Materials;
+            CharacterCreationButton[] buttons = rightPanelButtons;
+
+            for (byte i = 0; i < buttons.Length; i++)
+            {
+                CharacterCreationButton button = buttons[i];
+
+                if (i < materials.Length)
+                {
+                    button.gameObject.SetActive(true);
+                    button.Initialise(materials[i].name, new PieceSelection { characterPiece = piece, materialIndex = i });
+                }
+                else
+                {
+                    button.gameObject.SetActive(false);
+                }
+            }
+            if (addBackButton)
+            {
+                CharacterCreationButton backButton = buttons[materials.Length];
+                backButton.gameObject.SetActive(true);
+                backButton.Initialise(TextReverser.Reverse("חזור"), piece.Category);
+            }
+        }
+
+        private void ShowMorphs(CharacterMorph[] morphs)
+        {
+            CharacterCreationButton[] buttons = rightPanelButtons;
+
+            for (int i = 0; i < buttons.Length; i++)
+            {
+                CharacterCreationButton button = buttons[i];
+
+                if (i < morphs.Length)
+                {
+                    button.gameObject.SetActive(true);
+                    CharacterMorph morph = morphs[i];
+                    buttons[i].Initialise(morph.name, morph);
+                }
+                else
+                {
+                    button.gameObject.SetActive(false);
+                }
+            }
+        }
+
+
+		private void ShowCategories()
+        {
+            CharacterCreationButton[] buttons = leftPanelButtons;
+            int pieceCategoriesLength = (int)PieceCategories.Length;
+            int morphCategoriesLength = (int)MorphCategories.Length;
+
+            for (int i = 0; i < buttons.Length; i++)
+            {
+                CharacterCreationButton button = buttons[i];
+
+                if (i < pieceCategoriesLength)
+                {
+                    button.gameObject.SetActive(true);
+                    PieceCategories category = (PieceCategories)i;
+                    buttons[i].Initialise(category.ToString(), category);
+                }
+                else if (i <  (pieceCategoriesLength + morphCategoriesLength))
+                {
+                    button.gameObject.SetActive(true);
+                    MorphCategories category = (MorphCategories)(i - pieceCategoriesLength);
+                    buttons[i].Initialise(category.ToString(), category);
+                }
+                else
+                {
+                    button.gameObject.SetActive(false);
+                }
+            }
+        }
+
+
+
+		private void InitialiseCharacterPiecesByCategory()
+        {
+            int pieceCategoriesLength = (int)PieceCategories.Length;
+            characterPiecesByCategory = new CharacterPiece[pieceCategoriesLength][];
+            //Might be inefficient but should not happen frequently
+            for (int i = 0; i < pieceCategoriesLength; i++)
+            {
+                PieceCategories category = (PieceCategories)i;
+                List<CharacterPiece> characterPieces = new List<CharacterPiece>();
+                for (int j = 0; j < allCharacterPieces.Length; j++)
+                {
+                    if(allCharacterPieces[j].Category == category)
+                    {
+                        characterPieces.Add(allCharacterPieces[j]);
+                    }
+                }
+
+                characterPiecesByCategory[i] = characterPieces.ToArray();
+            }
+        }
+
+        private void InitialiseCharacterMorphsByCategory()
+        {
+            int morphCategoriesLength = (int)MorphCategories.Length;
+            characterMorphsByCategory = new CharacterMorph[morphCategoriesLength][];
+            //Might be inefficient but should not happen frequently
+            for (int i = 0; i < morphCategoriesLength; i++)
+            {
+                MorphCategories category = (MorphCategories)i;
+                List<CharacterMorph> characterMorphs = new List<CharacterMorph>();
+                for (int j = 0; j < allCharacterMorphs.Length; j++)
+                {
+                    if (allCharacterMorphs[j].Category == category)
+                    {
+                        characterMorphs.Add(allCharacterMorphs[j]);
+                    }
+                }
+
+                characterMorphsByCategory[i] = characterMorphs.ToArray();
+            }
+        }
+
+
+
+		if (selectedObject is PieceCategories)
+                {
+                    //Switch categories
+                    byte categoryBeingBrowsedIndex = (byte)((PieceCategories)selectedObject);
+                    CharacterPiece[] currentCategoryPieces = characterPiecesByCategory[categoryBeingBrowsedIndex];
+                    if (currentCategoryPieces.Length > 1)
+                    {
+                        instance.ShowPieces(currentCategoryPieces);
+                    }
+                    else
+                    {
+                        CharacterPiece piece = characterPiecesByCategory[categoryBeingBrowsedIndex][0];
+                        instance.ShowPieceMaterials(piece, false);
+                    }
+                }
+                else if (selectedObject is MorphCategories)
+                {
+                    //Switch categories
+                    byte categoryBeingBrowsedIndex = (byte)((MorphCategories)selectedObject);
+                    CharacterMorph[] morphs = characterMorphsByCategory[categoryBeingBrowsedIndex];
+                    instance.ShowMorphs(morphs);
+                }
+                else if (selectedObject is CharacterPiece)
+                {
+                    //byte pieceBeingBrowsedIndex = index;
+                    CharacterPiece piece = (CharacterPiece)selectedObject; //characterPiecesByCategory[categoryBeingBrowsedIndex][pieceBeingBrowsedIndex];
+                    if (piece.Materials.Length > 0)
+                    {
+                        instance.ShowPieceMaterials(piece, true);
+                    }
+                    else
+                    {
+                        EquipCharacterPiece(new PieceSelection { characterPiece = piece }, true);
+                    }
+                }
+                else if (selectedObject is PieceSelection)
+                {
+                    EquipCharacterPiece((PieceSelection)selectedObject, true);
+                }
+                else
+                
+
+
+                
+                /* Texture texture;
+                 Color32 colour;
+                 if(materialTexture.texture2D == null)
+                 {
+                     texture = renderer.sharedMaterials[materialIndex].GetTexture("_MainTex");
+                 }
+                 else
+                 {
+                     texture = materialTexture.texture2D;
+                 }
+                 if (true)//materialTexture.colour == null)
+                 {
+                     colour = renderer.sharedMaterials[materialIndex].GetColor("_Color");
+                 }
+                 else
+                 {
+                     colour = (Color32)materialTexture.colour;
+                 }*/
+
+                // renderer.materials[materialTexture.materialIndex].mainTexture = materialTexture.texture2D;
+
+
+
+                [ClientRpc]
+        private void Rpc_EquipSkin(byte[] meshesIndexes)
+        {
+            initialMeshes = new CharacterMesh[meshesIndexes.Length];
+            for (int i = 0; i < meshesIndexes.Length; i++)
+            {
+                Object obj = Resources.Load(meshesPaths[i]);
+                Debug.Log(obj == null);
+
+                CharacterMesh mesh = AssetDatabase.LoadAssetAtPath<CharacterMesh>(meshesPaths[i]);//Resources.Load(meshesPaths[i]);
+                //Debug.Log(meshesPaths[i]);
+                if (mesh != null)
+                {
+                    initialMeshes[i] = mesh;
+                }
+                else
+                {
+                    Debug.LogError("meshesPaths[i] does not lead to a CharacterMesh!");
+                }
+            }
+
+            for (int i = 0; i < initialMeshes.Length; i++)
+            {
+                EquipCharacterPiece(initialMeshes[i]);
+            }
+        }
+
+		                /*for (byte i = 0; i < characterPreFabs.Length; i++)
+                {
+                    if(preFab == characterPreFabs[i])
+                    {
+                        currentCharacterBaseIndex = i;
+                    }
+                }*/
+
+		           /* currentCharacterBaseIndex += indexModifier;
+            if (currentCharacterBaseIndex >= characterPreFabs.Length)
+            {
+                currentCharacterBaseIndex = 0;
+            }
+            else if(currentCharacterBaseIndex < 0)
+            {
+                currentCharacterBaseIndex = characterPreFabs.Length -1;
+            }*/
+            //TODO: going out of bounds will not give the results one might expect

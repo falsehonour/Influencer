@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cbe04ad90e3be3148ab4c334a6e53d1a, type: 3}
+  m_Name: Girl_FullBody0
+  m_EditorClassIdentifier: 
+  categories: 48
+  renderer: {fileID: 1260470160843082939, guid: a9bc920eb0a03574e939b5e7d490e9e5,
+    type: 3}
+  rootName: pelvis
+  bones:
+  - spine_03
+  - upperarm_r
+  - upperarm_twist_01_r
+  - clavicle_r
+  - spine_02
+  - CC_Base_R_RibsTwist
+  - spine_01
+  - pelvis
+  - thigh_r
+  - thigh_l
+  - thigh_twist_01_r
+  - thigh_twist_01_l
+  - CC_Base_L_RibsTwist
+  - neck_01
+  - clavicle_l
+  - upperarm_l
+  - upperarm_twist_01_l
+  - head
+  - calf_r
+  - calf_l
+  - calf_twist_01_r
+  - calf_twist_01_l

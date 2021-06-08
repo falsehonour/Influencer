@@ -1,0 +1,89 @@
+﻿Vector3 difference = target.position - characterTransform.position;
+difference.y = 0;
+            if(difference.sqrMagnitude > 1f)
+            {
+                Quaternion rotation = Quaternion.LookRotation(difference);
+characterTransform.rotation = rotation;
+
+                Vector3 movement = characterTransform.forward * movementSpeed;// * deltaTime;
+velocity.x = movement.x;
+                velocity.z = movement.z;
+            }
+
+
+			    /* private void DeactivateNavMeshAgent()
+     {
+         navMeshAgent.enabled = false;
+        // target = destination;
+     }
+     */
+  /*  private void InitialiseNavMeshAgent()
+    {
+        navMeshAgent.angularSpeed = float.MaxValue;
+        navMeshAgent.speed = maxMovementSpeed;
+        navMeshAgent.acceleration = float.MaxValue;
+        navMeshAgent.updateRotation = false;
+
+    }*/
+
+	        //navMeshAgent.enabled = true;
+        //navMeshAgent.SetDestination(destination.position);
+        // navMeshAgent.isStopped = false;
+
+
+
+            [Server]
+    private void DetectPlayersInRange()
+    {
+        playersInRange.Clear();
+        //Debug.Log( "DetectPlayersInRange: " + netId);
+        //TODO: Compare my distance to all other players, should be quicker.
+        int collidersCount = Physics.OverlapSphereNonAlloc(myTransform.position, 5, collidersInRange);
+        //bool playerFound = false;
+        for (int i = 0; i < collidersCount; i++)
+        {
+            PlayerController playerController = collidersInRange[i].GetComponent<PlayerController>();
+            if (playerController != null && playerController != this)
+            {
+                playersInRange.Add(playerController);
+                //Debug.Log("playerController found!");
+            }
+        }
+
+        canTag = playersInRange.Count > 0;
+    }    
+
+
+
+        public static void PromoteNewTagger(List <PlayerController> players)
+    {
+        int playerCount = PlayerController.allPlayers.Count;
+        int taggerIndex = Random.Range(0, playerCount);
+        PlayerController.allPlayers[taggerIndex].SetTagger(true);
+    }
+
+        private void FixedUpdate()
+    {
+        if (false && isFlying/*isServer && */)
+        {
+            /*  //TODO: Would it be safe to cache fixedDeltaTime?
+              float deltaTime = Time.fixedDeltaTime;
+              //TODO: will it be more efficient to move via a rigidbody? will it mess with our net-transform..?
+              Vector3 movement = myTransform.forward * SPEED * deltaTime;*/
+
+            Vector3 movement = cachedFixedUpdateMovement;// myTransform.forward * FIXED_UPDATE_SPEED;
+            rigidbody.MovePosition(rigidbody.position + cachedFixedUpdateMovement);
+            //myTransform.position += movement;
+        }
+    
+
+    /* [SyncVar(hook = nameof(OnFootballCountChange))] private sbyte footballCount = 3;
+     private FakeButton fakeFootballButton;
+
+     private void OnFootballCountChange(sbyte oldValue, sbyte newValue)
+     {
+         if(localPlayerController == this)
+         {
+             UpdateFakeFootballButtonText();
+         }
+     }*/

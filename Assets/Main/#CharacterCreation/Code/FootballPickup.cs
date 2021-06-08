@@ -1,2 +1,2 @@
 ﻿
-public class FootballPickup : PickUp{}
+//public class FootballPickup : PickUp{}

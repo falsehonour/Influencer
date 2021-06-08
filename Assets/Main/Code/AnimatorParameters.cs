@@ -11,9 +11,11 @@ public static class AnimatorParameters
     public static readonly int Recover = Animator.StringToHash(nameof(Recover));
     public static readonly int Lose = Animator.StringToHash(nameof(Lose));
     public static readonly int Win = Animator.StringToHash(nameof(Win));
-    public static readonly int Throw = Animator.StringToHash(nameof(Throw));
+    public static readonly int ThrowForward = Animator.StringToHash(nameof(ThrowForward));
+    public static readonly int ThrowBackward = Animator.StringToHash(nameof(ThrowBackward));
 
-    
+
+
     /* static AnimatorParameters()
      {
          //TODO: Is there a way to throw the fields in a collection and itterate over them..?

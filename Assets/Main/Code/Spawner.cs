@@ -5,8 +5,9 @@ using Mirror;
 
 public enum Spawnables : byte
 {
-    Trap = 0, Bullet = 1, HealthPickup = 2, ThrownFootball = 3, FootballPickup = 4,
-    Length = 5
+    Null = 0, Bullet = 1, HealthPickup = 2, ThrownFootball = 3, 
+    FootballPickup = 4, ThrownBanana = 5, BananaPickup = 6,
+    Length = 7
 }
 
 public class Spawner : MonoBehaviour//NetworkBehaviour
@@ -21,7 +22,7 @@ public class Spawner : MonoBehaviour//NetworkBehaviour
 
     public static Spawner instance;
     [SerializeField] private SpawnableObjectDefinition[] spawnableObjectDefinitions;
-    SpawnableObjectDefinition nullDefinition = new SpawnableObjectDefinition();
+    private  static SpawnableObjectDefinition nullDefinition = new SpawnableObjectDefinition();
     private static Spawnable[][] spawnablesPools;
     private Transform allSpawnablesParent;
     //private static int[] spawnableIndices;
@@ -134,11 +135,23 @@ public class Spawner : MonoBehaviour//NetworkBehaviour
         {
             Spawnable spawnable = spawnableArray[i] = 
                 Instantiate(preFab, allSpawnablesParent);
-            NetworkServer.Spawn(spawnable.gameObject);
+            NetworkServer.Spawn(spawnable.gameObject);       
             spawnable.Die();
 
         }
         return spawnableArray;
+    }
+
+    public static GameObject[] GetAllSpawnablePrefabs()
+    {
+        SpawnableObjectDefinition[] definitions = instance.spawnableObjectDefinitions;
+        int length = definitions.Length;
+        GameObject[] prefabs = new GameObject[length];
+        for (int i = 0; i < length; i++)
+        {
+            prefabs[i] = definitions[i].preFab.gameObject;
+        }
+        return prefabs;
     }
     /*[Server]
     public static Spawnable Spawn(Spawnables spawnableName, Vector3 spawnPosition, Quaternion spawnRotation)

@@ -76,3 +76,14 @@ velocity.x = movement.x;
             //myTransform.position += movement;
         }
     
+
+    /* [SyncVar(hook = nameof(OnFootballCountChange))] private sbyte footballCount = 3;
+     private FakeButton fakeFootballButton;
+
+     private void OnFootballCountChange(sbyte oldValue, sbyte newValue)
+     {
+         if(localPlayerController == this)
+         {
+             UpdateFakeFootballButtonText();
+         }
+     }*/

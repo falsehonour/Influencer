@@ -3,15 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
 
-public class ThrownFootball : Spawnable
+public class ThrownBanana : Spawnable
 {
-    private const float SPEED = 11f;
     private const int PROJECTILE_LAYER = 8;
     private const int PARTICLES_LAYER = 9;
-    //private static readonly float FIXED_UPDATE_SPEED = SPEED * Time.fixedDeltaTime;
     [SerializeField] private Rigidbody rigidbody;
-    //private Vector3 cachedFixedUpdateMovement;
-    private bool isFlying;
 
     protected override void OnSpawn(Vector3 position, Quaternion rotation)
     {
@@ -21,18 +17,13 @@ public class ThrownFootball : Spawnable
         {
             CancelInvoke("Die");
         }
-        Invoke("Die", 8f);
-        //cachedFixedUpdateMovement = myTransform.forward * SPEED * Time.fixedDeltaTime;
         myTransform.localScale = Vector3.one;
 
         rigidbody.isKinematic = false;
-        rigidbody.useGravity = false;
+        rigidbody.useGravity = true;
         rigidbody.angularVelocity = Vector3.zero;
         rigidbody.velocity = Vector3.zero;
-        rigidbody.AddForce(myTransform.forward * SPEED, ForceMode.VelocityChange);
-
-        //rigidbody.isKinematic = true;
-        isFlying = true;
+        //rigidbody.AddForce(myTransform.forward * SPEED, ForceMode.VelocityChange);
 
         PhysicsUtility.SetRootAndDecendentsLayers(gameObject, PROJECTILE_LAYER);
 
@@ -42,44 +33,32 @@ public class ThrownFootball : Spawnable
     {
         base.OnDeath();
         rigidbody.isKinematic = true;
-        //Hide();
-        StartCoroutine(Shrink(2.5f));
-    }
+        PhysicsUtility.SetRootAndDecendentsLayers(gameObject, PARTICLES_LAYER);
 
+        //Hide();
+        StartCoroutine(Shrink(0.5f));
+    }
+  
     private void OnCollisionEnter(Collision collision)
     {
-        if (IsAlive && isFlying)
+        Debug.Log("Banana: OnCollisionEnter");
+
+        if (IsAlive)
         {
             if (isServer)
             {
                 //TODO: These invokes mess up everythin, put some death timer instead
-                CancelInvoke("Die");
-                Invoke("Die", 3f);
-                PlayerController playerController = collision.gameObject.GetComponent<PlayerController>();
+                PlayerController playerController = 
+                    collision.gameObject.GetComponentInParent<PlayerController>();
                 if(playerController != null)
                 {
-                   //Debug.Log("")
+                    Debug.Log("Banana: playerController != null");
                     playerController.OnFootballHit();
+                    CancelInvoke("Die");
+                    Die();
                 }
-                // Server_OnTriggerEnter(other);
             }
-            Stop();
         }
-    }
-
-    /*[Server]
-    private void Server_OnTriggerEnter(Collider other)
-    {
-        //Die();
-    }
-    */
-    private void Stop()
-    {
-        //SwitchKinematicState(false);
-        rigidbody.useGravity = true;
-        rigidbody.AddForce((myTransform.forward * -1) * 2f, ForceMode.Impulse);//HARDCODED
-        isFlying = false;
-        PhysicsUtility.SetRootAndDecendentsLayers(gameObject, PARTICLES_LAYER);
     }
 
     /*private void SwitchKinematicState(bool value)

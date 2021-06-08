@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 using Mirror;
 
 public class Spawnable : NetworkBehaviour
@@ -61,10 +62,29 @@ public class Spawnable : NetworkBehaviour
 
     protected void Hide()
     {
-        // TODO: For some reason Mirror doesnt spawn inactive objects on clients that connect to the server. 
+        // TODO/NOTE: For some reason Mirror doesnt spawn inactive objects on clients that connect to the server. 
         // This solution might not be optimal cause it does not stop behaviours executing
         // gameObject.SetActive(false);
 
         myTransform.position = HIDDEN_LOCATION;
+    }
+
+    //TODO: This was hastly writ for presentin'
+    protected IEnumerator Shrink(float speed)
+    {
+        float size = 1;
+
+        while (size > 0)
+        {
+            if (IsAlive)
+            {
+                goto Break;
+            }
+            size -= speed * Time.deltaTime;
+            myTransform.localScale = size * Vector3.one;
+            yield return null;
+        }
+        myTransform.localScale = Vector3.zero;
+    Break: { }
     }
 }

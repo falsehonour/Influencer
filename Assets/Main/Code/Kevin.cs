@@ -24,9 +24,19 @@ public class Kevin : MonoBehaviour
     private const float REQUIRED_DROP_POINT_DISTANCE = (1f * 1f);
     [SerializeField] private NavMeshAgent navAgent;
     private Transform myTransform;
-    private Spawnables[] allowedDroppedItems;
+    //private Spawnables[] allowedDroppedItems;
+    [SerializeField]private DroppableItem[] droppableItems;
+    private int droppableItemsOverallChancePoints;
     [SerializeField] private Animator animator;
     [SerializeField] private NetworkAnimator networkAnimator;
+    
+    [System.Serializable]
+    private struct DroppableItem
+    {
+        public Spawnables spawnable;
+        public int dropChancePoints;
+        [HideInInspector] public int chanceThreshold;
+    }
 
     private void Start()
     {
@@ -37,7 +47,8 @@ public class Kevin : MonoBehaviour
             myTransform = transform;
             navAgent.enabled = false;
             state = KevinStates.ChoosingTagger;
-            allowedDroppedItems = new Spawnables[] { Spawnables.HealthPickup, Spawnables.FootballPickup/*, Spawnables.Trap*/ };
+            InitialiseDroppableItems();
+           // allowedDroppedItems = new Spawnables[] { Spawnables.HealthPickup, Spawnables.FootballPickup/*, Spawnables.Trap*/ };
         }
         else
         {
@@ -46,13 +57,32 @@ public class Kevin : MonoBehaviour
         }
     }
 
-   /* private void FixedUpdate()
+    private void InitialiseDroppableItems()
     {
-        if (/*isServer && /state == KevinStates.DroppingItems)
+        //Debug.Log("InitialiseDroppableItems");
+        droppableItemsOverallChancePoints = 0;
+        for (int i = 0; i < droppableItems.Length; i++)
         {
-            DropRoutine();
+            ref DroppableItem droppable = ref droppableItems[i];
+            if(droppable.dropChancePoints <= 0)
+            {
+                Debug.LogError("droppable has an invalid value for dropChancePoints, correcting...");
+                droppable.dropChancePoints = 1;
+            }
+            droppableItemsOverallChancePoints += droppable.dropChancePoints;
+            droppable.chanceThreshold = droppableItemsOverallChancePoints;
+            Debug.Log($"droppableItems[{i}].chanceThreshold: {droppableItems[i].chanceThreshold}");
         }
-    }*/
+
+
+    }
+    /* private void FixedUpdate()
+     {
+         if (/*isServer && /state == KevinStates.DroppingItems)
+         {
+             DropRoutine();
+         }
+     }*/
 
     [Server]
     private IEnumerator ItemDropRoutine()
@@ -92,9 +122,25 @@ public class Kevin : MonoBehaviour
     [Server]
     private void DropItem()
     {
-        int droppedItemIndex = Random.Range(0, allowedDroppedItems.Length);
+        int chance = Random.Range(0, droppableItemsOverallChancePoints);
+        Debug.Log($"chance = {chance}");
+        Spawnables spawnable = Spawnables.Null;
+        for (int i = 0; i < droppableItems.Length; i++)
+        {
+            if(chance < droppableItems[i].chanceThreshold)
+            {
+                spawnable = droppableItems[i].spawnable;
+                break;
+            }
+        }
+        if(spawnable == Spawnables.Null)
+        {
+            Debug.LogError("Thine chance model did not work after all!");
+            return;
+        }
+        //int droppedItemIndex = Random.Range(0, allowedDroppedItems.Length);
         Vector3 itemPosition = dropPoints[nextDropPointIndex].position; //myTransform.position;// + (myTransform.forward * -1.1f);//HARDCODED
-        Spawner.Spawn(allowedDroppedItems[droppedItemIndex], itemPosition, Quaternion.identity);
+        Spawner.Spawn(spawnable, itemPosition, Quaternion.identity);
     }
 
     [Server]

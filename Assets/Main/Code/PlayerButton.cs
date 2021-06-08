@@ -9,7 +9,7 @@ public class PlayerButton : MonoBehaviour
         PlayerController.localPlayerController.TryTag();
     }
 
-    public void TryPlaceTrap()
+    /*public void TryPlaceTrap()
     {
         PlayerController.localPlayerController.TryPlaceTrap();
     }
@@ -17,5 +17,5 @@ public class PlayerButton : MonoBehaviour
     public void TryShoot()
     {
         PlayerController.localPlayerController.TryPlaceTrap();
-    }
+    }*/
 }

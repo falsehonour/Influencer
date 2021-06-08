@@ -33,7 +33,6 @@ public class PlayerController : NetworkBehaviour
             nearbyPlayersDetectionTimer = new RepeatingTimer(NEARBY_PLAYERS_DETECTION_INTERVAL);
             trapTimer = new SingleCycleTimer();
             freezeTimer = new SingleCycleTimer();
-
         }
     }
 
@@ -114,7 +113,9 @@ public class PlayerController : NetworkBehaviour
     private PlayerUI playerUI;
     public static PlayerController localPlayerController;
     public static List<PlayerController> allPlayers = new List<PlayerController>();
-
+    //private bool isLocalPlayerCache;
+    [SyncVar(hook = nameof(OnPowerUpChanged))] private PowerUp powerUp;
+    private PowerUpButton fakePowerUpButton;
 
     private void Awake()
     {
@@ -127,7 +128,6 @@ public class PlayerController : NetworkBehaviour
 
     private void Start()
     {
-
 
         if (isServer)
         {
@@ -149,8 +149,10 @@ public class PlayerController : NetworkBehaviour
             fakeTagButton = GameObject.Find("FakeTagButton").GetComponent<FakeButton>();
             fakeTagButton.Disable();
 
-            fakeFootballButton = GameObject.Find("FakeFootballButton").GetComponent<FakeButton>();
-            UpdateFakeFootballButtonText();
+            /* fakeFootballButton = GameObject.Find("FakeFootballButton").GetComponent<FakeButton>();
+             UpdateFakeFootballButtonText();*/
+            fakePowerUpButton = GameObject.Find("FakePowerUpButton").GetComponent<PowerUpButton>();
+            UpdatePowerUpButton();
 
             characterCamera = FindObjectOfType<CharacterCamera>();
             characterCamera.Initialise(myTransform/*, cameraAnchor*/);
@@ -222,7 +224,7 @@ public class PlayerController : NetworkBehaviour
     [Client]
     private void OnCanTagChange(bool oldValue, bool newValue)
     {
-        if (isLocalPlayer)
+        if (localPlayerController == this)
         {
             //tagButton.SetActive(newValue);
 
@@ -498,7 +500,7 @@ public class PlayerController : NetworkBehaviour
 
     private void Update()
     {
-        if (isLocalPlayer)
+        if (localPlayerController == this)
         {
             float deltaTime = Time.deltaTime;
 
@@ -516,7 +518,7 @@ public class PlayerController : NetworkBehaviour
            // Debug.Log("canTag: " + canTag);
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                TryThrowFootball();
+                TryUsePowerUp();
             }
             if (Input.GetKeyDown(KeyCode.T))
             {
@@ -545,7 +547,7 @@ public class PlayerController : NetworkBehaviour
         GameStates gameState =  GameManager.State;
         if (gameState == GameStates.Waiting || gameState == GameStates.TagGame)
         {
-            if (isLocalPlayer && IsAlive)
+            if (localPlayerController == this && IsAlive)
             {
                 HandleMovement(ref deltaTime);
                 //TODO: That's alot of method calls bruh
@@ -809,11 +811,10 @@ public class PlayerController : NetworkBehaviour
     [Server]
     private void Collect(PickUp pickUp)
     {
-
         pickUp.Collect();
         if(pickUp is HealthPickUp)
         {
-            sbyte healthAddition = 8;//TODO: Hardcoded
+            sbyte healthAddition = 8;//Hardcoded
             ModifyHealth(healthAddition);
         }
         else if(pickUp is Trap)
@@ -823,10 +824,10 @@ public class PlayerController : NetworkBehaviour
             serverData.trapTimer.Start(PlayerServerData.TRAP_DURATION);
             maxMovementSpeed = PlayerServerData.MAX_TRAPPED_MOVEMENT_SPEED;*/
         }      
-        else if(pickUp is FootballPickup)
+        else if(pickUp is PowerUpPickUp)
         {
-            footballCount++;
-            UpdateFakeFootballButtonText();
+            PowerUpPickUp powerUpPickUp = (PowerUpPickUp)pickUp;
+            powerUp = powerUpPickUp.GetPowerUp();
         }
     }
 
@@ -857,16 +858,8 @@ public class PlayerController : NetworkBehaviour
     #endregion
 
     #region FootballThrowing:
-
-    private sbyte footballCount = 3;
-    private FakeButton fakeFootballButton;
-
-    private void UpdateFakeFootballButtonText()
-    {
-        fakeFootballButton.GetComponentInChildren<TMPro.TextMeshProUGUI>().text = footballCount.ToString();
-    }
-
-    [Client]
+   
+    /*[Client]
     public void TryThrowFootball()
     {
         //Debug.Log("TryShoot");
@@ -876,18 +869,30 @@ public class PlayerController : NetworkBehaviour
         {
             networkAnimator.SetTrigger(AnimatorParameters.Throw);
             Cmd_TryThrowFootball(myTransform.position, myTransform.rotation);
-            footballCount--;
-            UpdateFakeFootballButtonText();
         }
-    }
+    }*/
 
-    [Command]
+    /*[Command]
     private void Cmd_TryThrowFootball(Vector3 clientPlayerPosition, Quaternion clientRotation)
     {
+        if (footballCount > 0)
+        {
+            footballCount--;
+            Vector3 ballSpawnPosition =
+                (clientPlayerPosition + (myTransform.forward * 1f) + (Vector3.up * 0.5f));//HARDCODED
+            Quaternion ballSpawnRotation = clientRotation;
+            Spawner.Spawn(Spawnables.ThrownFootball, ballSpawnPosition, ballSpawnRotation);
+        }
+    }
+    */
+    [Server]
+    private void ThrowFootball()
+    {
+        //NOTE: rotation and position are based on what's on the server, this might cause noticeable impercision
         Vector3 ballSpawnPosition =
-            (clientPlayerPosition + (myTransform.forward * 1f) + (Vector3.up * 0.5f));//HARDCODED
-        Quaternion ballSpawnRotation = clientRotation;
-        Spawner.Spawn(Spawnables.ThrownFootball, ballSpawnPosition, ballSpawnRotation);
+            (myTransform.position + (myTransform.forward * 1f) + (Vector3.up * 0.5f));//HARDCODED
+        Quaternion ballSpawnRotation = myTransform.rotation;
+        Spawner.Spawn(Spawnables.ThrownFootball, ballSpawnPosition, ballSpawnRotation);   
     }
 
     [Server]
@@ -897,20 +902,99 @@ public class PlayerController : NetworkBehaviour
     }
 
     #endregion
-    [Client]
-    public void TryPlaceTrap()
+    #region BananaThrowing:
+
+    [Server]
+    private void ThrowBanana()
     {
-        Debug.Log("TryPlaceTrap");
-        Cmd_TryPlaceTrap();
+        Vector3 bananaSpawnPosition = 
+            myTransform.position + (myTransform.forward * -1.1f) + (Vector3.up *2f);//HARDCODED as F%$#
+        Spawner.Spawn(Spawnables.ThrownBanana, bananaSpawnPosition, Quaternion.identity);
+    }
+
+    #endregion
+    #region PowerUps:
+
+    private void OnPowerUpChanged(PowerUp oldValue, PowerUp newValue)
+    {
+        if (localPlayerController == this)
+        {
+            UpdatePowerUpButton();
+        }
+    }
+
+    private void UpdatePowerUpButton()
+    {
+        /* fakeFootballButton.GetComponentInChildren<TMPro.TextMeshProUGUI>().text = footballCount.ToString();
+         Debug.LogWarning("UpdatePowerUpButton is not implemented");*/
+        fakePowerUpButton.SetGraphics(powerUp);
+    }
+
+    [Client]
+    public void TryUsePowerUp()
+    {
+        //Debug.Log("TryShoot");
+        fakePowerUpButton.Press();
+        if (powerUp.type != PowerUp.Type.None && powerUp.count > 0)
+        {
+            Cmd_TryUsePowerUp();
+            //Play animation, we can rely on the player for this
+            int triggerID = 0;
+            switch (this.powerUp.type)
+            {
+                case PowerUp.Type.Football:
+                {
+                    triggerID = AnimatorParameters.ThrowForward;
+                    break;
+                }
+                case PowerUp.Type.Banana:
+                {
+                    triggerID = AnimatorParameters.ThrowBackward;
+                    break;
+                }
+            }
+            networkAnimator.SetTrigger(triggerID);
+        }
     }
 
     [Command]
-    private void Cmd_TryPlaceTrap()
+    private void Cmd_TryUsePowerUp()
     {
-        Vector3 trapSpawnPosition = myTransform.position + (myTransform.forward * -1.1f);//HARDCODED
-        Spawner.Spawn(Spawnables.Trap, trapSpawnPosition, Quaternion.identity);
+        if (powerUp.type != PowerUp.Type.None && powerUp.count > 0)
+        {
+            //NOTE: changing part of a struct does not seem to trigger syncVar hooks,,,
+
+            switch (this.powerUp.type)
+            {
+                case PowerUp.Type.Football:
+                {
+                    ThrowFootball();
+                    break;
+                }
+                case PowerUp.Type.Banana:
+                {
+                    ThrowBanana();
+                    break;
+                }
+            }
+
+            PowerUp powerUp = this.powerUp;
+            sbyte newCount = (sbyte)(powerUp.count - 1);
+            if (newCount <= 0)
+            {
+                powerUp.type = PowerUp.Type.None;
+            }
+            powerUp.count = newCount;
+            this.powerUp = powerUp;
+        }
+        else
+        {
+            Debug.LogWarning("Can't use a nonexistent power up.");
+        }
     }
 
+    #endregion
+    
     [TargetRpc]
     public void TargetRpc_Teleport(Vector3 position, Quaternion rotation)
     {
@@ -937,7 +1021,6 @@ public class PlayerController : NetworkBehaviour
         GameManager.UpdatePlayersState();
     }
 
-
     [Server]
     public static void AddPlayer(PlayerController player)
     {
@@ -951,7 +1034,6 @@ public class PlayerController : NetworkBehaviour
     }
 
     #region Tests:
-
     private void PushSelf()
     {
         //float max = 7f;
@@ -963,6 +1045,19 @@ public class PlayerController : NetworkBehaviour
     {
         Debug.Log("forward:" + myTransform.forward);
         //Vector3.
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        Debug.Log("Player: OnCollisionEnter");
+
+        if (IsAlive)
+        {
+            if (isServer)
+            {
+                
+            }
+        }
     }
     #endregion
 }

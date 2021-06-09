@@ -87,3 +87,22 @@ velocity.x = movement.x;
              UpdateFakeFootballButtonText();
          }
      }*/
+
+
+
+             float velocitySquaredMagnitude = controlledVelocity.sqrMagnitude;
+        float maxVelocitySquaredMagnitude = currentMaxMovementSpeed * currentMaxMovementSpeed;//TODO: Pre-Calculate
+        float velocityPercentage = (velocitySquaredMagnitude / maxVelocitySquaredMagnitude);
+
+        if(velocityPercentage < 0.1f)//HARDCODED
+        {
+            //Stay in place if input is negligible
+            controlledVelocity = Vector3.zero;
+            velocityPercentage = 0;
+        } 
+        //Debug.Log($"velocitySquaredMagnitude: {velocitySquaredMagnitude.ToString("f2")}");
+        if(animator != null)
+        {
+            //TODO: do this in bigger intervals for performance
+            animator.SetFloat(AnimatorParameters.Speed, velocityPercentage);
+        }

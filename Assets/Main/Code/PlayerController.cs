@@ -2,7 +2,6 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
-using UnityEngine.UI;
 using Mirror;
 
 public class PlayerController : NetworkBehaviour
@@ -11,28 +10,31 @@ public class PlayerController : NetworkBehaviour
     {
         public const float MAX_NONTAGGER_SPEED = 5.5f;
         public const float MAX_TAGGER_SPEED = MAX_NONTAGGER_SPEED;
-    
+        public const float SPRINT_SPEED = 8f;
+
         public const float MAX_TRAPPED_MOVEMENT_SPEED = 2.2f;
 
         public static readonly float MIN_TAG_SQUARED_DISTANCE = (2.33f * 2.33f);
         public const sbyte MAX_HEALTH = 32;
-        public const float TRAP_DURATION = 3f;
+        //public const float TRAP_DURATION = 2f;
         private const float HEALTH_LOSS_INTERVAL = 1f;
         private const float NEARBY_PLAYERS_DETECTION_INTERVAL = 0.05f;
 
         public List<PlayerController> playersInRange;
         public RepeatingTimer healthReductionTimer;
         public RepeatingTimer nearbyPlayersDetectionTimer;
-        public SingleCycleTimer trapTimer;
+        //public SingleCycleTimer trapTimer;
         public SingleCycleTimer freezeTimer;
+        public SingleCycleTimer sprintTimer;
 
         public PlayerServerData()
         {
             playersInRange = new List<PlayerController>();
             healthReductionTimer = new RepeatingTimer(HEALTH_LOSS_INTERVAL);
             nearbyPlayersDetectionTimer = new RepeatingTimer(NEARBY_PLAYERS_DETECTION_INTERVAL);
-            trapTimer = new SingleCycleTimer();
+           // trapTimer = new SingleCycleTimer();
             freezeTimer = new SingleCycleTimer();
+            sprintTimer = new SingleCycleTimer();
         }
     }
 
@@ -55,6 +57,7 @@ public class PlayerController : NetworkBehaviour
     private float currentGravity = 0;
     private float EXTERNAL_FORCES_REDUCTION_SPEED = 6f;
     private const float PUSH_FORCE = 7.5f;
+    private const float SLIP_FORCE = 6f;
     [SerializeField] private float gravity = -9.8f;
     private const float MIN_SQUARED_WAYPOINT_DISTANCE = 0.05f;
     private static readonly Vector3 ZERO_VECTOR3 = Vector3.zero;
@@ -104,7 +107,6 @@ public class PlayerController : NetworkBehaviour
     {
         get { return DT_health; }
     }
-    //[SerializeField] private TMPro.TextMeshPro healthGUI;
     //[SyncVar] private bool isAlive;//TODO: Is this noit overkill??
     #endregion
     [SerializeField] private CharacterCreation.NetworkedCharacterSkin skin;
@@ -116,6 +118,7 @@ public class PlayerController : NetworkBehaviour
     //private bool isLocalPlayerCache;
     [SyncVar(hook = nameof(OnPowerUpChanged))] private PowerUp powerUp;
     private PowerUpButton fakePowerUpButton;
+    [SerializeField] private GameObject football;
 
     private void Awake()
     {
@@ -123,7 +126,6 @@ public class PlayerController : NetworkBehaviour
         playerUI = PlayerUIManager.CreatePlayerUI(playerUIAnchor);
         char character = ' ';
         playerUI.SetCharacter(character);
-
     }
 
     private void Start()
@@ -166,6 +168,8 @@ public class PlayerController : NetworkBehaviour
             Destroy(placeholderGraphics);
             skin.Initialise();
         }
+
+        football.SetActive(false);
     }
 
     public void SetAnimator(Animator animator, NetworkAnimator networkAnimator)
@@ -206,11 +210,11 @@ public class PlayerController : NetworkBehaviour
     }
 
     [Server]
-    private void Freeze()
+    private void Freeze(float freezeDuration)
     {
         //TODO: combine with push
         isFrozen = true;
-        serverData.freezeTimer.Start(3.5f);//HARDCODED
+        serverData.freezeTimer.Start(freezeDuration);
     }
 
     [Client]
@@ -468,7 +472,7 @@ public class PlayerController : NetworkBehaviour
                     }
                 }
             }
-            nextTagger.Freeze();
+            nextTagger.Freeze(3.5f);//HARDCODED
             nextTagger.SetTagger(true);
             Push(nextTagger);
             SetTagger(false);
@@ -545,7 +549,7 @@ public class PlayerController : NetworkBehaviour
     {
         float deltaTime = Time.fixedDeltaTime;
         GameStates gameState =  GameManager.State;
-        if (gameState == GameStates.Waiting || gameState == GameStates.TagGame)
+        if (gameState == GameStates.Waiting || gameState == GameStates.TagGame) 
         {
             if (localPlayerController == this && IsAlive)
             {
@@ -556,32 +560,41 @@ public class PlayerController : NetworkBehaviour
             }
             if (isServer) //Lots of network activity
             {
-                if (tagger)
+                if (isFrozen)
                 {
-                    if (isFrozen)
+                    bool unFreeze = serverData.freezeTimer.Update(deltaTime);
+                    if (unFreeze)
                     {
-                        bool unFreeze = serverData.freezeTimer.Update(deltaTime);
-                        if (unFreeze)
-                        {
-                            isFrozen = false;
-                        }
-                    }
-                    else if (IsAlive) //TODO: Move up maybe?
-                    {
-                        HandleNearbyPlayersDetection(deltaTime);
-                        HandleTaggerHealthReduction(deltaTime);
-
+                        isFrozen = false;
                     }
                 }
-                if (serverData.trapTimer.IsActive)
+
+                else if (tagger && IsAlive)//TODO: these conditions don't seem to belong here
+                {
+                    HandleNearbyPlayersDetection(deltaTime);
+                    HandleTaggerHealthReduction(deltaTime);
+                }
+                //TODO: Find a more elegant way to control all those timers...
+                if (serverData.sprintTimer.IsActive)
+                {
+                    Debug.Log(" sprint time left: " + serverData.sprintTimer.TimeLeft.ToString("f2"));
+
+                    if (serverData.sprintTimer.Update(deltaTime))
+                    {
+                        currentMaxMovementSpeed = tagger ? PlayerServerData.MAX_TAGGER_SPEED : PlayerServerData.MAX_NONTAGGER_SPEED;
+                    }
+
+                }
+
+                /*if (serverData.trapTimer.IsActive)
                 {
                     Debug.LogError("NOT IMPLEMENTED anymore..");
-                   /* bool unTrap = serverData.trapTimer.Update(deltaTime);
+                    bool unTrap = serverData.trapTimer.Update(deltaTime);
                     if (unTrap)
                     {
                         maxMovementSpeed = PlayerServerData.MAX_HEALTHY_MOVEMENT_SPEED;
-                    }*/
-                }
+                    }
+                }*/
             }
         }
         
@@ -619,7 +632,8 @@ public class PlayerController : NetworkBehaviour
     {
         if(externalForces != ZERO_VECTOR3)
         {
-            externalForces = Vector3.MoveTowards(externalForces, ZERO_VECTOR3, EXTERNAL_FORCES_REDUCTION_SPEED * deltaTime);
+            externalForces = Vector3.MoveTowards
+                (externalForces, ZERO_VECTOR3, EXTERNAL_FORCES_REDUCTION_SPEED * deltaTime);
         }
         controlledVelocity = ZERO_VECTOR3;
         //TODO: This area of th code must be revisited, it is probably outdated 
@@ -688,21 +702,30 @@ public class PlayerController : NetworkBehaviour
             }*/
         }
 
-        float velocitySquaredMagnitude = controlledVelocity.sqrMagnitude;
-        float maxVelocitySquaredMagnitude = currentMaxMovementSpeed * currentMaxMovementSpeed;//TODO: Pre-Calculate
-        float velocityPercentage = (velocitySquaredMagnitude / maxVelocitySquaredMagnitude);
+        //TODO: Move to squaredMagnitude before shipping.
+        float metersPerSecond = controlledVelocity.magnitude;
 
-        if(velocityPercentage < 0.1f)//HARDCODED
+        if(metersPerSecond < 0.25f)//HARDCODED
         {
             //Stay in place if input is negligible
             controlledVelocity = Vector3.zero;
-            velocityPercentage = 0;
+            metersPerSecond = 0;
         } 
-        //Debug.Log($"velocitySquaredMagnitude: {velocitySquaredMagnitude.ToString("f2")}");
         if(animator != null)
         {
             //TODO: do this in bigger intervals for performance
-            animator.SetFloat(AnimatorParameters.Speed, velocityPercentage);
+            //animator.SetFloat(AnimatorParameters.Speed, metersPerSecond);
+
+            //HARDCODED AHEAD
+            int animationSpeedState = 0;
+            if(metersPerSecond > 6.2f)
+                animationSpeedState = 3;
+            else if (metersPerSecond > 1.75f)
+                animationSpeedState = 2;
+            else if (metersPerSecond > 0)
+                animationSpeedState = 1;
+            animator.SetInteger(AnimatorParameters.SpeedState, animationSpeedState);
+
         }
 
         Vector3 velocity = (controlledVelocity + externalForces);
@@ -907,12 +930,48 @@ public class PlayerController : NetworkBehaviour
     [Server]
     private void ThrowBanana()
     {
-        Vector3 bananaSpawnPosition = 
-            myTransform.position + (myTransform.forward * -1.1f) + (Vector3.up *2f);//HARDCODED as F%$#
-        Spawner.Spawn(Spawnables.ThrownBanana, bananaSpawnPosition, Quaternion.identity);
+        Vector3 bananaPosition = 
+            myTransform.position + (myTransform.forward * -1.1f) + (Vector3.up * 2f);//HARDCODED as F%$#
+        Quaternion bananaRotation = Quaternion.Euler(0, Random.Range(0, 360), 0);
+        Spawner.Spawn(Spawnables.ThrownBanana, bananaPosition, bananaRotation);
+    }
+
+    [Server]
+    public void Slip()
+    {
+        //TODO: Perhaps make force dependent on the player's current velocity?
+        Vector3 force = myTransform.forward * SLIP_FORCE;
+        Freeze(2.5f);//HARDCODED
+        TargetRpc_OnSlip(force);
+    }
+
+    [Server]
+    public bool CanSlip()
+    {
+        return !isFrozen;
+    }
+
+    [TargetRpc]
+    private void TargetRpc_OnSlip(Vector3 force)
+    {
+        //TODO: merge with freeze perhaps?
+        networkAnimator.SetTrigger(AnimatorParameters.FlipForward);
+        externalForces += force;
     }
 
     #endregion
+
+    #region Sprint:
+
+    [Server]
+    private void Sprint()
+    {
+        currentMaxMovementSpeed = PlayerServerData.SPRINT_SPEED;
+        serverData.sprintTimer.Start(2f);//HARDCODED
+    }
+
+    #endregion
+
     #region PowerUps:
 
     private void OnPowerUpChanged(PowerUp oldValue, PowerUp newValue)
@@ -921,6 +980,8 @@ public class PlayerController : NetworkBehaviour
         {
             UpdatePowerUpButton();
         }
+
+        football.SetActive(newValue.type == PowerUp.Type.Football);
     }
 
     private void UpdatePowerUpButton()
@@ -974,6 +1035,11 @@ public class PlayerController : NetworkBehaviour
                 case PowerUp.Type.Banana:
                 {
                     ThrowBanana();
+                    break;
+                }
+                case PowerUp.Type.Sprint:
+                {
+                    Sprint();
                     break;
                 }
             }
@@ -1047,7 +1113,7 @@ public class PlayerController : NetworkBehaviour
         //Vector3.
     }
 
-    private void OnCollisionEnter(Collision collision)
+    /*private void OnCollisionEnter(Collision collision)
     {
         Debug.Log("Player: OnCollisionEnter");
 
@@ -1058,6 +1124,6 @@ public class PlayerController : NetworkBehaviour
                 
             }
         }
-    }
+    }*/
     #endregion
 }

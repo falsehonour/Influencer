@@ -13,6 +13,7 @@ public static class AnimatorParameters
     public static readonly int Win = Animator.StringToHash(nameof(Win));
     public static readonly int ThrowForward = Animator.StringToHash(nameof(ThrowForward));
     public static readonly int ThrowBackward = Animator.StringToHash(nameof(ThrowBackward));
+    public static readonly int SpeedState = Animator.StringToHash(nameof(SpeedState));
 
 
 

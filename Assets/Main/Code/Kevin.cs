@@ -8,10 +8,15 @@ public class Kevin : MonoBehaviour
 {
     private enum KevinStates : byte
     {
-        ChoosingTagger, DroppingItems
+       Idle, ChoosingTagger, DroppingItems, Laughing
+    }
+    private enum KevinAnimationStates : int
+    {
+        Idle = 0, Point =1, Walk =2 , Laugh = 3,
     }
 
     private KevinStates state;
+    private string previousRoutine;
     #region First Tagger Picking:
     [SerializeField] private AnimationCurve rotationCurve;
     [SerializeField] private int extraCompleteRotations;
@@ -28,8 +33,9 @@ public class Kevin : MonoBehaviour
     [SerializeField]private DroppableItem[] droppableItems;
     private int droppableItemsOverallChancePoints;
     [SerializeField] private Animator animator;
-    [SerializeField] private NetworkAnimator networkAnimator;
-    
+    //[SerializeField] private NetworkAnimator networkAnimator;
+    private static Kevin instance;
+
     [System.Serializable]
     private struct DroppableItem
     {
@@ -44,11 +50,21 @@ public class Kevin : MonoBehaviour
         //TODO: Find a way to remove these things from the build, they shouldn't be there in the first place
         if(NetworkServer.active)
         {
-            myTransform = transform;
-            navAgent.enabled = false;
-            state = KevinStates.ChoosingTagger;
-            InitialiseDroppableItems();
-           // allowedDroppedItems = new Spawnables[] { Spawnables.HealthPickup, Spawnables.FootballPickup/*, Spawnables.Trap*/ };
+            if(instance == null)
+            {
+                instance = this;
+                myTransform = transform;
+                InitialiseDroppableItems();
+                previousRoutine = nameof(IdleRoutine);
+                StartCoroutine(previousRoutine);
+                // allowedDroppedItems = new Spawnables[] { Spawnables.HealthPickup, Spawnables.FootballPickup/*, Spawnables.Trap*/ };
+            }
+            else
+            {
+                Destroy(this);
+                Debug.LogError("There can only be ONE Kevin Rubin!");
+            }
+
         }
         else
         {
@@ -76,22 +92,19 @@ public class Kevin : MonoBehaviour
 
 
     }
-    /* private void FixedUpdate()
-     {
-         if (/*isServer && /state == KevinStates.DroppingItems)
-         {
-             DropRoutine();
-         }
-     }*/
 
-    [Server]
-    private IEnumerator ItemDropRoutine()
+    private IEnumerator ItemDropRoutine(bool changeDestination)
     {
+        previousRoutine = nameof(ItemDropRoutine);
         //HARDCODED: wait times are arbitrary
         state = KevinStates.DroppingItems;//TODO: Should we change state here..?
         navAgent.enabled = true;
-        ChangeDestination();//TODO: might need more than that
-        animator.SetBool("IsWalking", true);
+        if (changeDestination)
+        {
+            ChangeDestination();//TODO: might need more than that
+        }
+        // animator.SetBool("IsWalking", true);
+        animator.SetInteger(AnimatorParameters.State, (int)KevinAnimationStates.Walk);
 
         while (state == KevinStates.DroppingItems) //TODO: Hmm maybe first condition should do with GameManager's state
         {
@@ -113,10 +126,60 @@ public class Kevin : MonoBehaviour
 
     }
 
+    public static void TryLaughAt(Transform embarrassmentTransform)
+    {
+        //HARDCODING AHEAD:
+        //TODO: Maybe do a raycast to make sure Kevin can actually see the event?
+
+        float distanceFromEmbarrassment =
+            Vector3.Distance(instance.myTransform.position, embarrassmentTransform.position);
+
+        if (distanceFromEmbarrassment < 4f)
+        {
+            instance.StartCoroutine(instance.LaughAtRoutine(embarrassmentTransform, 5f));
+        }
+    }
+
+    private IEnumerator LaughAtRoutine(Transform embarrassmentTransform, float embarrassmentDuration)
+    {
+        if(previousRoutine != null)
+        {
+            StopCoroutine(previousRoutine);
+        }
+        StopCoroutine("LaughAtRoutine");
+
+        //NOTE/TODO: this is written to be played simultanuasly with ItemDropRoutine.
+        //Kevin is meant to return to it once he stops laughing. Might be a good idea to independentise these routines in the future
+        state = KevinStates.Laughing;
+        navAgent.enabled = false;
+        animator.SetInteger(AnimatorParameters.State, (int)KevinAnimationStates.Laugh);
+        float timePassed = 0;
+        float rotationSpeed = navAgent.angularSpeed;
+        while (timePassed < embarrassmentDuration)
+        {
+            //TODO: Is this not too costly?
+            float deltaTime = Time.deltaTime;
+            Vector3 embarrassmentPosition = embarrassmentTransform.position;
+            Vector3 myPosition = myTransform.position;
+            embarrassmentPosition.y = 0;
+            myPosition.y = 0;
+            Vector3 forward = (embarrassmentPosition - myPosition).normalized;
+            Quaternion destinationRotation = Quaternion.LookRotation(forward);
+            myTransform.rotation =
+                Quaternion.RotateTowards(myTransform.rotation, destinationRotation, rotationSpeed * deltaTime);
+            timePassed += deltaTime;//TODO: use smaller steps for performance>?
+            yield return null;
+        }
+        if(previousRoutine != null)
+        {
+            StartCoroutine(previousRoutine);
+        }
+    }
+
     [Server]
     public void StartDropRoutine()
     {
-        StartCoroutine(ItemDropRoutine());
+        StartCoroutine(ItemDropRoutine(true));
     }
 
     [Server]
@@ -193,7 +256,10 @@ public class Kevin : MonoBehaviour
     [Server]
     public IEnumerator SpinCoroutine(Vector3 lookAtPoint)
     {
-        networkAnimator.SetTrigger("PointAt");
+        state = KevinStates.ChoosingTagger;
+
+        animator.SetInteger(AnimatorParameters.State, (int)KevinAnimationStates.Point);
+        //networkAnimator.SetTrigger("PointAt");
         yield return new WaitForSeconds(0.5f);
 
         Keyframe lastKeyFrame = rotationCurve.keys[rotationCurve.keys.Length - 1];
@@ -218,4 +284,17 @@ public class Kevin : MonoBehaviour
             yield return null;
         }
     }
+
+    private IEnumerator IdleRoutine()
+    {
+        state = KevinStates.Idle;
+        navAgent.enabled = false;
+        animator.SetInteger(AnimatorParameters.State, (int)KevinAnimationStates.Idle);
+        while (state == KevinStates.Idle)
+        {
+            Debug.Log("Kevin is Idle");
+            yield return new WaitForSeconds(1f);
+        }
+    }
+
 }

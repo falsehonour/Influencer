@@ -577,7 +577,7 @@ public class PlayerController : NetworkBehaviour
                 //TODO: Find a more elegant way to control all those timers...
                 if (serverData.sprintTimer.IsActive)
                 {
-                    Debug.Log(" sprint time left: " + serverData.sprintTimer.TimeLeft.ToString("f2"));
+                    //Debug.Log(" sprint time left: " + serverData.sprintTimer.TimeLeft.ToString("f2"));
 
                     if (serverData.sprintTimer.Update(deltaTime))
                     {
@@ -943,6 +943,7 @@ public class PlayerController : NetworkBehaviour
         Vector3 force = myTransform.forward * SLIP_FORCE;
         Freeze(2.5f);//HARDCODED
         TargetRpc_OnSlip(force);
+        Kevin.TryLaughAt(myTransform);
     }
 
     [Server]

@@ -71,7 +71,7 @@ public class ThrownBanana : Spawnable
         //NOTE: We have both a normal and a trigger collider on this banana because CharacterController 
         //is not very good at detecting normal collisions for some reason..
 
-        Debug.Log("Banana: OnTriggerEnter");
+       // Debug.Log("Banana: OnTriggerEnter");
         if (IsAlive)
         {
             if (isServer)

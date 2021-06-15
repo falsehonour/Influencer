@@ -151,8 +151,22 @@ namespace CharacterCreation
         {
             if (isLocalPlayer)
             {
-                PlayerSkinDataHolder.Data localSkinData = 
-                    SaveAndLoadManager.Load<PlayerSkinDataHolder>(new PlayerSkinDataHolder()).data;
+                PlayerSkinDataHolder localSkinDataHolder =
+                     SaveAndLoadManager.Load<PlayerSkinDataHolder>(new PlayerSkinDataHolder());
+                if(localSkinDataHolder == null)
+                {
+                    //TODO: Getting a default skin should not be here
+                    localSkinDataHolder = new PlayerSkinDataHolder(0,new byte[0],new byte[0]);
+                       // PlayerSkinDataHolder.CreatePlayerSkinData(characterPreFab, character.equippedMeshesByMeshCategory, character.equippedMeshModifiersByMeshModifierCategory);
+                }
+
+                /*if (characterPreFab == null)
+                {
+                    characterPreFab = CharacterCreationReferencer.References.GetCharacterPreFab(0);
+                }*/
+
+                PlayerSkinDataHolder.Data localSkinData = localSkinDataHolder.data;
+
                 Cmd_DownloadSkin(localSkinData);
                 EquipSkin(ref localSkinData);
                 //AssignNetworkAnimator(this.netIdentity);
@@ -166,5 +180,10 @@ namespace CharacterCreation
             }
         }
 
+
+        public void ShowGun(bool value)
+        {
+            character.ShowGun(value);
+        }
     }
 }

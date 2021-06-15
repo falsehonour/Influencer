@@ -93,16 +93,14 @@ public class Kevin : MonoBehaviour
 
     }
 
-    private IEnumerator ItemDropRoutine(bool changeDestination)
+    private IEnumerator ItemDropRoutine()
     {
         previousRoutine = nameof(ItemDropRoutine);
         //HARDCODED: wait times are arbitrary
         state = KevinStates.DroppingItems;//TODO: Should we change state here..?
         navAgent.enabled = true;
-        if (changeDestination)
-        {
-            ChangeDestination();//TODO: might need more than that
-        }
+        //NOTE/TODO: Kevin will change his destination if his journey was interrupted by laughter. is this what we want?
+        ChangeDestination();//TODO: might need more than that
         // animator.SetBool("IsWalking", true);
         animator.SetInteger(AnimatorParameters.State, (int)KevinAnimationStates.Walk);
 
@@ -133,20 +131,21 @@ public class Kevin : MonoBehaviour
 
         float distanceFromEmbarrassment =
             Vector3.Distance(instance.myTransform.position, embarrassmentTransform.position);
-
-        if (distanceFromEmbarrassment < 4f)
+        float maxDistance = 4f;
+        if (distanceFromEmbarrassment < maxDistance)
         {
-            instance.StartCoroutine(instance.LaughAtRoutine(embarrassmentTransform, 5f));
+            instance.StopAllCoroutines();
+           // instance.StopCoroutine(nameof(LaughAtRoutine));
+            instance.StartCoroutine(instance.LaughAtRoutine(embarrassmentTransform,Random.Range( 2.5f,4f)));
         }
     }
 
     private IEnumerator LaughAtRoutine(Transform embarrassmentTransform, float embarrassmentDuration)
     {
-        if(previousRoutine != null)
+        /*if(previousRoutine != null)
         {
             StopCoroutine(previousRoutine);
-        }
-        StopCoroutine("LaughAtRoutine");
+        }*/
 
         //NOTE/TODO: this is written to be played simultanuasly with ItemDropRoutine.
         //Kevin is meant to return to it once he stops laughing. Might be a good idea to independentise these routines in the future
@@ -179,7 +178,8 @@ public class Kevin : MonoBehaviour
     [Server]
     public void StartDropRoutine()
     {
-        StartCoroutine(ItemDropRoutine(true));
+
+        StartCoroutine(ItemDropRoutine());
     }
 
     [Server]
@@ -260,8 +260,7 @@ public class Kevin : MonoBehaviour
 
         animator.SetInteger(AnimatorParameters.State, (int)KevinAnimationStates.Point);
         //networkAnimator.SetTrigger("PointAt");
-        yield return new WaitForSeconds(0.5f);
-
+        yield return new WaitForSeconds(0.25f);
         Keyframe lastKeyFrame = rotationCurve.keys[rotationCurve.keys.Length - 1];
         if (lastKeyFrame.value != 1)
         {
@@ -292,8 +291,8 @@ public class Kevin : MonoBehaviour
         animator.SetInteger(AnimatorParameters.State, (int)KevinAnimationStates.Idle);
         while (state == KevinStates.Idle)
         {
-            Debug.Log("Kevin is Idle");
-            yield return new WaitForSeconds(1f);
+            //Debug.Log("Kevin is Idle");
+            yield return new WaitForSeconds(2f);
         }
     }
 

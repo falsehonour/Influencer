@@ -20,7 +20,8 @@ namespace CharacterCreation
             CharacterCreationButton.InitialiseBackButton(backButtonBehaviour);
             // LocalPlayerData.Initialise();
 
-            PlayerSkinDataHolder playerSkinData = SaveAndLoadManager.Load<PlayerSkinDataHolder>(new PlayerSkinDataHolder());
+            PlayerSkinDataHolder playerSkinData = 
+                SaveAndLoadManager.Load<PlayerSkinDataHolder>(new PlayerSkinDataHolder());
 
             InitialiseCharacter(playerSkinData);
         }
@@ -36,6 +37,12 @@ namespace CharacterCreation
             {
                 characterPreFab = CharacterCreationReferencer.References.GetCharacterPreFab(skinDataHolder.data.characterPrefabIndex);
             }
+
+            if(characterPreFab == null)
+            {
+                characterPreFab = CharacterCreationReferencer.References.GetCharacterPreFab(0);
+            }
+
             character = Instantiate(characterPreFab);
             character.transform.position = Vector3.zero;
             character.transform.rotation = Quaternion.identity;
@@ -56,8 +63,6 @@ namespace CharacterCreation
             character.TryEquipFallbackPieces();
             InitialisePanels();
         }
-
-
 
         public void SaveCharacter()
         {

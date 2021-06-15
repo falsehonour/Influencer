@@ -40,12 +40,12 @@ public class ThrownBanana : Spawnable
         //PhysicsUtility.SetRootAndDecendentsLayers(gameObject, PARTICLES_LAYER);
 
         //Hide();
-        StartCoroutine(Shrink(0.5f));
+        StartCoroutine(Shrink(0.75f));
     }
   
     private void OnCollisionEnter(Collision collision)
     {
-        Debug.Log("Banana: OnCollisionEnter");
+        //Debug.Log("Banana: OnCollisionEnter");
 
         if (IsAlive)
         {

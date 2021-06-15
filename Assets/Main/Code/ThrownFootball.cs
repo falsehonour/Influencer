@@ -43,7 +43,7 @@ public class ThrownFootball : Spawnable
         base.OnDeath();
         rigidbody.isKinematic = true;
         //Hide();
-        StartCoroutine(Shrink(2.5f));
+        StartCoroutine(Shrink(3f));
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -54,7 +54,7 @@ public class ThrownFootball : Spawnable
             {
                 //TODO: These invokes mess up everythin, put some death timer instead
                 CancelInvoke("Die");
-                Invoke("Die", 3f);
+                Invoke("Die", 2f);
                 PlayerController playerController = collision.gameObject.GetComponent<PlayerController>();
                 if(playerController != null)
                 {

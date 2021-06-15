@@ -358,6 +358,7 @@ public class PlayerController : NetworkBehaviour
     {
         SetTagger(false);
         GameManager.UpdatePlayersState();
+        Kevin.TryLaughAt(myTransform);
         Rpc_OnDeath();
     }
 
@@ -702,14 +703,14 @@ public class PlayerController : NetworkBehaviour
             }*/
         }
 
-        //TODO: Move to squaredMagnitude before shipping.
-        float metersPerSecond = controlledVelocity.magnitude;
-
-        if(metersPerSecond < 0.25f)//HARDCODED
+        //TODO: Move to squaredMagnitude and skip multiplications before shipping.
+        float kilometresPerHour = controlledVelocity.magnitude * 3.6f;
+       // Debug.Log("player kilometresPerHour:" + kilometresPerHour.ToString("f2"));
+        if(kilometresPerHour < 1f)//HARDCODED
         {
             //Stay in place if input is negligible
             controlledVelocity = Vector3.zero;
-            metersPerSecond = 0;
+            kilometresPerHour = 0;
         } 
         if(animator != null)
         {
@@ -718,11 +719,11 @@ public class PlayerController : NetworkBehaviour
 
             //HARDCODED AHEAD
             int animationSpeedState = 0;
-            if(metersPerSecond > 6.2f)
+            if(kilometresPerHour > 22f)
                 animationSpeedState = 3;
-            else if (metersPerSecond > 1.75f)
+            else if (kilometresPerHour > 7.65f)
                 animationSpeedState = 2;
-            else if (metersPerSecond > 0)
+            else if (kilometresPerHour > 0)
                 animationSpeedState = 1;
             animator.SetInteger(AnimatorParameters.SpeedState, animationSpeedState);
 
@@ -855,26 +856,21 @@ public class PlayerController : NetworkBehaviour
     }
 
     #region Shooting:
-    [Client]
-    public void TryShoot()
-    {
-        //Debug.Log("TryShoot");
-        Cmd_TryShoot(myTransform.position, myTransform.rotation);
-    }
 
-    [Command]
-    private void Cmd_TryShoot(Vector3 clientPlayerPosition, Quaternion clientRotation)
+    [Server]
+    private void Shoot()
     {
-        networkAnimator.SetTrigger(AnimatorParameters.Slap);
-        Vector3 bulletSpawnPosition = 
-            (clientPlayerPosition + (myTransform.forward * 1f) +  (Vector3.up * 0.4f)) ;//HARDCODED
-        Quaternion bulletSpawnRotation = clientRotation;
+        //NOTE: rotation and position are based on what's on the server, this might cause noticeable impercision
+        Vector3 bulletSpawnPosition =
+            (myTransform.position + (myTransform.forward * 0.8f) + (Vector3.up * 0.5f));//HARDCODED
+        Quaternion bulletSpawnRotation = myTransform.rotation;
         Spawner.Spawn(Spawnables.Bullet, bulletSpawnPosition, bulletSpawnRotation);
     }
 
     [Server]
     public void OnBulletHit()
     {
+        //TODO: modify speed instead of health
         ModifyHealth(-1); 
     }
 
@@ -983,6 +979,7 @@ public class PlayerController : NetworkBehaviour
         }
 
         football.SetActive(newValue.type == PowerUp.Type.Football);
+        skin.ShowGun(newValue.type == PowerUp.Type.Gun);//TODO: the gun dissappears too soon, give it a second before it deactivates
     }
 
     private void UpdatePowerUpButton()
@@ -999,7 +996,6 @@ public class PlayerController : NetworkBehaviour
         fakePowerUpButton.Press();
         if (powerUp.type != PowerUp.Type.None && powerUp.count > 0)
         {
-            Cmd_TryUsePowerUp();
             //Play animation, we can rely on the player for this
             int triggerID = 0;
             switch (this.powerUp.type)
@@ -1014,8 +1010,17 @@ public class PlayerController : NetworkBehaviour
                     triggerID = AnimatorParameters.ThrowBackward;
                     break;
                 }
+                case PowerUp.Type.Gun:
+                {
+                    triggerID = AnimatorParameters.Shoot;
+                    break;
+                }
             }
             networkAnimator.SetTrigger(triggerID);
+
+            //This should happen after we play the animation cause the powerup can become none due to this function
+            Cmd_TryUsePowerUp();
+
         }
     }
 
@@ -1041,6 +1046,11 @@ public class PlayerController : NetworkBehaviour
                 case PowerUp.Type.Sprint:
                 {
                     Sprint();
+                    break;
+                }
+                case PowerUp.Type.Gun:
+                {
+                    Shoot();
                     break;
                 }
             }

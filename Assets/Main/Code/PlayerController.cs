@@ -2,7 +2,6 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
-using UnityEngine.UI;
 using Mirror;
 
 public class PlayerController : NetworkBehaviour
@@ -11,29 +10,31 @@ public class PlayerController : NetworkBehaviour
     {
         public const float MAX_NONTAGGER_SPEED = 5.5f;
         public const float MAX_TAGGER_SPEED = MAX_NONTAGGER_SPEED;
-    
+        public const float SPRINT_SPEED = 8f;
+
         public const float MAX_TRAPPED_MOVEMENT_SPEED = 2.2f;
 
         public static readonly float MIN_TAG_SQUARED_DISTANCE = (2.33f * 2.33f);
         public const sbyte MAX_HEALTH = 32;
-        public const float TRAP_DURATION = 3f;
+        //public const float TRAP_DURATION = 2f;
         private const float HEALTH_LOSS_INTERVAL = 1f;
         private const float NEARBY_PLAYERS_DETECTION_INTERVAL = 0.05f;
 
         public List<PlayerController> playersInRange;
         public RepeatingTimer healthReductionTimer;
         public RepeatingTimer nearbyPlayersDetectionTimer;
-        public SingleCycleTimer trapTimer;
+        //public SingleCycleTimer trapTimer;
         public SingleCycleTimer freezeTimer;
+        public SingleCycleTimer sprintTimer;
 
         public PlayerServerData()
         {
             playersInRange = new List<PlayerController>();
             healthReductionTimer = new RepeatingTimer(HEALTH_LOSS_INTERVAL);
             nearbyPlayersDetectionTimer = new RepeatingTimer(NEARBY_PLAYERS_DETECTION_INTERVAL);
-            trapTimer = new SingleCycleTimer();
+           // trapTimer = new SingleCycleTimer();
             freezeTimer = new SingleCycleTimer();
-
+            sprintTimer = new SingleCycleTimer();
         }
     }
 
@@ -56,6 +57,7 @@ public class PlayerController : NetworkBehaviour
     private float currentGravity = 0;
     private float EXTERNAL_FORCES_REDUCTION_SPEED = 6f;
     private const float PUSH_FORCE = 7.5f;
+    private const float SLIP_FORCE = 6f;
     [SerializeField] private float gravity = -9.8f;
     private const float MIN_SQUARED_WAYPOINT_DISTANCE = 0.05f;
     private static readonly Vector3 ZERO_VECTOR3 = Vector3.zero;
@@ -79,8 +81,8 @@ public class PlayerController : NetworkBehaviour
     [SerializeField] private Transform cameraAnchor;//TODO: I believe this is nop longer needed
     private CharacterCamera characterCamera;
     //private Camera camera;
-    [SerializeField] private Animator animator;
-    [SerializeField] private NetworkAnimator networkAnimator;
+    private Animator animator;
+    private NetworkAnimator networkAnimator;
 
     //private int animatorSpeedParameter;
     private Liftable liftable;// TODO: make it more generic;
@@ -105,7 +107,6 @@ public class PlayerController : NetworkBehaviour
     {
         get { return DT_health; }
     }
-    //[SerializeField] private TMPro.TextMeshPro healthGUI;
     //[SyncVar] private bool isAlive;//TODO: Is this noit overkill??
     #endregion
     [SerializeField] private CharacterCreation.NetworkedCharacterSkin skin;
@@ -114,20 +115,21 @@ public class PlayerController : NetworkBehaviour
     private PlayerUI playerUI;
     public static PlayerController localPlayerController;
     public static List<PlayerController> allPlayers = new List<PlayerController>();
-
+    //private bool isLocalPlayerCache;
+    [SyncVar(hook = nameof(OnPowerUpChanged))] private PowerUp powerUp;
+    private PowerUpButton fakePowerUpButton;
+    [SerializeField] private GameObject football;
 
     private void Awake()
     {
         myTransform = transform;
         playerUI = PlayerUIManager.CreatePlayerUI(playerUIAnchor);
         char character = ' ';
-        playerUI.SetCharacter(character);
-
+        playerUI.SetProceedingCharacter(character);
     }
 
     private void Start()
     {
-
 
         if (isServer)
         {
@@ -149,14 +151,17 @@ public class PlayerController : NetworkBehaviour
             fakeTagButton = GameObject.Find("FakeTagButton").GetComponent<FakeButton>();
             fakeTagButton.Disable();
 
-            fakeFootballButton = GameObject.Find("FakeFootballButton").GetComponent<FakeButton>();
-            UpdateFakeFootballButtonText();
+            /* fakeFootballButton = GameObject.Find("FakeFootballButton").GetComponent<FakeButton>();
+             UpdateFakeFootballButtonText();*/
+            fakePowerUpButton = GameObject.Find("FakePowerUpButton").GetComponent<PowerUpButton>();
+            UpdatePowerUpButton();
 
             characterCamera = FindObjectOfType<CharacterCamera>();
             characterCamera.Initialise(myTransform/*, cameraAnchor*/);
             //camera = characterCamera.GetComponent<Camera>();
 
             //Cmd_SetTagger(GameManager.Tagger);
+            Cmd_SetName(PlayerName.name);
         }
 
         if (skin != null)
@@ -164,7 +169,26 @@ public class PlayerController : NetworkBehaviour
             Destroy(placeholderGraphics);
             skin.Initialise();
         }
+
+        football.SetActive(false);
     }
+
+    #region PlayerName
+    [SyncVar(hook = nameof(SetName))] private string displayName;
+    //TODO: Remove this region, it is supposed to be temporary
+    [Command]
+    private void Cmd_SetName(string newName)
+    {
+        displayName = newName;
+    }
+
+    [Client]
+    private void SetName(string oldValue ,string newValue)
+    {
+        playerUI.SetPlayerName(newValue);
+    }
+
+    #endregion
 
     public void SetAnimator(Animator animator, NetworkAnimator networkAnimator)
     {
@@ -204,25 +228,25 @@ public class PlayerController : NetworkBehaviour
     }
 
     [Server]
-    private void Freeze()
+    private void Freeze(float freezeDuration)
     {
         //TODO: combine with push
         isFrozen = true;
-        serverData.freezeTimer.Start(3.5f);//HARDCODED
+        serverData.freezeTimer.Start(freezeDuration);
     }
 
     [Client]
     private void OnTaggerChange(bool oldValue, bool newValue)
     {
         char character = newValue ? '#' : ' ';
-        playerUI.SetCharacter(character);
+        playerUI.SetProceedingCharacter(character);
        // hashTag.SetActive(newValue);
     }
 
     [Client]
     private void OnCanTagChange(bool oldValue, bool newValue)
     {
-        if (isLocalPlayer)
+        if (localPlayerController == this)
         {
             //tagButton.SetActive(newValue);
 
@@ -352,6 +376,7 @@ public class PlayerController : NetworkBehaviour
     {
         SetTagger(false);
         GameManager.UpdatePlayersState();
+        Kevin.TryLaughAt(myTransform);
         Rpc_OnDeath();
     }
 
@@ -466,7 +491,7 @@ public class PlayerController : NetworkBehaviour
                     }
                 }
             }
-            nextTagger.Freeze();
+            nextTagger.Freeze(3.5f);//HARDCODED
             nextTagger.SetTagger(true);
             Push(nextTagger);
             SetTagger(false);
@@ -498,7 +523,7 @@ public class PlayerController : NetworkBehaviour
 
     private void Update()
     {
-        if (isLocalPlayer)
+        if (localPlayerController == this)
         {
             float deltaTime = Time.deltaTime;
 
@@ -516,7 +541,7 @@ public class PlayerController : NetworkBehaviour
            // Debug.Log("canTag: " + canTag);
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                TryThrowFootball();
+                TryUsePowerUp();
             }
             if (Input.GetKeyDown(KeyCode.T))
             {
@@ -543,9 +568,9 @@ public class PlayerController : NetworkBehaviour
     {
         float deltaTime = Time.fixedDeltaTime;
         GameStates gameState =  GameManager.State;
-        if (gameState == GameStates.Waiting || gameState == GameStates.TagGame)
+        if (gameState == GameStates.Waiting || gameState == GameStates.TagGame) 
         {
-            if (isLocalPlayer && IsAlive)
+            if (localPlayerController == this && IsAlive)
             {
                 HandleMovement(ref deltaTime);
                 //TODO: That's alot of method calls bruh
@@ -554,32 +579,41 @@ public class PlayerController : NetworkBehaviour
             }
             if (isServer) //Lots of network activity
             {
-                if (tagger)
+                if (isFrozen)
                 {
-                    if (isFrozen)
+                    bool unFreeze = serverData.freezeTimer.Update(deltaTime);
+                    if (unFreeze)
                     {
-                        bool unFreeze = serverData.freezeTimer.Update(deltaTime);
-                        if (unFreeze)
-                        {
-                            isFrozen = false;
-                        }
-                    }
-                    else if (IsAlive) //TODO: Move up maybe?
-                    {
-                        HandleNearbyPlayersDetection(deltaTime);
-                        HandleTaggerHealthReduction(deltaTime);
-
+                        isFrozen = false;
                     }
                 }
-                if (serverData.trapTimer.IsActive)
+
+                else if (tagger && IsAlive)//TODO: these conditions don't seem to belong here
+                {
+                    HandleNearbyPlayersDetection(deltaTime);
+                    HandleTaggerHealthReduction(deltaTime);
+                }
+                //TODO: Find a more elegant way to control all those timers...
+                if (serverData.sprintTimer.IsActive)
+                {
+                    //Debug.Log(" sprint time left: " + serverData.sprintTimer.TimeLeft.ToString("f2"));
+
+                    if (serverData.sprintTimer.Update(deltaTime))
+                    {
+                        currentMaxMovementSpeed = tagger ? PlayerServerData.MAX_TAGGER_SPEED : PlayerServerData.MAX_NONTAGGER_SPEED;
+                    }
+
+                }
+
+                /*if (serverData.trapTimer.IsActive)
                 {
                     Debug.LogError("NOT IMPLEMENTED anymore..");
-                   /* bool unTrap = serverData.trapTimer.Update(deltaTime);
+                    bool unTrap = serverData.trapTimer.Update(deltaTime);
                     if (unTrap)
                     {
                         maxMovementSpeed = PlayerServerData.MAX_HEALTHY_MOVEMENT_SPEED;
-                    }*/
-                }
+                    }
+                }*/
             }
         }
         
@@ -617,7 +651,8 @@ public class PlayerController : NetworkBehaviour
     {
         if(externalForces != ZERO_VECTOR3)
         {
-            externalForces = Vector3.MoveTowards(externalForces, ZERO_VECTOR3, EXTERNAL_FORCES_REDUCTION_SPEED * deltaTime);
+            externalForces = Vector3.MoveTowards
+                (externalForces, ZERO_VECTOR3, EXTERNAL_FORCES_REDUCTION_SPEED * deltaTime);
         }
         controlledVelocity = ZERO_VECTOR3;
         //TODO: This area of th code must be revisited, it is probably outdated 
@@ -686,21 +721,37 @@ public class PlayerController : NetworkBehaviour
             }*/
         }
 
-        float velocitySquaredMagnitude = controlledVelocity.sqrMagnitude;
-        float maxVelocitySquaredMagnitude = currentMaxMovementSpeed * currentMaxMovementSpeed;//TODO: Pre-Calculate
-        float velocityPercentage = (velocitySquaredMagnitude / maxVelocitySquaredMagnitude);
-
-        if(velocityPercentage < 0.1f)//HARDCODED
+        //TODO: Move to squaredMagnitude and skip multiplications before shipping.
+        float kilometresPerHour = controlledVelocity.magnitude * 3.6f;
+       // Debug.Log("player kilometresPerHour:" + kilometresPerHour.ToString("f2"));
+        if(kilometresPerHour < 1f)//HARDCODED
         {
             //Stay in place if input is negligible
             controlledVelocity = Vector3.zero;
-            velocityPercentage = 0;
+            kilometresPerHour = 0;
         } 
-        //Debug.Log($"velocitySquaredMagnitude: {velocitySquaredMagnitude.ToString("f2")}");
         if(animator != null)
         {
             //TODO: do this in bigger intervals for performance
-            animator.SetFloat(AnimatorParameters.Speed, velocityPercentage);
+           // animator.SetFloat(AnimatorParameters.Speed, kilometresPerHour);
+
+            //HARDCODED AHEAD
+            int animationSpeedState = 0;
+            if(kilometresPerHour > 22f)
+                animationSpeedState = 3;
+            else if (kilometresPerHour > 7.65f)
+                animationSpeedState = 2;
+            else if (kilometresPerHour > 0)
+                animationSpeedState = 1;
+            animator.SetInteger(AnimatorParameters.SpeedState, animationSpeedState);
+
+            //NOTE: Why the FUCK does mirror not sync the the top three???
+            //I think I understand: Our NetworkAnimator only cares about parameters that used to be on our original animator. 
+            //This means that further bugs may occur due to the animator swap we do 
+            /*animator.SetInteger(AnimatorParameters.SpeedState, animationSpeedState);
+            animator.SetInteger("WhatTheHellInt", animationSpeedState);
+            animator.SetFloat("WhatTheHellFloat", animationSpeedState);
+            animator.SetFloat(AnimatorParameters.Speed, animationSpeedState);*/
         }
 
         Vector3 velocity = (controlledVelocity + externalForces);
@@ -809,11 +860,10 @@ public class PlayerController : NetworkBehaviour
     [Server]
     private void Collect(PickUp pickUp)
     {
-
         pickUp.Collect();
         if(pickUp is HealthPickUp)
         {
-            sbyte healthAddition = 8;//TODO: Hardcoded
+            sbyte healthAddition = 8;//Hardcoded
             ModifyHealth(healthAddition);
         }
         else if(pickUp is Trap)
@@ -823,50 +873,37 @@ public class PlayerController : NetworkBehaviour
             serverData.trapTimer.Start(PlayerServerData.TRAP_DURATION);
             maxMovementSpeed = PlayerServerData.MAX_TRAPPED_MOVEMENT_SPEED;*/
         }      
-        else if(pickUp is FootballPickup)
+        else if(pickUp is PowerUpPickUp)
         {
-            footballCount++;
-            UpdateFakeFootballButtonText();
+            PowerUpPickUp powerUpPickUp = (PowerUpPickUp)pickUp;
+            powerUp = powerUpPickUp.GetPowerUp();
         }
     }
 
     #region Shooting:
-    [Client]
-    public void TryShoot()
-    {
-        //Debug.Log("TryShoot");
-        Cmd_TryShoot(myTransform.position, myTransform.rotation);
-    }
 
-    [Command]
-    private void Cmd_TryShoot(Vector3 clientPlayerPosition, Quaternion clientRotation)
+    [Server]
+    private void Shoot()
     {
-        networkAnimator.SetTrigger(AnimatorParameters.Slap);
-        Vector3 bulletSpawnPosition = 
-            (clientPlayerPosition + (myTransform.forward * 1f) +  (Vector3.up * 0.4f)) ;//HARDCODED
-        Quaternion bulletSpawnRotation = clientRotation;
+        //NOTE: rotation and position are based on what's on the server, this might cause noticeable impercision
+        Vector3 bulletSpawnPosition =
+            (myTransform.position + (myTransform.forward * 0.8f) + (Vector3.up * 0.82f));//HARDCODED
+        Quaternion bulletSpawnRotation = myTransform.rotation;
         Spawner.Spawn(Spawnables.Bullet, bulletSpawnPosition, bulletSpawnRotation);
     }
 
     [Server]
     public void OnBulletHit()
     {
+        //TODO: modify speed instead of health
         ModifyHealth(-1); 
     }
 
     #endregion
 
     #region FootballThrowing:
-
-    private sbyte footballCount = 3;
-    private FakeButton fakeFootballButton;
-
-    private void UpdateFakeFootballButtonText()
-    {
-        fakeFootballButton.GetComponentInChildren<TMPro.TextMeshProUGUI>().text = footballCount.ToString();
-    }
-
-    [Client]
+   
+    /*[Client]
     public void TryThrowFootball()
     {
         //Debug.Log("TryShoot");
@@ -876,18 +913,30 @@ public class PlayerController : NetworkBehaviour
         {
             networkAnimator.SetTrigger(AnimatorParameters.Throw);
             Cmd_TryThrowFootball(myTransform.position, myTransform.rotation);
-            footballCount--;
-            UpdateFakeFootballButtonText();
         }
-    }
+    }*/
 
-    [Command]
+    /*[Command]
     private void Cmd_TryThrowFootball(Vector3 clientPlayerPosition, Quaternion clientRotation)
     {
+        if (footballCount > 0)
+        {
+            footballCount--;
+            Vector3 ballSpawnPosition =
+                (clientPlayerPosition + (myTransform.forward * 1f) + (Vector3.up * 0.5f));//HARDCODED
+            Quaternion ballSpawnRotation = clientRotation;
+            Spawner.Spawn(Spawnables.ThrownFootball, ballSpawnPosition, ballSpawnRotation);
+        }
+    }
+    */
+    [Server]
+    private void ThrowFootball()
+    {
+        //NOTE: rotation and position are based on what's on the server, this might cause noticeable impercision
         Vector3 ballSpawnPosition =
-            (clientPlayerPosition + (myTransform.forward * 1f) + (Vector3.up * 0.5f));//HARDCODED
-        Quaternion ballSpawnRotation = clientRotation;
-        Spawner.Spawn(Spawnables.ThrownFootball, ballSpawnPosition, ballSpawnRotation);
+            (myTransform.position + (myTransform.forward * 1f) + (Vector3.up * 0.5f));//HARDCODED
+        Quaternion ballSpawnRotation = myTransform.rotation;
+        Spawner.Spawn(Spawnables.ThrownFootball, ballSpawnPosition, ballSpawnRotation);   
     }
 
     [Server]
@@ -897,20 +946,162 @@ public class PlayerController : NetworkBehaviour
     }
 
     #endregion
-    [Client]
-    public void TryPlaceTrap()
+    #region BananaThrowing:
+
+    [Server]
+    private void ThrowBanana()
     {
-        Debug.Log("TryPlaceTrap");
-        Cmd_TryPlaceTrap();
+        Vector3 bananaPosition = 
+            myTransform.position + (myTransform.forward * -1.1f) + (Vector3.up * 2f);//HARDCODED as F%$#
+        Quaternion bananaRotation = Quaternion.Euler(0, Random.Range(0, 360), 0);
+        Spawner.Spawn(Spawnables.ThrownBanana, bananaPosition, bananaRotation);
+    }
+
+    [Server]
+    public void Slip()
+    {
+        //TODO: Perhaps make force dependent on the player's current velocity?
+        Vector3 force = myTransform.forward * SLIP_FORCE;
+        Freeze(2.5f);//HARDCODED
+        TargetRpc_OnSlip(force);
+        Kevin.TryLaughAt(myTransform);
+    }
+
+    [Server]
+    public bool CanSlip()
+    {
+        return !isFrozen;
+    }
+
+    [TargetRpc]
+    private void TargetRpc_OnSlip(Vector3 force)
+    {
+        //TODO: merge with freeze perhaps?
+        networkAnimator.SetTrigger(AnimatorParameters.FlipForward);
+        externalForces += force;
+    }
+
+    #endregion
+
+    #region Sprint:
+
+    [Server]
+    private void Sprint()
+    {
+        currentMaxMovementSpeed = PlayerServerData.SPRINT_SPEED;
+        serverData.sprintTimer.Start(2f);//HARDCODED
+    }
+
+    #endregion
+
+    #region PowerUps:
+
+    private void OnPowerUpChanged(PowerUp oldValue, PowerUp newValue)
+    {
+        if (localPlayerController == this)
+        {
+            UpdatePowerUpButton();
+        }
+
+        football.SetActive(newValue.type == PowerUp.Type.Football);
+        skin.ShowGun(newValue.type == PowerUp.Type.Gun);//TODO: the gun dissappears too soon, give it a second before it deactivates
+    }
+
+    private void UpdatePowerUpButton()
+    {
+        /* fakeFootballButton.GetComponentInChildren<TMPro.TextMeshProUGUI>().text = footballCount.ToString();
+         Debug.LogWarning("UpdatePowerUpButton is not implemented");*/
+        fakePowerUpButton.SetGraphics(powerUp);
+    }
+
+    private bool CanUsePowerUp()
+    {
+        return (IsAlive && !isFrozen && powerUp.type != PowerUp.Type.None && powerUp.count > 0);
+    }
+
+    [Client]
+    public void TryUsePowerUp()
+    {
+        //Debug.Log("TryShoot");
+        fakePowerUpButton.Press();
+        if (CanUsePowerUp())
+        {
+            //Play animation, we can rely on the player for this
+            int triggerID = 0;
+            switch (this.powerUp.type)
+            {
+                case PowerUp.Type.Football:
+                {
+                    triggerID = AnimatorParameters.ThrowForward;
+                    break;
+                }
+                case PowerUp.Type.Banana:
+                {
+                    triggerID = AnimatorParameters.ThrowBackward;
+                    break;
+                }
+                case PowerUp.Type.Gun:
+                {
+                    triggerID = AnimatorParameters.Shoot;
+                    break;
+                }
+            }
+            networkAnimator.SetTrigger(triggerID);
+
+            //This should happen after we play the animation cause the powerup can become none due to this function
+            Cmd_TryUsePowerUp();
+
+        }
     }
 
     [Command]
-    private void Cmd_TryPlaceTrap()
+    private void Cmd_TryUsePowerUp()
     {
-        Vector3 trapSpawnPosition = myTransform.position + (myTransform.forward * -1.1f);//HARDCODED
-        Spawner.Spawn(Spawnables.Trap, trapSpawnPosition, Quaternion.identity);
+        if (CanUsePowerUp())
+        {
+            //NOTE: changing part of a struct does not seem to trigger syncVar hooks,,,
+
+            switch (this.powerUp.type)
+            {
+                case PowerUp.Type.Football:
+                {
+                    ThrowFootball();
+                    break;
+                }
+                case PowerUp.Type.Banana:
+                {
+                    ThrowBanana();
+                    break;
+                }
+                case PowerUp.Type.Sprint:
+                {
+                    Sprint();
+                    break;
+                }
+                case PowerUp.Type.Gun:
+                {
+                    Shoot();
+                    break;
+                }
+            }
+
+            PowerUp powerUp = this.powerUp;
+            sbyte newCount = (sbyte)(powerUp.count - 1);
+            if (newCount <= 0)
+            {
+                powerUp.type = PowerUp.Type.None;
+            }
+            powerUp.count = newCount;
+            this.powerUp = powerUp;
+        }
+        else
+        {
+            Debug.LogWarning("Can't use a nonexistent power up.");
+        }
     }
 
+    #endregion
+    
     [TargetRpc]
     public void TargetRpc_Teleport(Vector3 position, Quaternion rotation)
     {
@@ -933,10 +1124,8 @@ public class PlayerController : NetworkBehaviour
     private void Server_OnDestroy()
     {
         RemovePlayer(this);
-        //TODO: Players who quit befor the game starts cause bugs. 
         GameManager.UpdatePlayersState();
     }
-
 
     [Server]
     public static void AddPlayer(PlayerController player)
@@ -951,7 +1140,6 @@ public class PlayerController : NetworkBehaviour
     }
 
     #region Tests:
-
     private void PushSelf()
     {
         //float max = 7f;
@@ -964,5 +1152,18 @@ public class PlayerController : NetworkBehaviour
         Debug.Log("forward:" + myTransform.forward);
         //Vector3.
     }
+
+    /*private void OnCollisionEnter(Collision collision)
+    {
+        Debug.Log("Player: OnCollisionEnter");
+
+        if (IsAlive)
+        {
+            if (isServer)
+            {
+                
+            }
+        }
+    }*/
     #endregion
 }

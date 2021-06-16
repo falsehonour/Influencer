@@ -7,6 +7,7 @@ public enum GameStates
 {
     Waiting, ChoosingTagger, TagGame, PostGame
 }
+
 public class GameManager : NetworkBehaviour
 {
     [SyncVar] private GameStates state;
@@ -16,12 +17,13 @@ public class GameManager : NetworkBehaviour
     }
 
     //private RoomSettings roomSettings;
+    //[SerializeField] private Transform[] circleSpawnSpots;
 
-    [SerializeField] private Transform[] circleSpawnSpots;
     [SerializeField] private Kevin kevin;
     [SerializeField] private MatchCountdown countdown;
     [SerializeField] private RoomManager roomManager;
-    [SerializeField] private GameObject roomManagementCanvas;
+    [SerializeField] private GameObject  roomManagementCanvas;
+    [SerializeField] private float playerCircleRadius = 2f;
 
     private static GameManager instance;
 
@@ -34,10 +36,25 @@ public class GameManager : NetworkBehaviour
     [Server]
     public void OnServerStarted()
     {
-        roomManagementCanvas.SetActive(false);
+        Rpc_OnServerStarted();
         StartCoroutine(WaitForPlayers());
     }
 
+    private void Start()
+    {
+        roomManagementCanvas.SetActive(false);
+    }
+
+    [ClientRpc]
+    private void Rpc_OnServerStarted()
+    {
+        if (isClientOnly)
+        {
+            roomManagementCanvas.SetActive(false);
+        }
+    }
+
+ 
     [Server]
     private IEnumerator WaitForPlayers()
     {
@@ -64,11 +81,31 @@ public class GameManager : NetworkBehaviour
         int playerCount = PlayerController.allPlayers.Count;
         int taggerIndex = Random.Range(0, playerCount);
 
+        //NOTE: David, please convert my solution to a mathematically elegant one
+        TransformStruct[] circleSpawnPoints = new TransformStruct[playerCount];
+        {
+
+            Transform circleCentre = new GameObject().transform;
+            circleCentre.position = kevin.transform.position;
+            float anglePortion = 360f / (float)playerCount;
+            //Vector3 circleCentrePosition = kevin.transform.position;
+            for (int i = 0; i < playerCount; i++)
+            {
+                float angle = i * anglePortion;
+                // circleCentre.Rotate(new Vector3(0, angle, 0));
+                circleCentre.rotation = Quaternion.Euler(0, angle, 0);
+                Vector3 circleForward = circleCentre.forward;
+                Vector3 position = circleCentre.position +   (circleCentre.forward * playerCircleRadius);
+                Quaternion rotation = Quaternion.LookRotation(circleForward * -1);
+
+                circleSpawnPoints[i] = new TransformStruct(position, rotation);
+            }
+        }
 
         for (int i = 0; i < playerCount; i++)
         {
             PlayerController player = PlayerController.allPlayers[i];
-            player.TargetRpc_Teleport(circleSpawnSpots[i].position, circleSpawnSpots[i].rotation);
+            player.TargetRpc_Teleport(circleSpawnPoints[i].position, circleSpawnPoints[i].rotation);
         }
 
         yield return new WaitForSeconds(2f);//Hardcoded
@@ -77,7 +114,7 @@ public class GameManager : NetworkBehaviour
         /*kevin.Spin(circleSpawnSpots[taggerIndex].transform.position);
         IEnumerator spinCoroutine = kevin.SpinCoroutine(circleSpawnSpots[taggerIndex].transform.position);
         yield return new wait(spinCoroutine != null);*/
-        yield return kevin.SpinCoroutine(circleSpawnSpots[taggerIndex].transform.position);
+        yield return kevin.SpinCoroutine(circleSpawnPoints[taggerIndex].position);
         //yield return new WaitForSeconds(3f);//Hardcoded
         yield return new WaitForSeconds(0.2f);//Hardcoded
 
@@ -101,6 +138,7 @@ public class GameManager : NetworkBehaviour
         countdown.Server_StartCounting(roomManager.settings.countdown);
     }
 
+
     private static List<PlayerController> GetRelevantPlayers()
     {
         List<PlayerController> relevantPlayers = new List<PlayerController>();
@@ -120,39 +158,42 @@ public class GameManager : NetworkBehaviour
     [Server]
     public static void UpdatePlayersState()
     {
-        List<PlayerController> relevantPlayers = GetRelevantPlayers();
+        if(State == GameStates.TagGame)
+        {
+            List<PlayerController> relevantPlayers = GetRelevantPlayers();
 
-        int relevantPlayersCount = relevantPlayers.Count;
-        if(relevantPlayersCount == 0)
-        {
-            Debug.LogError("relevantPlayersCount == 0");
-        }
-        else if (relevantPlayersCount == 1)
-        {
-            instance.countdown.Server_StopCounting();
-            instance.DeclareWinner(relevantPlayers[0]);
-        }
-        else 
-        {
-            //Let's check wheather a tagger exists in the game. if not, promote the player with the highest HP.
-
-            PlayerController nextTagger = relevantPlayers[ 0 ];
-            for (int i = 0; i < relevantPlayersCount; i++)
+            int relevantPlayersCount = relevantPlayers.Count;
+            if (relevantPlayersCount == 0)
             {
-                PlayerController player = relevantPlayers[i];
-
-                if (player.Tagger)
-                {
-                    return;
-                }
-                else if(player.Health > nextTagger.Health)
-                {
-                    nextTagger = player;
-                }
+                Debug.LogError("relevantPlayersCount == 0");
             }
-            nextTagger.SetTagger(true); 
-        }
+            else if (relevantPlayersCount == 1)
+            {
+                instance.countdown.Server_StopCounting();
+                instance.DeclareWinner(relevantPlayers[0]);
+            }
+            else
+            {
+                //Let's check wheather a tagger exists in the game. if not, promote the player with the highest HP.
 
+                PlayerController nextTagger = relevantPlayers[0];
+                for (int i = 0; i < relevantPlayersCount; i++)
+                {
+                    PlayerController player = relevantPlayers[i];
+
+                    if (player.Tagger)
+                    {
+                        return;
+                    }
+                    else if (player.Health > nextTagger.Health)
+                    {
+                        nextTagger = player;
+                    }
+                }
+                nextTagger.SetTagger(true);
+            }
+        }
+       
     }
 
     [Server]
@@ -188,8 +229,4 @@ public class GameManager : NetworkBehaviour
         winner.Rpc_Win();
         state = GameStates.PostGame;
     }
-
-
-
-
 }

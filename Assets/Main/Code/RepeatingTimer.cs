@@ -34,16 +34,17 @@ public struct RepeatingTimer
 public struct SingleCycleTimer
 {
     private float timeLeft;
-    private bool isActive;
+    public float TimeLeft => timeLeft;
+    //private bool isActive;
     public bool IsActive
     {
-       get { return isActive; }
+       get { return timeLeft > 0; }
     }
 
     public void Start(float time)
     {
         timeLeft = time;
-        isActive = true;
+        //isActive = true;
     }
 
     public bool Update(float timePassed)
@@ -52,7 +53,7 @@ public struct SingleCycleTimer
         timeLeft -= timePassed;
         if (timeLeft < 0)
         {
-            isActive = false;
+            //isActive = false;
             return true;
         }
         else

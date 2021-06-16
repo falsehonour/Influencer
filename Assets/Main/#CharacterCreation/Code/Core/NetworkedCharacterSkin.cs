@@ -53,7 +53,35 @@ namespace CharacterCreation
                     NetworkAnimator networkAnimator = GetComponent<NetworkAnimator>();
                     if (networkAnimator != null)
                     {
+                        //NOTE: This move right here might be causing us bugs. This is explained in PlayerControllers's HandleMovement.
                         Animator placeHolderAnimator = networkAnimator.animator;
+#if UNITY_EDITOR
+                        //Animation Identity check:
+                        {
+                            AnimatorControllerParameter[] oldParams = placeHolderAnimator.parameters;
+                            AnimatorControllerParameter[] newParams = placeHolderAnimator.parameters;
+                            if(oldParams.Length == newParams.Length)
+                            {
+                                for (int i = 0; i < oldParams.Length; i++)
+                                {
+                                    if(oldParams[i] != newParams[i])
+                                    {
+                                        goto IdentityProblem;
+                                    }
+                                }
+                                goto NoIdentityProblem;
+                            }
+                            IdentityProblem:
+                            {
+                                Debug.LogWarning("The old animator and new one do not share the same parameters.");
+                            }
+                            NoIdentityProblem:
+                            {
+                                Debug.Log("Old and new animators share the same parameters.");
+                            }
+                        }
+#endif
+
                         networkAnimator.animator = animator;
                         Destroy(placeHolderAnimator);
 
@@ -151,8 +179,22 @@ namespace CharacterCreation
         {
             if (isLocalPlayer)
             {
-                PlayerSkinDataHolder.Data localSkinData = 
-                    SaveAndLoadManager.Load<PlayerSkinDataHolder>(new PlayerSkinDataHolder()).data;
+                PlayerSkinDataHolder localSkinDataHolder =
+                     SaveAndLoadManager.Load<PlayerSkinDataHolder>(new PlayerSkinDataHolder());
+                if(localSkinDataHolder == null)
+                {
+                    //TODO: Getting a default skin should not be here
+                    localSkinDataHolder = new PlayerSkinDataHolder(0,new byte[0],new byte[0]);
+                       // PlayerSkinDataHolder.CreatePlayerSkinData(characterPreFab, character.equippedMeshesByMeshCategory, character.equippedMeshModifiersByMeshModifierCategory);
+                }
+
+                /*if (characterPreFab == null)
+                {
+                    characterPreFab = CharacterCreationReferencer.References.GetCharacterPreFab(0);
+                }*/
+
+                PlayerSkinDataHolder.Data localSkinData = localSkinDataHolder.data;
+
                 Cmd_DownloadSkin(localSkinData);
                 EquipSkin(ref localSkinData);
                 //AssignNetworkAnimator(this.netIdentity);
@@ -166,5 +208,10 @@ namespace CharacterCreation
             }
         }
 
+
+        public void ShowGun(bool value)
+        {
+            character.ShowGun(value);
+        }
     }
 }

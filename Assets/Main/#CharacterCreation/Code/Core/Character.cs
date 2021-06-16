@@ -20,6 +20,8 @@ namespace CharacterCreation
         private MaterialPropertyBlock materialPropertyBlock;
         private bool initialised = false;
 
+        [SerializeField] private GameObject gun;
+
         public void Initialise()
         {
             if (initialised)
@@ -31,6 +33,8 @@ namespace CharacterCreation
             materialPropertyBlock = new MaterialPropertyBlock();
             bones = root.GetComponentsInChildren<Transform>();
             InitialiseEquippedPieces();
+
+            ShowGun(false);
         }
 
         private void InitialiseEquippedPieces()
@@ -696,5 +700,13 @@ namespace CharacterCreation
             }
         }*/
         #endregion
+
+        public void ShowGun(bool value)
+        {
+            if(gun != null && gun.activeSelf != value)
+            {
+                gun.SetActive(value);
+            }
+        }
     }
 }

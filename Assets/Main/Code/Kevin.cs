@@ -185,6 +185,7 @@ public class Kevin : MonoBehaviour
     [Server]
     private void DropItem()
     {
+        //TODO: דיויד, וודא שההגרלה יוצאת כמו שמצופה והחלף את המודל אם יש צורך
         int chance = Random.Range(0, droppableItemsOverallChancePoints);
         Debug.Log($"chance = {chance}");
         Spawnables spawnable = Spawnables.Null;

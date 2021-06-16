@@ -81,8 +81,8 @@ public class PlayerController : NetworkBehaviour
     [SerializeField] private Transform cameraAnchor;//TODO: I believe this is nop longer needed
     private CharacterCamera characterCamera;
     //private Camera camera;
-    [SerializeField] private Animator animator;
-    [SerializeField] private NetworkAnimator networkAnimator;
+    private Animator animator;
+    private NetworkAnimator networkAnimator;
 
     //private int animatorSpeedParameter;
     private Liftable liftable;// TODO: make it more generic;
@@ -125,7 +125,7 @@ public class PlayerController : NetworkBehaviour
         myTransform = transform;
         playerUI = PlayerUIManager.CreatePlayerUI(playerUIAnchor);
         char character = ' ';
-        playerUI.SetCharacter(character);
+        playerUI.SetProceedingCharacter(character);
     }
 
     private void Start()
@@ -161,6 +161,7 @@ public class PlayerController : NetworkBehaviour
             //camera = characterCamera.GetComponent<Camera>();
 
             //Cmd_SetTagger(GameManager.Tagger);
+            Cmd_SetName(PlayerName.name);
         }
 
         if (skin != null)
@@ -171,6 +172,23 @@ public class PlayerController : NetworkBehaviour
 
         football.SetActive(false);
     }
+
+    #region PlayerName
+    [SyncVar(hook = nameof(SetName))] private string displayName;
+    //TODO: Remove this region, it is supposed to be temporary
+    [Command]
+    private void Cmd_SetName(string newName)
+    {
+        displayName = newName;
+    }
+
+    [Client]
+    private void SetName(string oldValue ,string newValue)
+    {
+        playerUI.SetPlayerName(newValue);
+    }
+
+    #endregion
 
     public void SetAnimator(Animator animator, NetworkAnimator networkAnimator)
     {
@@ -221,7 +239,7 @@ public class PlayerController : NetworkBehaviour
     private void OnTaggerChange(bool oldValue, bool newValue)
     {
         char character = newValue ? '#' : ' ';
-        playerUI.SetCharacter(character);
+        playerUI.SetProceedingCharacter(character);
        // hashTag.SetActive(newValue);
     }
 
@@ -715,7 +733,7 @@ public class PlayerController : NetworkBehaviour
         if(animator != null)
         {
             //TODO: do this in bigger intervals for performance
-            //animator.SetFloat(AnimatorParameters.Speed, metersPerSecond);
+           // animator.SetFloat(AnimatorParameters.Speed, kilometresPerHour);
 
             //HARDCODED AHEAD
             int animationSpeedState = 0;
@@ -727,6 +745,13 @@ public class PlayerController : NetworkBehaviour
                 animationSpeedState = 1;
             animator.SetInteger(AnimatorParameters.SpeedState, animationSpeedState);
 
+            //NOTE: Why the FUCK does mirror not sync the the top three???
+            //I think I understand: Our NetworkAnimator only cares about parameters that used to be on our original animator. 
+            //This means that further bugs may occur due to the animator swap we do 
+            /*animator.SetInteger(AnimatorParameters.SpeedState, animationSpeedState);
+            animator.SetInteger("WhatTheHellInt", animationSpeedState);
+            animator.SetFloat("WhatTheHellFloat", animationSpeedState);
+            animator.SetFloat(AnimatorParameters.Speed, animationSpeedState);*/
         }
 
         Vector3 velocity = (controlledVelocity + externalForces);
@@ -862,7 +887,7 @@ public class PlayerController : NetworkBehaviour
     {
         //NOTE: rotation and position are based on what's on the server, this might cause noticeable impercision
         Vector3 bulletSpawnPosition =
-            (myTransform.position + (myTransform.forward * 0.8f) + (Vector3.up * 0.5f));//HARDCODED
+            (myTransform.position + (myTransform.forward * 0.8f) + (Vector3.up * 0.82f));//HARDCODED
         Quaternion bulletSpawnRotation = myTransform.rotation;
         Spawner.Spawn(Spawnables.Bullet, bulletSpawnPosition, bulletSpawnRotation);
     }
@@ -989,12 +1014,17 @@ public class PlayerController : NetworkBehaviour
         fakePowerUpButton.SetGraphics(powerUp);
     }
 
+    private bool CanUsePowerUp()
+    {
+        return (IsAlive && !isFrozen && powerUp.type != PowerUp.Type.None && powerUp.count > 0);
+    }
+
     [Client]
     public void TryUsePowerUp()
     {
         //Debug.Log("TryShoot");
         fakePowerUpButton.Press();
-        if (powerUp.type != PowerUp.Type.None && powerUp.count > 0)
+        if (CanUsePowerUp())
         {
             //Play animation, we can rely on the player for this
             int triggerID = 0;
@@ -1027,7 +1057,7 @@ public class PlayerController : NetworkBehaviour
     [Command]
     private void Cmd_TryUsePowerUp()
     {
-        if (powerUp.type != PowerUp.Type.None && powerUp.count > 0)
+        if (CanUsePowerUp())
         {
             //NOTE: changing part of a struct does not seem to trigger syncVar hooks,,,
 
@@ -1094,7 +1124,6 @@ public class PlayerController : NetworkBehaviour
     private void Server_OnDestroy()
     {
         RemovePlayer(this);
-        //TODO: Players who quit befor the game starts cause bugs. 
         GameManager.UpdatePlayersState();
     }
 

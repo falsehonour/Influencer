@@ -147,7 +147,7 @@ CharacterController:
   m_Radius: 0.4
   m_SlopeLimit: 45
   m_StepOffset: 0.3
-  m_SkinWidth: 0.04
+  m_SkinWidth: 0.01
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0.75, z: 0}
 --- !u!114 &9005568660542501622
@@ -168,8 +168,6 @@ MonoBehaviour:
   maxRotationSpeed: 600
   gravity: -9.8
   cameraAnchor: {fileID: 1843534165324223648}
-  animator: {fileID: 0}
-  networkAnimator: {fileID: 0}
   grabbingHand: {fileID: 0}
   skin: {fileID: 8320585343824001797}
   placeholderGraphics: {fileID: 4370205383554667044}
@@ -250,7 +248,7 @@ Animator:
   m_GameObject: {fileID: 1843534166062373018}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 472e2041271d6d84f86802ba2ce7ff29, type: 2}
+  m_Controller: {fileID: 9100000, guid: 2ff6a5421ec454347aaca95ef192b718, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -266,14 +264,14 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1843534166062373018}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 45c8b5e4d6649e84993b8cca34f9baab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   checkedObject: {fileID: 1843534166062372998}
   updateSpeed: 0.5
-  speed: 0
+  kilometresPerHour: 0
 --- !u!1 &2799519810729760103
 GameObject:
   m_ObjectHideFlags: 0
@@ -298,7 +296,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2799519810729760103}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 2, z: 0}
+  m_LocalPosition: {x: 0, y: 2.2, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1843534166062372998}

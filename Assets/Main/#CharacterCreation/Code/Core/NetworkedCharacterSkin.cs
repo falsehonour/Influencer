@@ -53,7 +53,35 @@ namespace CharacterCreation
                     NetworkAnimator networkAnimator = GetComponent<NetworkAnimator>();
                     if (networkAnimator != null)
                     {
+                        //NOTE: This move right here might be causing us bugs. This is explained in PlayerControllers's HandleMovement.
                         Animator placeHolderAnimator = networkAnimator.animator;
+#if UNITY_EDITOR
+                        //Animation Identity check:
+                        {
+                            AnimatorControllerParameter[] oldParams = placeHolderAnimator.parameters;
+                            AnimatorControllerParameter[] newParams = placeHolderAnimator.parameters;
+                            if(oldParams.Length == newParams.Length)
+                            {
+                                for (int i = 0; i < oldParams.Length; i++)
+                                {
+                                    if(oldParams[i] != newParams[i])
+                                    {
+                                        goto IdentityProblem;
+                                    }
+                                }
+                                goto NoIdentityProblem;
+                            }
+                            IdentityProblem:
+                            {
+                                Debug.LogWarning("The old animator and new one do not share the same parameters.");
+                            }
+                            NoIdentityProblem:
+                            {
+                                Debug.Log("Old and new animators share the same parameters.");
+                            }
+                        }
+#endif
+
                         networkAnimator.animator = animator;
                         Destroy(placeHolderAnimator);
 

@@ -2,7 +2,7 @@
 using UnityEngine;
 using Mirror;
 
-public class Spawnable : NetworkBehaviour
+public abstract class Spawnable : NetworkBehaviour
 {
     private static readonly Vector3 HIDDEN_LOCATION = new Vector3(0, -10, 0);
     //private NetworkTransform networkTransform;

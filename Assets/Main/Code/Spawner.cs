@@ -5,8 +5,8 @@ using Mirror;
 
 public enum Spawnables : byte
 {
-    Null = 0, Bullet = 1, HealthPickup = 2, ThrownFootball = 3, 
-    FootballPickup = 4, ThrownBanana = 5, BananaPickup = 6,
+    Null = 0, HealthPickup = 2, ThrownFootball = 3, FootballPickup = 4,
+    ThrownBanana = 5, BananaPickup = 6, GunPickup = 7, Bullet = 1, SprintPickup = 8,
     Length = 7
 }
 

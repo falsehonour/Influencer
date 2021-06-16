@@ -158,38 +158,42 @@ public class GameManager : NetworkBehaviour
     [Server]
     public static void UpdatePlayersState()
     {
-        List<PlayerController> relevantPlayers = GetRelevantPlayers();
+        if(State == GameStates.TagGame)
+        {
+            List<PlayerController> relevantPlayers = GetRelevantPlayers();
 
-        int relevantPlayersCount = relevantPlayers.Count;
-        if(relevantPlayersCount == 0)
-        {
-            Debug.LogError("relevantPlayersCount == 0");
-        }
-        else if (relevantPlayersCount == 1)
-        {
-            instance.countdown.Server_StopCounting();
-            instance.DeclareWinner(relevantPlayers[0]);
-        }
-        else 
-        {
-            //Let's check wheather a tagger exists in the game. if not, promote the player with the highest HP.
-
-            PlayerController nextTagger = relevantPlayers[ 0 ];
-            for (int i = 0; i < relevantPlayersCount; i++)
+            int relevantPlayersCount = relevantPlayers.Count;
+            if (relevantPlayersCount == 0)
             {
-                PlayerController player = relevantPlayers[i];
-
-                if (player.Tagger)
-                {
-                    return;
-                }
-                else if(player.Health > nextTagger.Health)
-                {
-                    nextTagger = player;
-                }
+                Debug.LogError("relevantPlayersCount == 0");
             }
-            nextTagger.SetTagger(true); 
+            else if (relevantPlayersCount == 1)
+            {
+                instance.countdown.Server_StopCounting();
+                instance.DeclareWinner(relevantPlayers[0]);
+            }
+            else
+            {
+                //Let's check wheather a tagger exists in the game. if not, promote the player with the highest HP.
+
+                PlayerController nextTagger = relevantPlayers[0];
+                for (int i = 0; i < relevantPlayersCount; i++)
+                {
+                    PlayerController player = relevantPlayers[i];
+
+                    if (player.Tagger)
+                    {
+                        return;
+                    }
+                    else if (player.Health > nextTagger.Health)
+                    {
+                        nextTagger = player;
+                    }
+                }
+                nextTagger.SetTagger(true);
+            }
         }
+       
     }
 
     [Server]

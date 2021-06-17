@@ -204,7 +204,7 @@ public class Kevin : MonoBehaviour
         }
         //int droppedItemIndex = Random.Range(0, allowedDroppedItems.Length);
         Vector3 itemPosition = dropPoints[nextDropPointIndex].position; //myTransform.position;// + (myTransform.forward * -1.1f);//HARDCODED
-        Spawner.Spawn(spawnable, itemPosition, Quaternion.identity);
+        Spawner.Spawn(spawnable, itemPosition, Quaternion.identity, null);
     }
 
     [Server]

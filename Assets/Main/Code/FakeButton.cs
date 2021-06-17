@@ -2,14 +2,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
+using UnityEngine.Events;
 
-public class FakeButton : MonoBehaviour
+public class FakeButton : MonoBehaviour, IPointerDownHandler
 {
     [SerializeField] private Image image;
     [SerializeField] private GameObject pressedOverlayGraphics;
     private MaskableGraphic[] maskableGraphics;
 
     [SerializeField] private float disabledAlpha;
+    [SerializeField] private UnityEvent onClickEvent;
     /*[SerializeField] private Sprite unpressedSprite;
     [SerializeField] private Sprite pressedSprite;*/
 
@@ -24,7 +27,7 @@ public class FakeButton : MonoBehaviour
     {
         pressedOverlayGraphics.SetActive(true);
        // image.sprite = pressedSprite;
-        Invoke("Unpress", 0.7f);
+        Invoke("Unpress", 0.5f);
 
     }
 
@@ -55,5 +58,22 @@ public class FakeButton : MonoBehaviour
             color.a = value;
             maskableGraphic.color = color;
         }
+    }
+
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        //TODO: Is there a way to modify the UI element "collider"? We could use alternative methods to achieve this 
+        onClickEvent.Invoke();
+    }
+
+    //TODO: Make sure these are not clickable before the player is created..
+    public void TryTag()
+    {
+        PlayerController.localPlayerController.TryTag();
+    }
+
+    public void TryUsePowerUp()
+    {
+        PlayerController.localPlayerController.TryUsePowerUp();
     }
 }

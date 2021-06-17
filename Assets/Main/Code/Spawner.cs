@@ -63,8 +63,9 @@ public class Spawner : MonoBehaviour//NetworkBehaviour
      }*/
 
     [Server]
-    public static Spawnable Spawn(Spawnables spawnableName, Vector3 spawnPosition, Quaternion spawnRotation)
+    public static Spawnable Spawn(Spawnables spawnableName, Vector3 spawnPosition, Quaternion spawnRotation, uint? callerNetID)
     {
+        
         Spawnable validSpawnable = null;
         int spawnableArrayIndex = (int)spawnableName;
         Spawnable[] spawnableArray = spawnablesPools[spawnableArrayIndex];
@@ -106,7 +107,12 @@ public class Spawner : MonoBehaviour//NetworkBehaviour
         {
             Debug.LogWarning("No dead spawnables were found... ");
         }
-        validSpawnable.Spawn(spawnPosition, spawnRotation);
+        //TODO: This might be dumb, are we sure that this is the null equivilent of netID? 
+        //can we not make an optional parameter instead of carrying useless info through the network?
+        uint realCallerNetID = (callerNetID == null ? uint.MaxValue : (uint)callerNetID);
+
+
+        validSpawnable.Spawn(spawnPosition, spawnRotation, realCallerNetID);
         return validSpawnable;
 
         /* Debug.LogWarning("No dead spawnables were found... ");

@@ -887,9 +887,12 @@ public class PlayerController : NetworkBehaviour
     {
         //NOTE: rotation and position are based on what's on the server, this might cause noticeable impercision
         Vector3 bulletSpawnPosition =
-            (myTransform.position + (myTransform.forward * 0.8f) + (Vector3.up * 0.82f));//HARDCODED
+            (myTransform.position + (myTransform.forward * 0.75f) + (Vector3.up * 0.82f));//HARDCODED
         Quaternion bulletSpawnRotation = myTransform.rotation;
-        Spawner.Spawn(Spawnables.Bullet, bulletSpawnPosition, bulletSpawnRotation);
+        PhysicalProjectile projectile = 
+            (PhysicalProjectile) Spawner.Spawn(Spawnables.Bullet, bulletSpawnPosition, bulletSpawnRotation,netId);
+        // projectile.SetIgnoredCollider(characterController/* GetComponent<Collider>()*/);
+       // projectile.SetIgnoredCollider(this/* GetComponent<Collider>()*/);
     }
 
     [Server]
@@ -934,9 +937,10 @@ public class PlayerController : NetworkBehaviour
     {
         //NOTE: rotation and position are based on what's on the server, this might cause noticeable impercision
         Vector3 ballSpawnPosition =
-            (myTransform.position + (myTransform.forward * 1f) + (Vector3.up * 0.5f));//HARDCODED
+            (myTransform.position + (myTransform.forward * 0.7f) + (Vector3.up * 0.5f));//HARDCODED
         Quaternion ballSpawnRotation = myTransform.rotation;
-        Spawner.Spawn(Spawnables.ThrownFootball, ballSpawnPosition, ballSpawnRotation);   
+        Spawner.Spawn(Spawnables.ThrownFootball, ballSpawnPosition, ballSpawnRotation, netId); 
+        
     }
 
     [Server]
@@ -952,9 +956,9 @@ public class PlayerController : NetworkBehaviour
     private void ThrowBanana()
     {
         Vector3 bananaPosition = 
-            myTransform.position + (myTransform.forward * -1.1f) + (Vector3.up * 2f);//HARDCODED as F%$#
+            myTransform.position + (myTransform.forward * -0.92f) + (Vector3.up * 1.8f);//HARDCODED as F%$#
         Quaternion bananaRotation = Quaternion.Euler(0, Random.Range(0, 360), 0);
-        Spawner.Spawn(Spawnables.ThrownBanana, bananaPosition, bananaRotation);
+        Spawner.Spawn(Spawnables.ThrownBanana, bananaPosition, bananaRotation, netId);
     }
 
     [Server]
@@ -1032,7 +1036,7 @@ public class PlayerController : NetworkBehaviour
             {
                 case PowerUp.Type.Football:
                 {
-                    triggerID = AnimatorParameters.ThrowForward;
+                    triggerID = AnimatorParameters.Kick;
                     break;
                 }
                 case PowerUp.Type.Banana:

@@ -49,6 +49,7 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.1
   rigidbody: {fileID: 621582531922720478}
+  myCollider: {fileID: 6308649143332985345}
 --- !u!114 &3580980854754268040
 MonoBehaviour:
   m_ObjectHideFlags: 0

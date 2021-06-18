@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+
 public class RoomSettingsUI : MonoBehaviour
 {
 
@@ -15,7 +16,7 @@ public class RoomSettingsUI : MonoBehaviour
         //(delegate { roomManager.settings.playerCount = (byte)playerCountSlider.slider.value; });
         countdownSlider.SetValue(roomManager.settings.countdown, false);
         countdownSlider.OnValueChangedAction += SetCountdown;
-            //  (delegate { roomManager.settings.countdown =  countdownSlider.slider.value; });
+        // (delegate { roomManager.settings.countdown =  countdownSlider.slider.value; });
         // { roomManager.settings.playerCount = (byte)playerCountSlider.slider.value; };
     }
 

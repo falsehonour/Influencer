@@ -21,7 +21,8 @@ public class Kevin : MonoBehaviour
     [SerializeField] private AnimationCurve rotationCurve;
     [SerializeField] private int extraCompleteRotations;
     #endregion
-    [SerializeField] private Transform[] dropPoints;
+    [SerializeField] private Transform dropPointsParent;
+    private Transform[] dropPoints;
     private List<int> availableDropPointIndexes = new List<int>();
     private float availableDropPointCheckRadius = 1.5f;
     private Collider[] availableDropPointCheckColliders = new Collider[16];
@@ -54,6 +55,11 @@ public class Kevin : MonoBehaviour
             {
                 instance = this;
                 myTransform = transform;
+                dropPoints = new Transform[dropPointsParent.childCount];
+                for (int i = 0; i < dropPoints.Length; i++)
+                {
+                    dropPoints[i] = dropPointsParent.GetChild(i);
+                }
                 InitialiseDroppableItems();
                 previousRoutine = nameof(IdleRoutine);
                 StartCoroutine(previousRoutine);
@@ -89,8 +95,6 @@ public class Kevin : MonoBehaviour
             droppable.chanceThreshold = droppableItemsOverallChancePoints;
             Debug.Log($"droppableItems[{i}].chanceThreshold: {droppableItems[i].chanceThreshold}");
         }
-
-
     }
 
     private IEnumerator ItemDropRoutine()

@@ -24,27 +24,27 @@ public class RoomSettingsUISlider : MonoBehaviour
 
     private void Awake()
     {
-           slider.onValueChanged.AddListener(delegate 
-           {
-               float value = slider.value;
-               SetValue(value,true);
-           });
-
-           inputField.onEndEdit.AddListener(delegate 
-           {
-               float value = 0;
-               bool workableValue = (float.TryParse(inputField.text, out value));
-               if (workableValue)
-               {
-                   value = Mathf.Clamp(value, slider.minValue, slider.maxValue);
-                   SetValue(value, true);
-               }
-               else
-               {
-                   inputField.text = slider.value.ToString();
-               }
-               // text.text = slider.value.ToString(); 
-           });
+        slider.onValueChanged.AddListener(delegate 
+        {
+            float value = slider.value;
+            SetValue(value,true);
+        });
+       
+        inputField.onEndEdit.AddListener(delegate 
+        {
+            float value = 0;
+            bool workableValue = (float.TryParse(inputField.text, out value));
+            if (workableValue)
+            {
+                value = Mathf.Clamp(value, slider.minValue, slider.maxValue);
+                SetValue(value, true);
+            }
+            else
+            {
+                inputField.text = slider.value.ToString();
+            }
+            // text.text = slider.value.ToString(); 
+        });
     }
 
     /* public void OnValueChanged()

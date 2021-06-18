@@ -22,7 +22,10 @@ public class GameManager : NetworkBehaviour
     [SerializeField] private Kevin kevin;
     [SerializeField] private MatchCountdown countdown;
     [SerializeField] private RoomManager roomManager;
-    [SerializeField] private GameObject  roomManagementCanvas;
+    [SerializeField] private PlayerSettingsManager playerSettingsManager;
+    [SerializeField] private GameObject roomManagementCanvas;
+    [SerializeField] private GameObject playerSettingsCanvas;
+    
     [SerializeField] private float playerCircleRadius = 2f;
 
     private static GameManager instance;
@@ -42,7 +45,10 @@ public class GameManager : NetworkBehaviour
 
     private void Start()
     {
+        //TODO: not the most fitting place for this
         roomManagementCanvas.SetActive(false);
+        playerSettingsManager.ApplySettings();
+        playerSettingsCanvas.gameObject.SetActive(false);
     }
 
     [ClientRpc]

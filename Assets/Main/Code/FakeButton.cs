@@ -13,6 +13,7 @@ public class FakeButton : MonoBehaviour, IPointerDownHandler
 
     [SerializeField] private float disabledAlpha;
     [SerializeField] private UnityEvent onClickEvent;
+    private bool isEnabled = true;
     /*[SerializeField] private Sprite unpressedSprite;
     [SerializeField] private Sprite pressedSprite;*/
 
@@ -37,16 +38,21 @@ public class FakeButton : MonoBehaviour, IPointerDownHandler
        // image.sprite = unpressedSprite;
     }
 
-    [ContextMenu(nameof(Enable))]
-    public void Enable()
+    public void SetIsEnabled(bool value)
     {
-        ManipulateImagesAlpha(1);
+        //NOTE: We cache the current state in order to avoid unnesssrily 
+        //call ManipulateImagesAlpha wchich might be costly.
+        if (value != isEnabled)
+        {
+            ManipulateImagesAlpha(value ? 1 : disabledAlpha);
+
+            isEnabled = value;
+        }
     }
 
-    [ContextMenu(nameof(Disable))]
-    public void Disable()
+    private void Disable()
     {
-        ManipulateImagesAlpha(disabledAlpha);
+        SetIsEnabled(false);
     }
 
     private void ManipulateImagesAlpha(float value)

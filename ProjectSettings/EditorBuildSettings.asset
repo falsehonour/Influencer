@@ -8,10 +8,10 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Main/Scenes/MainMenu.unity
     guid: dfe0cb469ea57b0479a012adaf9edb2e
-  - enabled: 0
+  - enabled: 1
     path: Assets/Main/#CharacterCreation/Scenes/AvatarCreation.unity
     guid: a9811e8ca3c60cd4bb3ee76c83f5e30e
-  - enabled: 1
+  - enabled: 0
     path: Assets/Main/Scenes/Presentation.unity
     guid: de8a958111153a947add5453f7768821
   m_configObjects: {}

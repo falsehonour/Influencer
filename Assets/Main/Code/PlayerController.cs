@@ -144,12 +144,25 @@ public class PlayerController : NetworkBehaviour
             /*pathCache = new NavMeshPath();
             pathWayPoints = new Vector3[16];*/
 
-            joystick  = FindObjectOfType<Joystick>();
+            //TODO: Very inappropriate, pls change
+            Joystick[] joysticks = FindObjectsOfType<Joystick>();
+            for (int i = 0; i < joysticks.Length; i++)
+            {
+                if (joysticks[i].isActiveAndEnabled)
+                {
+                    joystick = joysticks[i];
+                    break;
+                }
+            }
+            if(joystick == null)
+            {
+                Debug.LogError("NO JOYSTICK FOUND!");
+            }
             /*tagButton = GameObject.Find("TagButton");
             tagButton.SetActive(false);*/
 
             fakeTagButton = GameObject.Find("FakeTagButton").GetComponent<FakeButton>();
-            fakeTagButton.Disable();
+            fakeTagButton.SetIsEnabled(false);
 
             /* fakeFootballButton = GameObject.Find("FakeFootballButton").GetComponent<FakeButton>();
              UpdateFakeFootballButtonText();*/
@@ -252,17 +265,18 @@ public class PlayerController : NetworkBehaviour
 
             if (newValue)
             {
-                fakeTagButton.Enable();
+                fakeTagButton.SetIsEnabled(true);//.Enable();
             }
             else 
             {
                 if (tagger)
                 {
-                    fakeTagButton.Disable();
+                    fakeTagButton.SetIsEnabled(false);//.Enable();
                 }
                 else
                 {
-                    fakeTagButton.Invoke("Disable", 0.75f);//LAAAAZY....
+                    //TODO: Very gay. 
+                    fakeTagButton.Invoke("Disable", 0.75f);//TODO: LAAAAZY....
                 }
             }
 
@@ -428,17 +442,18 @@ public class PlayerController : NetworkBehaviour
     [Client]
     private void OnIsFrozenChanged(bool oldValue, bool newValue)
     {
-
         if(hasAuthority)
         {
             if (!newValue)
             {
                 networkAnimator.SetTrigger(AnimatorParameters.Recover);
             }
+            UpdatePowerUpButton();
             characterCamera.distanceMultiplier = newValue ? 0.7f : 1;
+
         }
         //TODO: Add indicators
-       // healthGUI.color = (newValue ? Color.blue : Color.green);
+        // healthGUI.color = (newValue ? Color.blue : Color.green);
     }
 
     [Client]
@@ -1016,6 +1031,8 @@ public class PlayerController : NetworkBehaviour
         /* fakeFootballButton.GetComponentInChildren<TMPro.TextMeshProUGUI>().text = footballCount.ToString();
          Debug.LogWarning("UpdatePowerUpButton is not implemented");*/
         fakePowerUpButton.SetGraphics(powerUp);
+        bool enableButton = (!isFrozen && powerUp.type != PowerUp.Type.None);
+        fakePowerUpButton.SetIsEnabled(enableButton);
     }
 
     private bool CanUsePowerUp()

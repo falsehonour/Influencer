@@ -18,13 +18,6 @@ namespace CharacterCreation
         [SerializeField] private float zMovementSpeed;
         [SerializeField] FloatRange zRange;
 
-
-        // Start is called before the first frame update
-        void Start()
-        {
-
-        }
-
         // Update is called once per frame
         void Update()
         {

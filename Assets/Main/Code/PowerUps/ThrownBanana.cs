@@ -10,9 +10,9 @@ public class ThrownBanana : Spawnable
     [SerializeField] private Rigidbody rigidbody;
     [SerializeField] private Collider triggerCollider;
 
-    protected override void OnSpawn(Vector3 position, Quaternion rotation)
+    protected override void OnSpawn(Vector3 position, Quaternion rotation, uint callerNetId)
     {
-        base.OnSpawn(position, rotation);
+        base.OnSpawn(position, rotation, callerNetId);
 
         if (isServer)
         {

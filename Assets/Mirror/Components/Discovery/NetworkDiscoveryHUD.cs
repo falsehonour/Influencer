@@ -25,9 +25,12 @@ namespace Mirror.Discovery
             }
         }
 #endif
-
+       [SerializeField] private GUISkin customGUISkin;
         void OnGUI()
         {
+            /* Font font = new Font();
+             GUI.skin.font = font;// .fontSize = 32;*/
+            GUI.skin = customGUISkin;
             if (NetworkManager.singleton == null)
                 return;
 
@@ -41,7 +44,6 @@ namespace Mirror.Discovery
         void DrawGUI()
         {
             GUILayout.BeginHorizontal();
-
             if (GUILayout.Button("Find Servers"))
             {
                 discoveredServers.Clear();

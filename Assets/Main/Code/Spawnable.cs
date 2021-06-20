@@ -16,22 +16,22 @@ public abstract class Spawnable : NetworkBehaviour
     }
 
     [Server]
-    public void Spawn(Vector3 position, Quaternion rotation)
+    public void Spawn(Vector3 position, Quaternion rotation, uint callerNetID)
     {
-        OnSpawn(position, rotation);
-        Rpc_Spawn(position, rotation);
+        OnSpawn(position, rotation, callerNetID);
+        Rpc_Spawn(position, rotation, callerNetID);
     }
 
     [ClientRpc]
-    private void Rpc_Spawn(Vector3 position, Quaternion rotation)
+    private void Rpc_Spawn(Vector3 position, Quaternion rotation, uint callerNetID)
     {
         if (isClientOnly)
         {
-            OnSpawn(position, rotation);
+            OnSpawn(position, rotation, callerNetID);
         }
     }
 
-    protected virtual void OnSpawn(Vector3 position, Quaternion rotation)
+    protected virtual void OnSpawn(Vector3 position, Quaternion rotation, uint callerNetID)
     {
         // gameObject.SetActive(true);
         myTransform.position = position;

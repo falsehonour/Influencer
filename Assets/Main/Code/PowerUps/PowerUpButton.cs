@@ -21,10 +21,7 @@ public class PowerUpButton : FakeButton
         {
             countGraphics.SetActive(false);
         }
-
-
         powerUpIcon.sprite = PowerUpsProperties.GetIcon(powerUp.type);
-
     }
 
     public override void Press()

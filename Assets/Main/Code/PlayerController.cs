@@ -8,38 +8,45 @@ public class PlayerController : NetworkBehaviour
 {
     private class PlayerServerData
     {
+        public const float INJURED_SPEED = 3f;
         public const float MAX_NONTAGGER_SPEED = 5.5f;
         public const float MAX_TAGGER_SPEED = MAX_NONTAGGER_SPEED;
         public const float SPRINT_SPEED = 8f;
-
-        public const float MAX_TRAPPED_MOVEMENT_SPEED = 2.2f;
+        //public const float MAX_TRAPPED_MOVEMENT_SPEED = 2.2f;
+        //public const float MAX_TRAPPED_MOVEMENT_SPEED = 2.2f;
 
         public static readonly float MIN_TAG_SQUARED_DISTANCE = (2.33f * 2.33f);
         public const sbyte MAX_HEALTH = 32;
         //public const float TRAP_DURATION = 2f;
-        private const float HEALTH_LOSS_INTERVAL = 1f;
+        private const float TAGGER_HEALTH_LOSS_INTERVAL =  1f;
         private const float NEARBY_PLAYERS_DETECTION_INTERVAL = 0.05f;
+
+        public const float TAGGER_FREEZE_DURATION = 3.5f;
 
         public List<PlayerController> playersInRange;
         public RepeatingTimer healthReductionTimer;
         public RepeatingTimer nearbyPlayersDetectionTimer;
         //public SingleCycleTimer trapTimer;
-        public SingleCycleTimer freezeTimer;
-        public SingleCycleTimer sprintTimer;
+        public SingleCycleTimer movementStateTimer;
+        public MovementStates nextMovementState;
+        /*public SingleCycleTimer freezeTimer;
+        public SingleCycleTimer sprintTimer;*/
 
         public PlayerServerData()
         {
             playersInRange = new List<PlayerController>();
-            healthReductionTimer = new RepeatingTimer(HEALTH_LOSS_INTERVAL);
+            healthReductionTimer = new RepeatingTimer(TAGGER_HEALTH_LOSS_INTERVAL);
             nearbyPlayersDetectionTimer = new RepeatingTimer(NEARBY_PLAYERS_DETECTION_INTERVAL);
-           // trapTimer = new SingleCycleTimer();
-            freezeTimer = new SingleCycleTimer();
-            sprintTimer = new SingleCycleTimer();
+            movementStateTimer = new SingleCycleTimer();
         }
     }
 
     //This object should exist only on the server.
     private PlayerServerData serverData;
+    private enum MovementStates : byte
+    {
+        Frozen, Injured, Normal, Sprinting
+    }
 
     /*private enum PlayerActions
     {
@@ -48,13 +55,15 @@ public class PlayerController : NetworkBehaviour
     [SerializeField] private CharacterController characterController;
     private Transform myTransform;
     private Joystick joystick;
-
+    [SyncVar(hook = nameof(OnMovementStateChange))] private MovementStates DT_movementState;
+    private MovementStates MovementState => DT_movementState;
     [SyncVar] private float currentMaxMovementSpeed;
     [SerializeField] private float maxRotationSpeed;
     private Quaternion desiredRotation;
     private Vector3 controlledVelocity;
     private Vector3 externalForces;
     private float currentGravity = 0;
+    //TODO: These three don't belong here
     private float EXTERNAL_FORCES_REDUCTION_SPEED = 6f;
     private const float PUSH_FORCE = 7.5f;
     private const float SLIP_FORCE = 6f;
@@ -83,7 +92,6 @@ public class PlayerController : NetworkBehaviour
     //private Camera camera;
     private Animator animator;
     private NetworkAnimator networkAnimator;
-
     //private int animatorSpeedParameter;
     private Liftable liftable;// TODO: make it more generic;
     [SerializeField] private Transform grabbingHand;
@@ -98,8 +106,7 @@ public class PlayerController : NetworkBehaviour
     [SyncVar(hook = nameof(OnCanTagChange))] private bool canTag;
     //[SerializeField] private GameObject tagButton;
     private FakeButton fakeTagButton;
-
-    [SyncVar(hook = nameof(OnIsFrozenChanged))] private bool isFrozen;
+    //[SyncVar(hook = nameof(OnIsFrozenChanged))] private bool isFrozen;
     #endregion
     #region Health:
     [SyncVar(hook = nameof(OnHealthChanged))] private sbyte DT_health;
@@ -113,12 +120,13 @@ public class PlayerController : NetworkBehaviour
     [SerializeField] private GameObject placeholderGraphics;
     [SerializeField] private Transform playerUIAnchor;
     private PlayerUI playerUI;
-    public static PlayerController localPlayerController;
-    public static List<PlayerController> allPlayers = new List<PlayerController>();
     //private bool isLocalPlayerCache;
     [SyncVar(hook = nameof(OnPowerUpChanged))] private PowerUp powerUp;
     private PowerUpButton fakePowerUpButton;
     [SerializeField] private GameObject football;
+    private bool initialised = false;
+    public static PlayerController localPlayerController;
+    public static List<PlayerController> allPlayers = new List<PlayerController>();
 
     private void Awake()
     {
@@ -184,6 +192,8 @@ public class PlayerController : NetworkBehaviour
         }
 
         football.SetActive(false);
+
+        initialised = true;
     }
 
     #region PlayerName
@@ -217,8 +227,57 @@ public class PlayerController : NetworkBehaviour
         AddPlayer(this);
         //SetTagger(allPlayers.Count == 1);
         DT_health = PlayerServerData.MAX_HEALTH;
-        currentMaxMovementSpeed = PlayerServerData.MAX_NONTAGGER_SPEED;
+        SetMovementState(MovementStates.Normal);
+    }
 
+    [Server]
+    private void SetMovementState(MovementStates newState)
+    {
+        DT_movementState = newState;
+        switch (newState)
+        {
+            case MovementStates.Frozen:
+                {
+                    currentMaxMovementSpeed = 0;
+                    break;
+                }
+            case MovementStates.Injured:
+                {
+                    currentMaxMovementSpeed = PlayerServerData.INJURED_SPEED;
+                    break;
+                }
+            case MovementStates.Normal:
+                {
+                    currentMaxMovementSpeed = tagger ? PlayerServerData.MAX_TAGGER_SPEED : PlayerServerData.MAX_NONTAGGER_SPEED;
+                    break;
+                }
+            case MovementStates.Sprinting:
+                {
+                    currentMaxMovementSpeed = PlayerServerData.SPRINT_SPEED;
+                    break;
+                }
+        }
+    }
+
+    [Client]
+    private void OnMovementStateChange(MovementStates oldValue, MovementStates newValue)
+    {
+        if (hasAuthority && initialised)
+        {
+            animator.SetBool(AnimatorParameters.Hurting, (newValue == MovementStates.Injured));
+
+            if(oldValue == MovementStates.Frozen || newValue == MovementStates.Frozen)
+            {
+                if (newValue != MovementStates.Frozen) 
+                {
+                    networkAnimator.SetTrigger(AnimatorParameters.Recover);
+                }
+                UpdatePowerUpButton();
+                characterCamera.distanceMultiplier = newValue == MovementStates.Frozen ? 0.7f : 1;//HARDCODEDDD
+                //TODO: Add indicators
+                // healthGUI.color = (newValue ? Color.blue : Color.green);
+            }
+        }
     }
 
     #region Tagging:
@@ -227,25 +286,27 @@ public class PlayerController : NetworkBehaviour
     public void SetTagger(bool value)
     {
         tagger = value;
-        currentMaxMovementSpeed = value ? PlayerServerData.MAX_TAGGER_SPEED : PlayerServerData.MAX_NONTAGGER_SPEED;
+        SetMovementState(MovementStates.Normal);//TODO: Not an ideal way to conform to tagger's speed..
+        //currentMaxMovementSpeed = value ? PlayerServerData.MAX_TAGGER_SPEED : PlayerServerData.MAX_NONTAGGER_SPEED;
         
         //This is done in order to prevent a new tagger from tagging previously stored players somehow
+        //TODO: should we do this upon freeze??
         canTag = false;
         serverData.playersInRange.Clear();
 
         if (value)
         {
             serverData.healthReductionTimer.Reset();
+            serverData.healthReductionTimer.AddToCurrentIteration(PlayerServerData.TAGGER_FREEZE_DURATION);
         }
-
     }
 
     [Server]
     private void Freeze(float freezeDuration)
     {
-        //TODO: combine with push
-        isFrozen = true;
-        serverData.freezeTimer.Start(freezeDuration);
+        SetMovementState(MovementStates.Frozen);
+        serverData.movementStateTimer.Start(freezeDuration);
+        serverData.nextMovementState = MovementStates.Normal;
     }
 
     [Client]
@@ -301,33 +362,41 @@ public class PlayerController : NetworkBehaviour
     [Server]
     private void HandleNearbyPlayersDetection(float timePassed)
     {
+
         //The content of this method is executed when a timer finishes a cycle
         if (serverData.nearbyPlayersDetectionTimer.Update(timePassed))
         {
-            //Debug.Log("NearbyPlayersDetection");
-            //TODO: Do these things in a unified method, cache all players locations
-            List<PlayerController> playersInRange = serverData.playersInRange;
-            //TODO: No need for this clear, we could use an array instead
-            playersInRange.Clear();
-            Vector3 myPosition = myTransform.position;
-            
-            //bool playerFound = false;
-            for (int i = 0; i < allPlayers.Count; i++)
+            if (MovementState == MovementStates.Frozen)
             {
-                PlayerController otherPlayer = allPlayers[i];
-                if (otherPlayer != null && otherPlayer != this && otherPlayer.IsAlive)
-                {
-                    float squaredDistance = Vector3.SqrMagnitude
-                        (myPosition - otherPlayer.myTransform.position);
+                canTag = false;
+            }
+            else
+            {
+                //Debug.Log("NearbyPlayersDetection");
+                //TODO: Do these things in a unified method, cache all players locations
+                List<PlayerController> playersInRange = serverData.playersInRange;
+                //TODO: No need for this clear, we could use an array instead
+                playersInRange.Clear();
+                Vector3 myPosition = myTransform.position;
 
-                    if (squaredDistance < PlayerServerData.MIN_TAG_SQUARED_DISTANCE )
+                //bool playerFound = false;
+                for (int i = 0; i < allPlayers.Count; i++)
+                {
+                    PlayerController otherPlayer = allPlayers[i];
+                    if (otherPlayer != null && otherPlayer != this && otherPlayer.IsAlive)
                     {
-                        playersInRange.Add(otherPlayer);
+                        float squaredDistance = Vector3.SqrMagnitude
+                            (myPosition - otherPlayer.myTransform.position);
+
+                        if (squaredDistance < PlayerServerData.MIN_TAG_SQUARED_DISTANCE)
+                        {
+                            playersInRange.Add(otherPlayer);
+                        }
                     }
                 }
+                //TODO: perhaps using a syncvar is too slow for this
+                canTag = playersInRange.Count > 0;
             }
-            //TODO: perhaps using a syncvar is too slow for this
-            canTag = playersInRange.Count > 0;
         }     
     }
 
@@ -439,22 +508,6 @@ public class PlayerController : NetworkBehaviour
     }
 
     #endregion
-    [Client]
-    private void OnIsFrozenChanged(bool oldValue, bool newValue)
-    {
-        if(hasAuthority)
-        {
-            if (!newValue)
-            {
-                networkAnimator.SetTrigger(AnimatorParameters.Recover);
-            }
-            UpdatePowerUpButton();
-            characterCamera.distanceMultiplier = newValue ? 0.7f : 1;
-
-        }
-        //TODO: Add indicators
-        // healthGUI.color = (newValue ? Color.blue : Color.green);
-    }
 
     [Client]
     public void TryTag()
@@ -506,22 +559,20 @@ public class PlayerController : NetworkBehaviour
                     }
                 }
             }
-            nextTagger.Freeze(3.5f);//HARDCODED
             nextTagger.SetTagger(true);
-            Push(nextTagger);
+            Push(nextTagger,PlayerServerData.TAGGER_FREEZE_DURATION);
             SetTagger(false);
         }
         else
         {
             Debug.LogWarning("Can't tag, no players in range");
-            return;
         }
-
     }
 
     [Server]
-    private void Push(PlayerController pushed)
+    private void Push(PlayerController pushed, float freezeDuration)
     {
+        pushed.Freeze(freezeDuration);
         Vector3 pushForce = myTransform.forward * PUSH_FORCE;
         pushed.TargetRpc_OnPushed(pushForce);
     }
@@ -594,44 +645,23 @@ public class PlayerController : NetworkBehaviour
             }
             if (isServer) //Lots of network activity
             {
-                if (isFrozen)
-                {
-                    bool unFreeze = serverData.freezeTimer.Update(deltaTime);
-                    if (unFreeze)
-                    {
-                        isFrozen = false;
-                    }
-                }
-
-                else if (tagger && IsAlive)//TODO: these conditions don't seem to belong here
+                if (tagger && IsAlive)//TODO: these conditions don't seem to belong here
                 {
                     HandleNearbyPlayersDetection(deltaTime);
                     HandleTaggerHealthReduction(deltaTime);
                 }
                 //TODO: Find a more elegant way to control all those timers...
-                if (serverData.sprintTimer.IsActive)
+                if (serverData.movementStateTimer.IsActive)
                 {
                     //Debug.Log(" sprint time left: " + serverData.sprintTimer.TimeLeft.ToString("f2"));
-
-                    if (serverData.sprintTimer.Update(deltaTime))
+                    if (serverData.movementStateTimer.Update(deltaTime))
                     {
-                        currentMaxMovementSpeed = tagger ? PlayerServerData.MAX_TAGGER_SPEED : PlayerServerData.MAX_NONTAGGER_SPEED;
+                        SetMovementState(serverData.nextMovementState);
                     }
-
                 }
-
-                /*if (serverData.trapTimer.IsActive)
-                {
-                    Debug.LogError("NOT IMPLEMENTED anymore..");
-                    bool unTrap = serverData.trapTimer.Update(deltaTime);
-                    if (unTrap)
-                    {
-                        maxMovementSpeed = PlayerServerData.MAX_HEALTHY_MOVEMENT_SPEED;
-                    }
-                }*/
             }
         }
-        
+       
     }
 
     private void ActivateNavMesh(InteractableAccessPoint interactableAccessPoint)
@@ -677,7 +707,7 @@ public class PlayerController : NetworkBehaviour
         //Vector3 controlledMovement = new Vector3();
         //Debug.Log($"Vertical: {verticalInput.ToString("f2")}  + Horizontal: {horizontalInput.ToString("f2")}");
 
-        if ((!isFrozen) && (verticalInput != 0 || horizontalInput != 0))
+        if ((MovementState != MovementStates.Frozen) && (verticalInput != 0 || horizontalInput != 0))
         {
             Vector3 inputVector3 = new Vector3(horizontalInput, 0, verticalInput);
             desiredRotation = Quaternion.LookRotation(inputVector3);
@@ -895,6 +925,14 @@ public class PlayerController : NetworkBehaviour
         }
     }
 
+    [Server]
+    private void GetInjured(float duration)
+    {
+        SetMovementState(MovementStates.Injured);
+        serverData.movementStateTimer.Start(duration);
+        serverData.nextMovementState = MovementStates.Normal;
+    }
+
     #region Shooting:
 
     [Server]
@@ -913,40 +951,14 @@ public class PlayerController : NetworkBehaviour
     [Server]
     public void OnBulletHit()
     {
-        //TODO: modify speed instead of health
-        ModifyHealth(-1); 
+        GetInjured(1.5f);
     }
 
     #endregion
 
     #region FootballThrowing:
-   
-    /*[Client]
-    public void TryThrowFootball()
-    {
-        //Debug.Log("TryShoot");
-        fakeFootballButton.Press();
 
-        if (footballCount > 0)
-        {
-            networkAnimator.SetTrigger(AnimatorParameters.Throw);
-            Cmd_TryThrowFootball(myTransform.position, myTransform.rotation);
-        }
-    }*/
 
-    /*[Command]
-    private void Cmd_TryThrowFootball(Vector3 clientPlayerPosition, Quaternion clientRotation)
-    {
-        if (footballCount > 0)
-        {
-            footballCount--;
-            Vector3 ballSpawnPosition =
-                (clientPlayerPosition + (myTransform.forward * 1f) + (Vector3.up * 0.5f));//HARDCODED
-            Quaternion ballSpawnRotation = clientRotation;
-            Spawner.Spawn(Spawnables.ThrownFootball, ballSpawnPosition, ballSpawnRotation);
-        }
-    }
-    */
     [Server]
     private void ThrowFootball()
     {
@@ -961,7 +973,7 @@ public class PlayerController : NetworkBehaviour
     [Server]
     public void OnFootballHit()
     {
-        ModifyHealth(-2);
+        GetInjured(4f);
     }
 
     #endregion
@@ -989,7 +1001,7 @@ public class PlayerController : NetworkBehaviour
     [Server]
     public bool CanSlip()
     {
-        return !isFrozen;
+        return MovementState != MovementStates.Frozen;
     }
 
     [TargetRpc]
@@ -1007,8 +1019,9 @@ public class PlayerController : NetworkBehaviour
     [Server]
     private void Sprint()
     {
-        currentMaxMovementSpeed = PlayerServerData.SPRINT_SPEED;
-        serverData.sprintTimer.Start(2f);//HARDCODED
+        SetMovementState(MovementStates.Sprinting);
+        serverData.movementStateTimer.Start(2f);//HARDCODED
+        serverData.nextMovementState = MovementStates.Normal;
     }
 
     #endregion
@@ -1031,13 +1044,13 @@ public class PlayerController : NetworkBehaviour
         /* fakeFootballButton.GetComponentInChildren<TMPro.TextMeshProUGUI>().text = footballCount.ToString();
          Debug.LogWarning("UpdatePowerUpButton is not implemented");*/
         fakePowerUpButton.SetGraphics(powerUp);
-        bool enableButton = (!isFrozen && powerUp.type != PowerUp.Type.None);
+        bool enableButton = (powerUp.type != PowerUp.Type.None && MovementState != MovementStates.Frozen );
         fakePowerUpButton.SetIsEnabled(enableButton);
     }
 
     private bool CanUsePowerUp()
     {
-        return (IsAlive && !isFrozen && powerUp.type != PowerUp.Type.None && powerUp.count > 0);
+        return (IsAlive && MovementState != MovementStates.Frozen && powerUp.type != PowerUp.Type.None && powerUp.count > 0);
     }
 
     [Client]

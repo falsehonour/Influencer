@@ -12,7 +12,7 @@ public class Kevin : MonoBehaviour
     }
     private enum KevinAnimationStates : int
     {
-        Idle = 0, Point =1, Walk =2 , Laugh = 3,
+        Idle = 0, Point = 1, Walk = 2 , Laugh = 3,
     }
 
     private KevinStates state;
@@ -30,11 +30,11 @@ public class Kevin : MonoBehaviour
     private const float REQUIRED_DROP_POINT_DISTANCE = (1f * 1f);
     [SerializeField] private NavMeshAgent navAgent;
     private Transform myTransform;
-    //private Spawnables[] allowedDroppedItems;
     [SerializeField]private DroppableItem[] droppableItems;
     private int droppableItemsOverallChancePoints;
     [SerializeField] private Animator animator;
     //[SerializeField] private NetworkAnimator networkAnimator;
+    [SerializeField] private RoomManager roomManager;//TODO: This is here just for Kevin to know how many things to spawn initially. Should that manager be a singleton?
     private static Kevin instance;
 
     [System.Serializable]
@@ -61,6 +61,7 @@ public class Kevin : MonoBehaviour
                     dropPoints[i] = dropPointsParent.GetChild(i);
                 }
                 InitialiseDroppableItems();
+                SpawnInitialPickups();
                 previousRoutine = nameof(IdleRoutine);
                 StartCoroutine(previousRoutine);
                 // allowedDroppedItems = new Spawnables[] { Spawnables.HealthPickup, Spawnables.FootballPickup/*, Spawnables.Trap*/ };
@@ -70,7 +71,6 @@ public class Kevin : MonoBehaviour
                 Destroy(this);
                 Debug.LogError("There can only be ONE Kevin Rubin!");
             }
-
         }
         else
         {
@@ -97,6 +97,34 @@ public class Kevin : MonoBehaviour
         }
     }
 
+    private void SpawnInitialPickups()
+    {
+        int initialPickups = roomManager.settings.initialPickups;
+        if (initialPickups > 0)
+        {
+            int dropPointsCount = dropPoints.Length;
+            if(initialPickups > dropPointsCount)
+            {
+                Debug.LogWarning("initialPickups > dropPointsCount, it will be reduced to dropPointsCount since we do not allow things to be spawn on top of each other");
+                initialPickups = dropPointsCount;
+            }
+            //NOTE: This may not be a very efficient way of doing this but we do it once a game.
+            List<int> availableDropPointIndexes = new List<int>(dropPointsCount);
+            for (int i = 0; i < dropPointsCount; i++)
+            {
+                availableDropPointIndexes.Add(i);
+            }
+            for (int i = 0; i < initialPickups; i++)
+            {
+                int randomIndex = Random.Range(0, availableDropPointIndexes.Count);
+                Vector3 dropPoint = dropPoints[availableDropPointIndexes[randomIndex]].position;
+                DropItem(dropPoint);
+                availableDropPointIndexes.RemoveAt(randomIndex);
+            }
+        }
+
+    }
+
     private IEnumerator ItemDropRoutine()
     {
         previousRoutine = nameof(ItemDropRoutine);
@@ -114,7 +142,7 @@ public class Kevin : MonoBehaviour
             float squaredDistanceFromDestination = Vector3.SqrMagnitude(myTransform.position - dropPoint);
             if (squaredDistanceFromDestination < REQUIRED_DROP_POINT_DISTANCE)//HARDCODED
             {
-                DropItem();
+                DropItem(dropPoint);
                 //NOTE: This wait is here mainly to ensure that OverlapSphere performed in ChangeDestination 
                 //detects the thing we just dropped...
                 yield return new WaitForSeconds(0.1f);
@@ -187,7 +215,7 @@ public class Kevin : MonoBehaviour
     }
 
     [Server]
-    private void DropItem()
+    private void DropItem(Vector3 dropPosition)
     {
         //TODO: דיויד, וודא שההגרלה יוצאת כמו שמצופה והחלף את המודל אם יש צורך
         int chance = Random.Range(0, droppableItemsOverallChancePoints);
@@ -207,8 +235,8 @@ public class Kevin : MonoBehaviour
             return;
         }
         //int droppedItemIndex = Random.Range(0, allowedDroppedItems.Length);
-        Vector3 itemPosition = dropPoints[nextDropPointIndex].position; //myTransform.position;// + (myTransform.forward * -1.1f);//HARDCODED
-        Spawner.Spawn(spawnable, itemPosition, Quaternion.identity, null);
+       // Vector3 itemPosition = dropPoints[nextDropPointIndex].position; //myTransform.position;// + (myTransform.forward * -1.1f);//HARDCODED
+        Spawner.Spawn(spawnable, dropPosition, Quaternion.identity, null);
     }
 
     [Server]

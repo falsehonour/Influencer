@@ -106,3 +106,41 @@ velocity.x = movement.x;
             //TODO: do this in bigger intervals for performance
             animator.SetFloat(AnimatorParameters.Speed, velocityPercentage);
         }
+
+		                /*if (serverData.trapTimer.IsActive)
+                {
+                    Debug.LogError("NOT IMPLEMENTED anymore..");
+                    bool unTrap = serverData.trapTimer.Update(deltaTime);
+                    if (unTrap)
+                    {
+                        maxMovementSpeed = PlayerServerData.MAX_HEALTHY_MOVEMENT_SPEED;
+                    }
+                }*/
+
+
+				    /*[Client]
+    public void TryThrowFootball()
+    {
+        //Debug.Log("TryShoot");
+        fakeFootballButton.Press();
+
+        if (footballCount > 0)
+        {
+            networkAnimator.SetTrigger(AnimatorParameters.Throw);
+            Cmd_TryThrowFootball(myTransform.position, myTransform.rotation);
+        }
+    }*/
+
+    /*[Command]
+    private void Cmd_TryThrowFootball(Vector3 clientPlayerPosition, Quaternion clientRotation)
+    {
+        if (footballCount > 0)
+        {
+            footballCount--;
+            Vector3 ballSpawnPosition =
+                (clientPlayerPosition + (myTransform.forward * 1f) + (Vector3.up * 0.5f));//HARDCODED
+            Quaternion ballSpawnRotation = clientRotation;
+            Spawner.Spawn(Spawnables.ThrownFootball, ballSpawnPosition, ballSpawnRotation);
+        }
+    }
+    */

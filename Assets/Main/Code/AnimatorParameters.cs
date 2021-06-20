@@ -17,7 +17,7 @@ public static class AnimatorParameters
     public static readonly int State = Animator.StringToHash(nameof(State));
     public static readonly int Shoot = Animator.StringToHash(nameof(Shoot));
     public static readonly int Kick = Animator.StringToHash(nameof(Kick));
-
+    public static readonly int Hurting = Animator.StringToHash(nameof(Hurting));
     /* static AnimatorParameters()
      {
          //TODO: Is there a way to throw the fields in a collection and itterate over them..?

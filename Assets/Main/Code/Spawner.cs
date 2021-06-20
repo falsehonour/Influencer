@@ -7,7 +7,7 @@ public enum Spawnables : byte
 {
     Null = 0, HealthPickup = 2, ThrownFootball = 3, FootballPickup = 4,
     ThrownBanana = 5, BananaPickup = 6, GunPickup = 7, Bullet = 1, SprintPickup = 8,
-    Length = 7
+    Length = 9
 }
 
 public class Spawner : MonoBehaviour//NetworkBehaviour
@@ -152,12 +152,15 @@ public class Spawner : MonoBehaviour//NetworkBehaviour
     {
         SpawnableObjectDefinition[] definitions = instance.spawnableObjectDefinitions;
         int length = definitions.Length;
-        GameObject[] prefabs = new GameObject[length];
+        List<GameObject> prefabs = new List<GameObject>();
         for (int i = 0; i < length; i++)
         {
-            prefabs[i] = definitions[i].preFab.gameObject;
+            if(definitions[i].preFab != null)
+            {
+                prefabs.Add(definitions[i].preFab.gameObject);
+            }
         }
-        return prefabs;
+        return prefabs.ToArray();
     }
     /*[Server]
     public static Spawnable Spawn(Spawnables spawnableName, Vector3 spawnPosition, Quaternion spawnRotation)

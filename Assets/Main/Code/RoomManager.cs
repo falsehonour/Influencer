@@ -6,10 +6,7 @@ public class RoomManager : MonoBehaviour
 {
     //NOTE: settings can be set wully-nully at the moment
     public RoomSettings settings;
-
-
     /* private RoomManager instance;
-
      private void Awake()
      {
          instance = this;

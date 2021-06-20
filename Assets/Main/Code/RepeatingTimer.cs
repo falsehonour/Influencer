@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 public struct RepeatingTimer
 {
     private float timeLeft;
@@ -28,6 +30,16 @@ public struct RepeatingTimer
         {
             return false;
         }
+    }
+
+    public void AddToCurrentIteration(float addition)
+    {
+        if(addition < 0)
+        {
+            UnityEngine.Debug.LogWarning("AddToCurrentIteration is meant for positive additions only. Bye!");
+            return;
+        }
+        timeLeft += addition;
     }
 }
 

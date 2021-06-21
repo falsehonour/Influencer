@@ -12,6 +12,7 @@ namespace CharacterCreation
             public Color32 colour;
             public byte materialIndex;
         }
+
         [SerializeField] private MaterialTexture[] materialTextures;
         public MaterialTexture[] MaterialTextures => materialTextures;
     }

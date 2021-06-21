@@ -29,6 +29,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: eb7f21d1efb7be745acce64a21ba8a34, type: 2}
   - {fileID: 11400000, guid: f64049ff910506f4a96f616022911a3e, type: 2}
   - {fileID: 11400000, guid: a6725f16512417b4e9f02f4f3375b953, type: 2}
+  - {fileID: 11400000, guid: c4519fe4af9b23645bfa396ad1c75a8c, type: 2}
+  - {fileID: 11400000, guid: 6f458222726a3c0428abc2a74c6e0716, type: 2}
   initialButtonBehaviours:
   - {fileID: 11400000, guid: dca03d47e99f92a479f8c89d4601e142, type: 2}
   - {fileID: 11400000, guid: 9c51bb63f638a354ca00ba7cd9fda43a, type: 2}

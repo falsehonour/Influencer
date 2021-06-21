@@ -49,18 +49,18 @@ SkinnedMeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 889673062861685174, guid: acbe069b3ed38084cbbca50780457bfe, type: 3}
-  - {fileID: 6360648723595077323, guid: acbe069b3ed38084cbbca50780457bfe, type: 3}
-  - {fileID: -7389566162146866752, guid: acbe069b3ed38084cbbca50780457bfe, type: 3}
-  - {fileID: 4632587421722243556, guid: acbe069b3ed38084cbbca50780457bfe, type: 3}
-  - {fileID: -8501147510179774331, guid: acbe069b3ed38084cbbca50780457bfe, type: 3}
-  - {fileID: 2100000, guid: 7614fbb7868a0a44bb129cfa770370d2, type: 2}
-  - {fileID: 7189051547678643456, guid: acbe069b3ed38084cbbca50780457bfe, type: 3}
-  - {fileID: 2008257834893853349, guid: acbe069b3ed38084cbbca50780457bfe, type: 3}
-  - {fileID: 2100000, guid: b85e1862aaa3d3741b01bc0b5beb8835, type: 2}
-  - {fileID: 2100000, guid: 1c02d4c9c2bcfc042b212f657ead990b, type: 2}
-  - {fileID: 2100000, guid: b85e1862aaa3d3741b01bc0b5beb8835, type: 2}
-  - {fileID: 2100000, guid: 1c02d4c9c2bcfc042b212f657ead990b, type: 2}
+  - {fileID: 2100000, guid: f8cf4df077dde994389882b411e0ed83, type: 2}
+  - {fileID: 2100000, guid: 869ad91df8835ed4fb32bdae1668a2e3, type: 2}
+  - {fileID: 2100000, guid: c506dc10b7323e542a8f9e8287bf8c16, type: 2}
+  - {fileID: 2100000, guid: 28cce7490d7d6d9468ce4808fe23edf2, type: 2}
+  - {fileID: 2100000, guid: aba8a57256510194f961868483340c25, type: 2}
+  - {fileID: 2100000, guid: 0776cc092334818478b96d8bc728a912, type: 2}
+  - {fileID: 2100000, guid: 24cf7fa7f9d343e469a0a2a53da81790, type: 2}
+  - {fileID: 2100000, guid: 04992621ad626e44db00cd102666e57f, type: 2}
+  - {fileID: 2100000, guid: e8b7cdd2754c51846b616be854133a3b, type: 2}
+  - {fileID: 2100000, guid: 3c3a1aa82da97994d94c6856e74fd78f, type: 2}
+  - {fileID: 2100000, guid: e8b7cdd2754c51846b616be854133a3b, type: 2}
+  - {fileID: 2100000, guid: 3c3a1aa82da97994d94c6856e74fd78f, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -243,8 +243,7 @@ SkinnedMeshRenderer:
   - 0
   - 0
   - 0
-  m_RootBone: {fileID: 4779056940804796993, guid: acbe069b3ed38084cbbca50780457bfe,
-    type: 3}
+  m_RootBone: {fileID: 164989019540538528}
   m_AABB:
     m_Center: {x: -0.2958783, y: -0.07614443, z: -0.000006556511}
     m_Extent: {x: 1.1547216, y: 0.46569118, z: 1.2313135}

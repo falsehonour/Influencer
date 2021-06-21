@@ -1266,6 +1266,7 @@ MonoBehaviour:
   animator: {fileID: 5733524569489289284}
   equippedMeshesByMeshCategory: []
   equippedMeshModifiersByMeshModifierCategory: []
+  gun: {fileID: 0}
 --- !u!1 &3821323242338958950
 GameObject:
   m_ObjectHideFlags: 0
@@ -2320,7 +2321,7 @@ SkinnedMeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 889673062861685174, guid: bc3280e6bae424d4380f9500edcf1548, type: 3}
+  - {fileID: 2100000, guid: f8cf4df077dde994389882b411e0ed83, type: 2}
   - {fileID: 6360648723595077323, guid: bc3280e6bae424d4380f9500edcf1548, type: 3}
   - {fileID: -7389566162146866752, guid: bc3280e6bae424d4380f9500edcf1548, type: 3}
   - {fileID: 4632587421722243556, guid: bc3280e6bae424d4380f9500edcf1548, type: 3}
@@ -2329,10 +2330,10 @@ SkinnedMeshRenderer:
   - {fileID: 7189051547678643456, guid: bc3280e6bae424d4380f9500edcf1548, type: 3}
   - {fileID: -8715657263558411979, guid: bc3280e6bae424d4380f9500edcf1548, type: 3}
   - {fileID: 5085171129580432305, guid: bc3280e6bae424d4380f9500edcf1548, type: 3}
-  - {fileID: -8514554436971777676, guid: bc3280e6bae424d4380f9500edcf1548, type: 3}
-  - {fileID: 3996798700475829071, guid: bc3280e6bae424d4380f9500edcf1548, type: 3}
-  - {fileID: 429666528282649384, guid: bc3280e6bae424d4380f9500edcf1548, type: 3}
-  - {fileID: -2401846557427701694, guid: bc3280e6bae424d4380f9500edcf1548, type: 3}
+  - {fileID: 2100000, guid: e8b7cdd2754c51846b616be854133a3b, type: 2}
+  - {fileID: 2100000, guid: 3c3a1aa82da97994d94c6856e74fd78f, type: 2}
+  - {fileID: 2100000, guid: e8b7cdd2754c51846b616be854133a3b, type: 2}
+  - {fileID: 2100000, guid: 3c3a1aa82da97994d94c6856e74fd78f, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

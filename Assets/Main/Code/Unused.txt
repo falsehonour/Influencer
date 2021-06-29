@@ -144,3 +144,9 @@ velocity.x = movement.x;
         }
     }
     */
+
+
+	    private void UpdateBackgroundImage()
+    {
+        fillImage.fillAmount = (timeLeft / initialTime);
+    }

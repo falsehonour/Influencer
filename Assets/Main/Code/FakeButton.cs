@@ -5,7 +5,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
 
-public class FakeButton : MonoBehaviour, IPointerDownHandler
+public class FakeButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
     [SerializeField] private Image image;
     [SerializeField] private GameObject pressedOverlayGraphics;
@@ -20,19 +20,22 @@ public class FakeButton : MonoBehaviour, IPointerDownHandler
     private void Start()
     {
         maskableGraphics = GetComponentsInChildren<MaskableGraphic>();
-        Unpress();
+        OnUnpressed();
     }
 
-    [ContextMenu(nameof(Press))]
-    public virtual void Press()
+    public virtual void SimulatePressFor(float duration)
+    {
+        OnPressed();
+        Invoke("OnUnpressed", duration);
+    }
+
+    protected virtual void OnPressed()
     {
         pressedOverlayGraphics.SetActive(true);
-       // image.sprite = pressedSprite;
-        Invoke("Unpress", 0.5f);
-
+        // image.sprite = pressedSprite;
     }
 
-    protected virtual void Unpress()
+    protected virtual void OnUnpressed()
     {
         pressedOverlayGraphics.SetActive(false);
        // image.sprite = unpressedSprite;
@@ -69,7 +72,13 @@ public class FakeButton : MonoBehaviour, IPointerDownHandler
     public void OnPointerDown(PointerEventData eventData)
     {
         //TODO: Is there a way to modify the UI element "collider"? We could use alternative methods to achieve this 
+        OnPressed();
         onClickEvent.Invoke();
+    }
+
+    public void OnPointerUp(PointerEventData eventData)
+    {
+        OnUnpressed();
     }
 
     //TODO: Make sure these are not clickable before the player is created..
@@ -82,4 +91,6 @@ public class FakeButton : MonoBehaviour, IPointerDownHandler
     {
         PlayerController.localPlayerController.TryUsePowerUp();
     }
+
+
 }

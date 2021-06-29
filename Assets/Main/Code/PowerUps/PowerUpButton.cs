@@ -24,15 +24,16 @@ public class PowerUpButton : FakeButton
         powerUpIcon.sprite = PowerUpsProperties.GetIcon(powerUp.type);
     }
 
-    public override void Press()
+    protected override void OnPressed()
     {
-        base.Press();
+        base.OnPressed();
         powerUpIcon.transform.localScale = powerUpIconBaseScale * powerUpIconSizeMultiplierWhilePressed;
+
     }
 
-    protected override void Unpress()
+    protected override void OnUnpressed()
     {
-        base.Unpress();
+        base.OnUnpressed();
         powerUpIcon.transform.localScale = powerUpIconBaseScale;
 
     }

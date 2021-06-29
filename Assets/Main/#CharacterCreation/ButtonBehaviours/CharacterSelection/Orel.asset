@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: Orel
   m_EditorClassIdentifier: 
   characterPieces: []
-  characterPreFab: {fileID: 3910250909956597060, guid: 7cfd410b582d3f84685d5231d3080112,
+  characterPreFab: {fileID: 9217330110597133242, guid: 91994df1c8748dc49a9a4d3d50fef8a7,
     type: 3}
   linkedButtonBehaviours: []
   icon: {fileID: 0}
+  iconTint: {r: 1, g: 1, b: 1, a: 1}

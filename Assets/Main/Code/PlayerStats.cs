@@ -35,7 +35,7 @@ namespace CharacterCreation
             return "player_skin";
         }
 
-        public static PlayerSkinDataHolder CreatePlayerSkinData(Character characterPreFab, CharacterMesh[] meshes, CharacterMeshModifier[] modifiers)
+        public static PlayerSkinDataHolder CreatePlayerSkinData(Character characterPreFab, CharacterMesh[] meshes, CharacterMeshMod[] modifiers)
         {
             CharacterReferences references = CharacterCreationReferencer.References;
             byte characterPrefabIndex = (byte)references.GetCharacterPreFabIndex(characterPreFab);

@@ -9,13 +9,11 @@ public class MatchCountdown : NetworkBehaviour
 {
     //TODO: Perhaps seperate into 2 classed, one for server and one for client graphics??? 
     [SerializeField] private GameObject UIObject;
-    [SerializeField] private TMPro.TextMeshProUGUI text;
-    [SerializeField] private Image fillImage;
+    [SerializeField] private Image[] digits;
+    [SerializeField] private Sprite[] digitsSprites;
 
-    private float initialTime;
     private float timeLeft;
     private Coroutine countRoutine;
-    //private bool isActive;
     //private UInt16 previousTimeLeftUInt16;
 
     private void Start()
@@ -47,28 +45,26 @@ public class MatchCountdown : NetworkBehaviour
         ShowGraphics(true);
 
         UInt16 previousTimeLeftUInt16 = 0;
-        initialTime = time;
         timeLeft = time;
         bool dedicatedServer = isServerOnly;
-        while (timeLeft > 0)
+        do //while (timeLeft > 0)
         {
             //TODO: will it be more efficient to wait for seconds..?
             timeLeft -= Time.deltaTime;
             if (!dedicatedServer)
             {
-                UInt16 currentTimeLeftUInt16 = (UInt16)timeLeft;
+                UInt16 currentTimeLeftUInt16 = (UInt16)Mathf.CeilToInt(timeLeft);
                 if (currentTimeLeftUInt16 != previousTimeLeftUInt16)
                 {
-                    UpdateText(currentTimeLeftUInt16);
+                    UpdateDigits(currentTimeLeftUInt16);
                 }
-                UpdateBackgroundImage();
                 previousTimeLeftUInt16 = currentTimeLeftUInt16;
             }
 
             yield return null;
-        }
 
-        //TODO: cache his bool so we don't call a getter..?
+        } while (timeLeft > 0);
+
         if (isServer)
         {
             GameManager.OnCountdownStopped();
@@ -81,14 +77,26 @@ public class MatchCountdown : NetworkBehaviour
         UIObject.SetActive(value);
     }
 
-    private void UpdateText(UInt16 timeLeft)
+    private void UpdateDigits(UInt16 timeLeft)
     {
-        text.text = timeLeft.ToString();
-    }
+        string timeLeftString = timeLeft.ToString();
+        int digitsDifference = digits.Length - timeLeftString.Length;
+        if(digitsDifference > 0)
+        {
 
-    private void UpdateBackgroundImage()
-    {
-        fillImage.fillAmount = (timeLeft / initialTime);
+            for (int i = digits.Length -1; i > digits.Length - 1 - digitsDifference; i--)
+            {
+                digits[i].sprite = digitsSprites[0];
+            }
+        }
+        //int length = timeLeftString.Length < digits.Length ? timeLeftString.Length : digits.Length;
+        for (int i = 0; i < timeLeftString.Length; i++)
+        {
+            char digitIndexChar = timeLeftString[i];
+            int digitIndex = int.Parse(digitIndexChar.ToString());
+            Sprite sprite = digitsSprites[digitIndex];
+            digits[timeLeftString.Length -1 - i].sprite = sprite;
+        }
     }
 
     [Server]
@@ -106,16 +114,4 @@ public class MatchCountdown : NetworkBehaviour
             StopCoroutine(countRoutine);
         }
     }
-    /* [ClientRpc]
-private void Rpc_UpdateText(UInt16 timeLeft)
-{
-    text.text = timeLeft.ToString();
-}*/
-
-    /*[Server]
-private void StopCounting()
-{
-    isActive = false;
-    GameManager.OnCounterStopped();
-}*/
 }

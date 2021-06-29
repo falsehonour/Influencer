@@ -144,7 +144,6 @@ public class GameManager : NetworkBehaviour
         countdown.Server_StartCounting(roomManager.settings.countdown);
     }
 
-
     private static List<PlayerController> GetRelevantPlayers()
     {
         List<PlayerController> relevantPlayers = new List<PlayerController>();
@@ -153,7 +152,7 @@ public class GameManager : NetworkBehaviour
         for (int i = 0; i < playerCount; i++)
         {
             PlayerController player = PlayerController.allPlayers[i];
-            if (player.IsAlive)
+            if (player.IsAlive())
             {
                 relevantPlayers.Add(player);
             }

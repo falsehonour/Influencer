@@ -9,7 +9,7 @@ namespace CharacterCreation
     public class CharacterBaseProperties : ScriptableObject
     {
         public CharacterMesh[] fallbackMeshes;
-        public CharacterMeshModifier[] fallbackMeshModifiers;
+        public CharacterMeshMod[] fallbackMeshModifiers;
         public ButtonBehaviour[] initialButtonBehaviours;
     }
 }

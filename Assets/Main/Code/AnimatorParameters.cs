@@ -7,10 +7,12 @@ public static class AnimatorParameters
     public static readonly int Speed = Animator.StringToHash(nameof(Speed));
     public static readonly int Push = Animator.StringToHash(nameof(Push));
     public static readonly int FlipForward = Animator.StringToHash(nameof(FlipForward));
+    public static readonly int FallBackward = Animator.StringToHash(nameof(FallBackward));
     public static readonly int Slap = Animator.StringToHash(nameof(Slap));
     public static readonly int Recover = Animator.StringToHash(nameof(Recover));
     public static readonly int Lose = Animator.StringToHash(nameof(Lose));
-    public static readonly int Win = Animator.StringToHash(nameof(Win));
+    public static readonly int Dance = Animator.StringToHash(nameof(Dance));
+    public static readonly int DanceIndex = Animator.StringToHash(nameof(DanceIndex));
     public static readonly int ThrowForward = Animator.StringToHash(nameof(ThrowForward));
     public static readonly int ThrowBackward = Animator.StringToHash(nameof(ThrowBackward));
     public static readonly int SpeedState = Animator.StringToHash(nameof(SpeedState));

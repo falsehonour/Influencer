@@ -1,5 +1,5 @@
-﻿
-using System;
+﻿using System;
+using System.Runtime.CompilerServices;
 
 public struct RepeatingTimer
 {
@@ -31,8 +31,16 @@ public struct RepeatingTimer
             return false;
         }
     }
-
-    public void AddToCurrentIteration(float addition)
+    public void SetCurrentIteration(float value)
+    {
+        if (value < 0)
+        {
+            UnityEngine.Debug.LogWarning("Can't set timeLeft to less than zero. Bye!");
+            value = 0;
+        }
+        timeLeft = value;
+    }
+    /*public void AddToCurrentIteration(float addition)
     {
         if(addition < 0)
         {
@@ -40,7 +48,9 @@ public struct RepeatingTimer
             return;
         }
         timeLeft += addition;
-    }
+    }*/
+
+
 }
 
 public struct SingleCycleTimer
@@ -48,9 +58,10 @@ public struct SingleCycleTimer
     private float timeLeft;
     public float TimeLeft => timeLeft;
     //private bool isActive;
-    public bool IsActive
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool IsActive() 
     {
-       get { return timeLeft > 0; }
+        return timeLeft > 0; 
     }
 
     public void Start(float time)

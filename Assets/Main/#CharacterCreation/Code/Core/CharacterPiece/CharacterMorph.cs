@@ -3,7 +3,7 @@
 namespace CharacterCreation
 {
     [CreateAssetMenu(fileName = "CharacterMorph", menuName = "Character Creation Piece/CharacterMorph")]
-    public class CharacterMorph : CharacterMeshModifier
+    public class CharacterMorph : CharacterMeshMod
     {
         [System.Serializable]
         public struct MorphBlendShape

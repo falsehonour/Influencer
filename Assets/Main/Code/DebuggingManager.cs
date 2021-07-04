@@ -12,12 +12,15 @@ public class DebuggingManager : MonoBehaviour
     [SerializeField] private InputField targetFPSInputField;
     [SerializeField] private GameObject FPSCounter;
     [SerializeField] private InputField qualityLevelInputField;
-
+    [SerializeField] private Material debugMat;
 
     private void Start()
     {
         DebuggingUIParent.SetActive(false);
         FPSCounter.SetActive(false);
+        Color colour = debugMat.color;
+        colour.a = 0;
+        debugMat.color = colour;
     }
 
     public void SwitchShowUI()
@@ -59,5 +62,12 @@ public class DebuggingManager : MonoBehaviour
             //QualitySettings.vSyncCount =
             QualitySettings.SetQualityLevel(qualityLevel);
         }
+    }
+
+    public void SwitchDebugMat()
+    {
+        Color colour = debugMat.color;
+        colour.a = colour.a > 0 ? 0 : 0.5f;
+        debugMat.color = colour;
     }
 }

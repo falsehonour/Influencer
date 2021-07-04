@@ -5,7 +5,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
 
-public class FakeButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
+public class PlayerInputButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
     [SerializeField] private Image image;
     [SerializeField] private GameObject pressedOverlayGraphics;

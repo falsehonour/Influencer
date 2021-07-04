@@ -7,41 +7,46 @@ using System.Runtime.CompilerServices;
 
 public class PlayerController : NetworkBehaviour
 {
-    private class PlayerServerData
+    public class PlayerServerData
     {
-        public static readonly float INJURED_SPEED = UnitConvertor.MetresPerSecondToKilometresPerHour(10.5f);
-        public static readonly float MAX_NONTAGGER_SPEED = UnitConvertor.MetresPerSecondToKilometresPerHour(19.8f);
+        public static readonly float INJURED_SPEED = UnitConvertor.KilometresPerHourToMetresPerSecond(10.5f);
+        public static readonly float MAX_NONTAGGER_SPEED = UnitConvertor.KilometresPerHourToMetresPerSecond(19.8f);
         public static readonly float MAX_TAGGER_SPEED = MAX_NONTAGGER_SPEED;
-        public static readonly float SPRINT_SPEED = UnitConvertor.MetresPerSecondToKilometresPerHour(28.8f);
+        public static readonly float SPRINT_SPEED = UnitConvertor.KilometresPerHourToMetresPerSecond(28.8f);
 
-        //public static readonly float MIN_TAG_SQUARED_DISTANCE = (2.33f * 2.33f);
-        public const sbyte MAX_HEALTH = 32;
-        //public const float TRAP_DURATION = 2f;
-        public const float TAGGER_HEALTH_LOSS_INTERVAL = 100f;//  1f;
+        public const sbyte MAX_HEALTH = 100;
+        private const float TAGGER_FULL_LIFETIME = 40f;
+        public const float TAGGER_HEALTH_LOSS_INTERVAL = TAGGER_FULL_LIFETIME /(float)MAX_HEALTH;
         //private const float NEARBY_PLAYERS_DETECTION_INTERVAL = 0.05f;
-
         public const float TAGGER_FREEZE_DURATION = 3.5f;
+        public const float TAG_DURATION = 0.22f;
+        //TODO: Is this the proper place for things like power up properties??
+        public const float SPRINT_DURATION = 2f;
+        public const sbyte HEALTH_PICK_UP_BONUS = 16;
+        public const float FOOTBALL_INJURY_DURATION = 4f;
+        public const float SLIP_FREEZE_DURATION = 2.25f;
 
-        //public List<PlayerController> playersInRange;
         public RepeatingTimer healthReductionTimer;
         public RepeatingTimer nearbyPlayersDetectionTimer;
         public SingleCycleTimer movementStateTimer;
         public MovementStates nextMovementState;
 
+
         public PlayerServerData()
         {
-            //playersInRange = new List<PlayerController>();
             healthReductionTimer = new RepeatingTimer(TAGGER_HEALTH_LOSS_INTERVAL);
-            //nearbyPlayersDetectionTimer = new RepeatingTimer(NEARBY_PLAYERS_DETECTION_INTERVAL);
             movementStateTimer = new SingleCycleTimer();
         }
     }
     //This object should exist only on the server.
     private PlayerServerData serverData;
-    private enum MovementStates : byte
+    public enum MovementStates : byte
     {
         Frozen, Injured, Normal, Sprinting
     }
+    private readonly static float MIN_MOVEMENT_SPEED = UnitConvertor.KilometresPerHourToMetresPerSecond(1f);
+    private readonly static float MIN_RUN_SPEED = UnitConvertor.KilometresPerHourToMetresPerSecond(7.65f);
+    private readonly static float MIN_SPRINT_SPEED = UnitConvertor.KilometresPerHourToMetresPerSecond(22f);
     [SerializeField] private CharacterController characterController;
     private Transform myTransform;
     private Joystick joystick;
@@ -60,7 +65,6 @@ public class PlayerController : NetworkBehaviour
     private const float SLIP_FORCE = 6f;
     [SerializeField] private float gravity = -9.8f;
     private static readonly Vector3 ZERO_VECTOR3 = Vector3.zero;
-    [SerializeField] private Transform cameraAnchor;//TODO: I believe this is nop longer needed
     private CharacterCamera characterCamera;
     private Animator animator;
     private NetworkAnimator networkAnimator;
@@ -74,9 +78,9 @@ public class PlayerController : NetworkBehaviour
     }
     private List<PlayerController> playersInRange = new List<PlayerController>();
     private SingleCycleTimer tagCooldownTimer;
-    private const float TAG_COOLDOWN_INTERVAL = 0.5f;
+    private const float TAG_COOLDOWN_INTERVAL = 0.6f;
     //[SyncVar(hook = nameof(OnCanTagChange))] private bool canTag;
-    private FakeButton fakeTagButton;
+    private PlayerInputButton tagButton;
     #endregion
     #region Health:
     [SyncVar(hook = nameof(OnHealthChanged))] private sbyte DT_health;
@@ -96,7 +100,7 @@ public class PlayerController : NetworkBehaviour
     private SingleCycleTimer powerUpCooldownTimer;
     private const float POWER_UP_COOLDOWN_INTERVAL = 0.2f;
     [SyncVar(hook = nameof(OnPowerUpChanged))] private PowerUp powerUp;
-    private PowerUpButton fakePowerUpButton;
+    private PowerUpButton powerUpButton;
     [SerializeField] private GameObject football;
     #endregion
     private bool initialised = false;
@@ -111,10 +115,13 @@ public class PlayerController : NetworkBehaviour
     private void Start()
     {
 
+        #region UI Initialisation:
         playerUI = PlayerUIManager.CreatePlayerUI(playerUIAnchor);
         char character = ' ';
         playerUI.SetProceedingCharacter(character);
-
+        playerUI.SetPowerUp(powerUp);
+        OnHealthChanged(0, Health);
+        #endregion
         if (isServer)
         {
             Server_Initialise();
@@ -142,22 +149,16 @@ public class PlayerController : NetworkBehaviour
             {
                 Debug.LogError("NO JOYSTICK FOUND!");
             }
-            /*tagButton = GameObject.Find("TagButton");
-            tagButton.SetActive(false);*/
 
-            fakeTagButton = GameObject.Find("FakeTagButton").GetComponent<FakeButton>();
-            fakeTagButton.SetIsEnabled(false);
+            tagButton = GameObject.Find("TagButton").GetComponent<PlayerInputButton>();
+            tagButton.SetIsEnabled(false);
 
-            /* fakeFootballButton = GameObject.Find("FakeFootballButton").GetComponent<FakeButton>();
-             UpdateFakeFootballButtonText();*/
-            fakePowerUpButton = GameObject.Find("FakePowerUpButton").GetComponent<PowerUpButton>();
+            powerUpButton = GameObject.Find("PowerUpButton").GetComponent<PowerUpButton>();
             UpdatePowerUpButton();
 
             characterCamera = FindObjectOfType<CharacterCamera>();
             characterCamera.Initialise(myTransform/*, cameraAnchor*/);
-            //camera = characterCamera.GetComponent<Camera>();
 
-            //Cmd_SetTagger(GameManager.Tagger);
             Cmd_SetName(PlayerName.name);
         }
 
@@ -252,20 +253,18 @@ public class PlayerController : NetworkBehaviour
                         networkAnimator.SetTrigger(AnimatorParameters.Recover);
                         if (tagger)
                         {
-                            fakeTagButton.SetIsEnabled(true);
+                            tagButton.SetIsEnabled(true);
                         }
                     }
                     else
                     {
                         if (tagger)
                         {
-                            fakeTagButton.SetIsEnabled(false);
+                            tagButton.SetIsEnabled(false);
                         }
                     }
                     UpdatePowerUpButton();
                     characterCamera.distanceMultiplier = newValue == MovementStates.Frozen ? 0.7f : 1;//HARDCODEDDD
-                    //TODO: Add indicators
-                    // healthGUI.color = (newValue ? Color.blue : Color.green);
                 }
             }
             
@@ -339,7 +338,7 @@ public class PlayerController : NetworkBehaviour
         playerUI.SetProceedingCharacter(character);
         if (localPlayerController == this)
         {
-            fakeTagButton.SetIsEnabled(newValue);
+            tagButton.SetIsEnabled(newValue);
         }
     }
 
@@ -411,26 +410,7 @@ public class PlayerController : NetworkBehaviour
         }     
     }*/
 
-    private void DetectPlayersInTagBounds()
-    {    
-        //TODO: Do these things in a unified method, cache all players locations
-        //TODO: No need for this clear, we could use an array instead
-        playersInRange.Clear();
-        Bounds tagBounds = tagBoundsCollider.bounds;
-        //bool playerFound = false;
-        for (int i = 0; i < allPlayers.Count; i++)
-        {
-            PlayerController otherPlayer = allPlayers[i];
-            if (otherPlayer != null && otherPlayer != this && otherPlayer.IsAlive())
-            {
-                bool otherPlayerIsInBounds = tagBounds.Contains(otherPlayer.myTransform.position);
-                if (otherPlayerIsInBounds)
-                {
-                    playersInRange.Add(otherPlayer);
-                }
-            }
-        }
-    }
+    
 
 #if UNITY_EDITOR
     //TODO: Make sure these #if segments really do not get into our builds. (How come we can refference PLAYER_DETECTION_RADIUS outside the segment?? )
@@ -469,8 +449,21 @@ public class PlayerController : NetworkBehaviour
     [Command]
     private void Cmd_TryTag()
     {
-        //TODO: In case there's more than one players, pick a player based on distance or something.
         if (CanTryTag())
+        {
+            StartCoroutine(TagCoroutine());
+            tagCooldownTimer.Start(TAG_COOLDOWN_INTERVAL);
+        }
+        else
+        {
+            Debug.LogWarning("Cannot Try Tag! A player Tried to tag illegally.");
+        }
+    }
+
+    private IEnumerator TagCoroutine()
+    {
+        float endTime = Time.time + PlayerServerData.TAG_DURATION;
+        while (Time.time < endTime)
         {
             DetectPlayersInTagBounds();
             int playersInRangeCount = playersInRange.Count;
@@ -501,13 +494,34 @@ public class PlayerController : NetworkBehaviour
                 Vector3 pushForce = myTransform.forward * PUSH_FORCE;
                 Push(nextTagger, pushForce, PlayerServerData.TAGGER_FREEZE_DURATION);
                 SetTagger(false);
-            }
 
-            tagCooldownTimer.Start(TAG_COOLDOWN_INTERVAL);
+                break;
+            }
+            else
+            {
+                yield return new WaitForFixedUpdate();
+            }
         }
-        else
+    }
+
+    private void DetectPlayersInTagBounds()
+    {
+        //TODO: Do these things in a unified method, cache all players locations
+        //TODO: No need for this clear, we could use an array instead
+        playersInRange.Clear();
+        Bounds tagBounds = tagBoundsCollider.bounds;
+        //bool playerFound = false;
+        for (int i = 0; i < allPlayers.Count; i++)
         {
-            Debug.LogWarning("Cannot Try Tag! A player Tried to tag illegally.");
+            PlayerController otherPlayer = allPlayers[i];
+            if (otherPlayer != null && otherPlayer != this && otherPlayer.IsAlive())
+            {
+                bool otherPlayerIsInBounds = tagBounds.Contains(otherPlayer.myTransform.position);
+                if (otherPlayerIsInBounds)
+                {
+                    playersInRange.Add(otherPlayer);
+                }
+            }
         }
     }
 
@@ -530,7 +544,8 @@ public class PlayerController : NetworkBehaviour
 
         if (!IsAlive())
         {
-            Server_OnDeath();
+            Lose();
+            GameManager.UpdatePlayersState();
         }
     }
 
@@ -546,15 +561,8 @@ public class PlayerController : NetworkBehaviour
     [Client]
     private void OnHealthChanged(sbyte oldHealth, sbyte newHealth)
     {
-        //healthGUI.text = newHealth.ToString();
         //TODO: maybe MAX_HEALTH should not reside in PlayerServerData,.,.
-        SetHealthBarFill(newHealth);
-    }
-
-    private void SetHealthBarFill(sbyte health)
-    {
-        float fill = ((float)health / (float)PlayerServerData.MAX_HEALTH);
-        playerUI.SetHealthBarFill(fill);
+        playerUI.SetHealthBarFill(newHealth);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -604,12 +612,12 @@ public class PlayerController : NetworkBehaviour
            // Debug.Log("canTag: " + canTag);
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                fakePowerUpButton.SimulatePressFor(0.3f);
+                powerUpButton.SimulatePressFor(0.3f);
                 TryUsePowerUp();
             }
             if (Input.GetKeyDown(KeyCode.T))
             {
-                fakeTagButton.SimulatePressFor(0.4f);
+                tagButton.SimulatePressFor(0.4f);
                 TryTag();
             }
             if (Input.GetKeyDown(KeyCode.P))
@@ -713,15 +721,10 @@ public class PlayerController : NetworkBehaviour
         float verticalInput   = joystick.Vertical + forcedMovementInput.y;
         float horizontalInput = joystick.Horizontal + forcedMovementInput.x;
 
-        //Vector3 controlledMovement = new Vector3();
-        //Debug.Log($"Vertical: {verticalInput.ToString("f2")}  + Horizontal: {horizontalInput.ToString("f2")}");
-
         if ((MovementState != MovementStates.Frozen) && (verticalInput != 0 || horizontalInput != 0))
         {
             Vector3 inputVector3 = new Vector3(horizontalInput, 0, verticalInput);
-            //Debug.Log("inputVector3 magnitude:" + inputVector3.magnitude);
             desiredRotation = Quaternion.LookRotation(inputVector3);
-
             controlledVelocity = inputVector3 * currentMaxMovementSpeed;// * deltaTime;
             //Debug.Log($"movement magnitude: {movement.magnitude}"); Magnitude seems good!
         }
@@ -739,26 +742,24 @@ public class PlayerController : NetworkBehaviour
         #endregion
 
         //TODO: Move to squaredMagnitude and skip multiplications before shipping.
-        float kilometresPerHour = controlledVelocity.magnitude * 3.6f;
-       // Debug.Log("player kilometresPerHour:" + kilometresPerHour.ToString("f2"));
-        if(kilometresPerHour < 1f)//HARDCODED
+        float metresPerSecond = controlledVelocity.magnitude;
+        if(metresPerSecond < MIN_MOVEMENT_SPEED)
         {
             //Stay in place if input is negligible
             controlledVelocity = Vector3.zero;
-            kilometresPerHour = 0;
+            metresPerSecond = 0;
         } 
         if(animator != null)
         {
             //TODO: do this in bigger intervals for performance
            // animator.SetFloat(AnimatorParameters.Speed, kilometresPerHour);
 
-            //HARDCODED AHEAD
             int animationSpeedState = 0;
-            if(kilometresPerHour > 22f)
+            if(metresPerSecond > MIN_SPRINT_SPEED)
                 animationSpeedState = 3;
-            else if (kilometresPerHour > 7.65f)
+            else if (metresPerSecond > MIN_RUN_SPEED)
                 animationSpeedState = 2;
-            else if (kilometresPerHour > 0)
+            else if (metresPerSecond > 0)
                 animationSpeedState = 1;
             animator.SetInteger(AnimatorParameters.SpeedState, animationSpeedState);
 
@@ -771,9 +772,9 @@ public class PlayerController : NetworkBehaviour
             animator.SetFloat(AnimatorParameters.Speed, animationSpeedState);*/
         }
 
-        Vector3 velocity = (controlledVelocity + externalForces);
-        velocity.y += currentGravity;
-        characterController.Move(velocity * deltaTime);
+        Vector3 totalVelocity = (controlledVelocity + externalForces);
+        totalVelocity.y += currentGravity;
+        characterController.Move(totalVelocity * deltaTime);
         /*characterController.enabled = false;
         myTransform.position += velocity * deltaTime;*/
         //NOTE: Might interfere with RotateRoutine
@@ -827,16 +828,8 @@ public class PlayerController : NetworkBehaviour
         pickUp.Collect();
         if(pickUp is HealthPickUp)
         {
-            sbyte healthAddition = 8;//Hardcoded
-            ModifyHealth(healthAddition);
-        }
-        else if(pickUp is Trap)
-        {
-            Debug.LogError("TRAP has to be re-implemented");
-            /*
-            serverData.trapTimer.Start(PlayerServerData.TRAP_DURATION);
-            maxMovementSpeed = PlayerServerData.MAX_TRAPPED_MOVEMENT_SPEED;*/
-        }      
+            ModifyHealth(PlayerServerData.HEALTH_PICK_UP_BONUS);
+        }   
         else if(pickUp is PowerUpPickUp)
         {
             PowerUpPickUp powerUpPickUp = (PowerUpPickUp)pickUp;
@@ -879,7 +872,6 @@ public class PlayerController : NetworkBehaviour
 
     #region FootballThrowing:
 
-
     [Server]
     private void ThrowFootball()
     {
@@ -894,7 +886,7 @@ public class PlayerController : NetworkBehaviour
     [Server]
     public void OnFootballHit()
     {
-        GetInjured(4f);
+        GetInjured(PlayerServerData.FOOTBALL_INJURY_DURATION);
     }
 
     #endregion
@@ -915,7 +907,7 @@ public class PlayerController : NetworkBehaviour
     {
         //TODO: Perhaps make force dependent on the player's current velocity?
         Vector3 force = myTransform.forward * SLIP_FORCE;
-        Freeze(2.5f);//HARDCODED
+        Freeze(PlayerServerData.SLIP_FREEZE_DURATION);//HARDCODED
         TargetRpc_OnSlip(force);
         Kevin.TryLaughAt(myTransform);
     }
@@ -923,7 +915,8 @@ public class PlayerController : NetworkBehaviour
     [Server]
     public bool CanSlip()
     {
-        return MovementState != MovementStates.Frozen;
+        //TODO: Meke it so that players have to move fast in order to slip
+        return (MovementState != MovementStates.Frozen /*&& */ );
     }
 
     [TargetRpc]
@@ -942,18 +935,15 @@ public class PlayerController : NetworkBehaviour
     private void Sprint()
     {
         SetMovementState(MovementStates.Sprinting);
-        serverData.movementStateTimer.Start(2f);//HARDCODED
+        serverData.movementStateTimer.Start(PlayerServerData.SPRINT_DURATION);
         serverData.nextMovementState = MovementStates.Normal;
     }
 
     #endregion
-
+    [Client]
     private void OnPowerUpChanged(PowerUp oldValue, PowerUp newValue)
     {
-        if (localPlayerController == this)
-        {
-            UpdatePowerUpButton();
-        }
+
         if(oldValue.type != newValue.type)
         {
             switch (oldValue.type)
@@ -1007,17 +997,21 @@ public class PlayerController : NetworkBehaviour
                     }
             }
         }
+
+        if (localPlayerController == this)
+        {
+            UpdatePowerUpButton();
+        }
+
+        playerUI.SetPowerUp(newValue);
+
     }
-
-
 
     private void UpdatePowerUpButton()
     {
-        /* fakeFootballButton.GetComponentInChildren<TMPro.TextMeshProUGUI>().text = footballCount.ToString();
-         Debug.LogWarning("UpdatePowerUpButton is not implemented");*/
-        fakePowerUpButton.SetGraphics(powerUp);
-        bool enableButton = (powerUp.type != PowerUp.Type.None && MovementState != MovementStates.Frozen );
-        fakePowerUpButton.SetIsEnabled(enableButton);
+        powerUpButton.SetGraphics(powerUp);
+        bool enableButton = (powerUp.type != PowerUp.Type.None && MovementState != MovementStates.Frozen);
+        powerUpButton.SetIsEnabled(enableButton);
     }
 
     private bool CanUsePowerUp()
@@ -1122,8 +1116,14 @@ public class PlayerController : NetworkBehaviour
         characterController.enabled = true;
     }
 
+    [Server]
+    public void Win()
+    {
+        Rpc_Win();
+    }
+
     [ClientRpc]
-    public void Rpc_Win()
+    private void Rpc_Win()
     {
         /*char character = 'V';
         playerUI.SetCharacter(character);*/
@@ -1132,27 +1132,26 @@ public class PlayerController : NetworkBehaviour
             networkAnimator.SetTrigger(AnimatorParameters.Dance);
             characterCamera.distanceMultiplier = 0.8f;
             StartCoroutine(RotateRoutine(Quaternion.Euler(new Vector3(0, 180, 0)), 0.5f));
-
         }
-        // healthGUI.color = Color.yellow;
     }
 
     [Server]
-    private void Server_OnDeath()
+    public void Lose()
     {
-        SetTagger(false);
-        GameManager.UpdatePlayersState();
+        if (tagger)
+        {
+            SetTagger(false);
+        }
         Kevin.TryLaughAt(myTransform);
-        Rpc_OnDeath();
+        Rpc_OnLose();
     }
 
     [ClientRpc]
-    private void Rpc_OnDeath()
+    private void Rpc_OnLose()
     {
-        //healthGUI.color = Color.red;
         /*char character = 'X';
         playerUI.SetCharacter(character);*/
-        playerUI.gameObject.SetActive(false);
+       // playerUI.gameObject.SetActive(false);
 
         if (hasAuthority)
         {

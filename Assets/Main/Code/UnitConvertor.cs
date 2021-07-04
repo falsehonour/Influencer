@@ -1,8 +1,8 @@
 ﻿
 public abstract class UnitConvertor 
 {
-    public static float MetresPerSecondToKilometresPerHour(float metresPerSecond)
+    public static float KilometresPerHourToMetresPerSecond(float kilometresPerHour)
     {
-        return (metresPerSecond / 3.6f);
+        return (kilometresPerHour / 3.6f);
     }
 }

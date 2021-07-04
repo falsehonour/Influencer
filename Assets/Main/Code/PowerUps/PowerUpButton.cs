@@ -1,14 +1,14 @@
-﻿
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
-public class PowerUpButton : FakeButton
+public class PowerUpButton : PlayerInputButton
 {
     [SerializeField] private GameObject countGraphics;
     [SerializeField] private TMPro.TextMeshProUGUI countText;
     [SerializeField] private Image powerUpIcon;
     [SerializeField] private Vector3 powerUpIconBaseScale;
     [SerializeField] private float powerUpIconSizeMultiplierWhilePressed;
+
     public void SetGraphics(PowerUp powerUp)
     {
         bool showCount = (powerUp.count > 1);

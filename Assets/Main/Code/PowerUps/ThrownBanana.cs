@@ -16,7 +16,7 @@ public class ThrownBanana : Spawnable
 
         if (isServer)
         {
-            CancelInvoke("Die");
+            CancelInvoke(nameof(Die));
         }
         myTransform.localScale = Vector3.one;
 
@@ -25,8 +25,6 @@ public class ThrownBanana : Spawnable
         rigidbody.angularVelocity = Vector3.zero;
         rigidbody.velocity = Vector3.zero;
         triggerCollider.enabled = true;
-
-        //rigidbody.AddForce(myTransform.forward * SPEED, ForceMode.VelocityChange);
 
         // PhysicsUtility.SetRootAndDecendentsLayers(gameObject, PROJECTILE_LAYER);
 
@@ -38,50 +36,26 @@ public class ThrownBanana : Spawnable
         rigidbody.isKinematic = true;
         triggerCollider.enabled = false;
         //PhysicsUtility.SetRootAndDecendentsLayers(gameObject, PARTICLES_LAYER);
-
         //Hide();
-        StartCoroutine(Shrink(0.75f));
-    }
-  
-    private void OnCollisionEnter(Collision collision)
-    {
-        //Debug.Log("Banana: OnCollisionEnter");
-
-        if (IsAlive)
-        {
-            if (isServer)
-            {
-                //TODO: These invokes mess up everythin, put some death timer instead
-                PlayerController playerController = 
-                    collision.gameObject.GetComponentInParent<PlayerController>();
-                if(playerController != null)
-                {
-                    Debug.Log("Banana: playerController != null");
-                    playerController.OnFootballHit();
-                    CancelInvoke("Die");
-                    Die();
-                }
-            }
-        }
+        StartCoroutine(Shrink(0.75f));//HARDCODED
     }
 
     private void OnTriggerEnter(Collider other)
     {
         //NOTE: We have both a normal and a trigger collider on this banana because CharacterController 
         //is not very good at detecting normal collisions for some reason..
-
        // Debug.Log("Banana: OnTriggerEnter");
         if (IsAlive)
         {
             if (isServer)
             {
-                //TODO: These invokes mess up everythin, put some death timer instead
-                PlayerController playerController =
-                    other.gameObject.GetComponentInParent<PlayerController>();
+                PlayerController playerController = other.gameObject.GetComponentInParent<PlayerController>();
+                //NOTE: Players who enter a banana while being ammune to slipping will not slip even once they are immune no lomger. should we use OnTriggerStay instead??
                 if (playerController != null && playerController.CanSlip())
                 {//NOTE: Landing on a banana after slipping gives ammunity from the next banana
                     playerController.Slip();
-                    CancelInvoke("Die");
+                    //TODO: These invokes mess up everythin, put some death timer instead
+                    CancelInvoke(nameof(Die));
                     Die();
                 }
             }

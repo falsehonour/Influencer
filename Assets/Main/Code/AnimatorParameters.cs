@@ -4,7 +4,6 @@ using UnityEngine;
 
 public static class AnimatorParameters
 {
-    public static readonly int Speed = Animator.StringToHash(nameof(Speed));
     public static readonly int Push = Animator.StringToHash(nameof(Push));
     public static readonly int FlipForward = Animator.StringToHash(nameof(FlipForward));
     public static readonly int FallBackward = Animator.StringToHash(nameof(FallBackward));
@@ -15,7 +14,7 @@ public static class AnimatorParameters
     public static readonly int DanceIndex = Animator.StringToHash(nameof(DanceIndex));
     public static readonly int ThrowForward = Animator.StringToHash(nameof(ThrowForward));
     public static readonly int ThrowBackward = Animator.StringToHash(nameof(ThrowBackward));
-    public static readonly int SpeedState = Animator.StringToHash(nameof(SpeedState));
+    public static readonly int Gait = Animator.StringToHash(nameof(Gait));
     public static readonly int State = Animator.StringToHash(nameof(State));
     public static readonly int Shoot = Animator.StringToHash(nameof(Shoot));
     public static readonly int Kick = Animator.StringToHash(nameof(Kick));

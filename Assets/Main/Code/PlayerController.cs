@@ -31,7 +31,6 @@ public class PlayerController : NetworkBehaviour
         public SingleCycleTimer movementStateTimer;
         public MovementStates nextMovementState;
 
-
         public PlayerServerData()
         {
             healthReductionTimer = new RepeatingTimer(TAGGER_HEALTH_LOSS_INTERVAL);
@@ -47,6 +46,11 @@ public class PlayerController : NetworkBehaviour
     private readonly static float MIN_MOVEMENT_SPEED = UnitConvertor.KilometresPerHourToMetresPerSecond(1f);
     private readonly static float MIN_RUN_SPEED = UnitConvertor.KilometresPerHourToMetresPerSecond(7.65f);
     private readonly static float MIN_SPRINT_SPEED = UnitConvertor.KilometresPerHourToMetresPerSecond(22f);
+    public enum GaitTypes : byte
+    {
+        Standing = 0 , Walking = 1, Running = 2, Sprinting = 3
+    }
+    [SyncVar] private GaitTypes gait;
     [SerializeField] private CharacterController characterController;
     private Transform myTransform;
     private Joystick joystick;
@@ -171,6 +175,11 @@ public class PlayerController : NetworkBehaviour
 
         football.SetActive(false);
         initialised = true;
+
+       /* if(characterController.attachedRigidbody != null)
+        {
+            characterController.attachedRigidbody.interpolation = RigidbodyInterpolation.Interpolate;
+        }*/
     }
 
     #region PlayerName
@@ -718,7 +727,7 @@ public class PlayerController : NetworkBehaviour
         }
         controlledVelocity = ZERO_VECTOR3;
         //TODO: This area of th code must be revisited, it is probably outdated 
-        float verticalInput   = joystick.Vertical + forcedMovementInput.y;
+        float verticalInput   = joystick.Vertical +   forcedMovementInput.y;
         float horizontalInput = joystick.Horizontal + forcedMovementInput.x;
 
         if ((MovementState != MovementStates.Frozen) && (verticalInput != 0 || horizontalInput != 0))
@@ -741,40 +750,49 @@ public class PlayerController : NetworkBehaviour
          }
         #endregion
 
-        //TODO: Move to squaredMagnitude and skip multiplications before shipping.
-        float metresPerSecond = controlledVelocity.magnitude;
-        if(metresPerSecond < MIN_MOVEMENT_SPEED)
+        {
+            //TODO: Move to squaredMagnitude and skip multiplications before shipping.
+            float metresPerSecond = controlledVelocity.magnitude;
+            GaitTypes newGait;
+            if (metresPerSecond > MIN_SPRINT_SPEED)
+                newGait = GaitTypes.Sprinting;
+            else if (metresPerSecond > MIN_RUN_SPEED)
+                newGait = GaitTypes.Running;
+            else if (metresPerSecond > MIN_MOVEMENT_SPEED)
+                newGait = GaitTypes.Walking;
+            else
+                newGait = GaitTypes.Standing;
+
+            if (newGait != gait)
+            {
+                gait = newGait;
+                if (animator != null)
+                {
+                    int animationSpeedState = (int)gait;
+                    animator.SetInteger(AnimatorParameters.Gait, animationSpeedState);
+
+                    //NOTE: Why the FUCK does mirror not sync the the top three???
+                    //I think I understand: Our NetworkAnimator only cares about parameters that used to be on our original animator. 
+                    //This means that further bugs may occur due to the animator swap we do 
+                    /*animator.SetInteger(AnimatorParameters.SpeedState, animationSpeedState);
+                    animator.SetInteger("WhatTheHellInt", animationSpeedState);
+                    animator.SetFloat("WhatTheHellFloat", animationSpeedState);
+                    animator.SetFloat(AnimatorParameters.Speed, animationSpeedState);*/
+                }
+            }
+        }
+
+        if (gait == GaitTypes.Standing)
         {
             //Stay in place if input is negligible
             controlledVelocity = Vector3.zero;
-            metresPerSecond = 0;
         } 
-        if(animator != null)
-        {
-            //TODO: do this in bigger intervals for performance
-           // animator.SetFloat(AnimatorParameters.Speed, kilometresPerHour);
-
-            int animationSpeedState = 0;
-            if(metresPerSecond > MIN_SPRINT_SPEED)
-                animationSpeedState = 3;
-            else if (metresPerSecond > MIN_RUN_SPEED)
-                animationSpeedState = 2;
-            else if (metresPerSecond > 0)
-                animationSpeedState = 1;
-            animator.SetInteger(AnimatorParameters.SpeedState, animationSpeedState);
-
-            //NOTE: Why the FUCK does mirror not sync the the top three???
-            //I think I understand: Our NetworkAnimator only cares about parameters that used to be on our original animator. 
-            //This means that further bugs may occur due to the animator swap we do 
-            /*animator.SetInteger(AnimatorParameters.SpeedState, animationSpeedState);
-            animator.SetInteger("WhatTheHellInt", animationSpeedState);
-            animator.SetFloat("WhatTheHellFloat", animationSpeedState);
-            animator.SetFloat(AnimatorParameters.Speed, animationSpeedState);*/
-        }
-
+       
         Vector3 totalVelocity = (controlledVelocity + externalForces);
         totalVelocity.y += currentGravity;
         characterController.Move(totalVelocity * deltaTime);
+
+
         /*characterController.enabled = false;
         myTransform.position += velocity * deltaTime;*/
         //NOTE: Might interfere with RotateRoutine
@@ -916,7 +934,7 @@ public class PlayerController : NetworkBehaviour
     public bool CanSlip()
     {
         //TODO: Meke it so that players have to move fast in order to slip
-        return (MovementState != MovementStates.Frozen /*&& */ );
+        return (MovementState != MovementStates.Frozen && gait >= GaitTypes.Running );
     }
 
     [TargetRpc]

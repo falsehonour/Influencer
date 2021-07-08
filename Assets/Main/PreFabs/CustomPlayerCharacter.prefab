@@ -166,7 +166,6 @@ MonoBehaviour:
   characterController: {fileID: 1843534166062372999}
   maxRotationSpeed: 600
   gravity: -9.8
-  cameraAnchor: {fileID: 1843534165324223648}
   tagBoundsCollider: {fileID: 8397094170868767954}
   skin: {fileID: 8320585343824001797}
   placeholderGraphics: {fileID: 4370205383554667044}

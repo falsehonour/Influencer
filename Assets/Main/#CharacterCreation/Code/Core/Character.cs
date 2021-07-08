@@ -13,7 +13,7 @@ namespace CharacterCreation
         [SerializeField] private Animator animator;
 
         public CharacterMesh[] equippedMeshesByMeshCategory;
-        public CharacterMeshModifier[] equippedMeshModifiersByMeshModifierCategory;
+        public CharacterMeshMod[] equippedMeshModifiersByMeshModifierCategory;
         private Renderer[] characterRenderersByMeshCategory;
 
         private Transform[] bones;
@@ -21,6 +21,8 @@ namespace CharacterCreation
         private bool initialised = false;
 
         [SerializeField] private GameObject gun;
+        [SerializeField] private GameObject[] wings;
+        [SerializeField] private GameObject banana;
 
         public void Initialise()
         {
@@ -35,6 +37,9 @@ namespace CharacterCreation
             InitialiseEquippedPieces();
 
             ShowGun(false);
+            ShowWings(false);
+            ShowBanana(false);
+
         }
 
         private void InitialiseEquippedPieces()
@@ -45,7 +50,7 @@ namespace CharacterCreation
             characterRenderersByMeshCategory = new Renderer[length];
 
             length = (int)MeshModifierCategories.Length;
-            equippedMeshModifiersByMeshModifierCategory = new CharacterMeshModifier[length];
+            equippedMeshModifiersByMeshModifierCategory = new CharacterMeshMod[length];
         }
 
         #region Equip Methods:
@@ -63,9 +68,9 @@ namespace CharacterCreation
                 EquipMesh((CharacterMesh)characterPiece);
                 RemoveUnusedModifiers();
             }
-            else if (characterPiece is CharacterMeshModifier)
+            else if (characterPiece is CharacterMeshMod)
             {
-                TryEquipMeshModifier((CharacterMeshModifier)characterPiece);
+                TryEquipMeshModifier((CharacterMeshMod)characterPiece);
             }
             else
             {
@@ -121,7 +126,7 @@ namespace CharacterCreation
 
             //Modifiers:
             {
-                CharacterMeshModifier[] fallbackModifiers = baseProperties.fallbackMeshModifiers;
+                CharacterMeshMod[] fallbackModifiers = baseProperties.fallbackMeshModifiers;
 
                 MeshModifierCategories equippedModifierCategories = 0;
 
@@ -322,7 +327,7 @@ namespace CharacterCreation
         private void ApplyCompatibleModifiers(CharacterMesh mesh, Renderer renderer)
         {
 
-            List<CharacterMeshModifier> compatibleModifiers = GetCompatibleEquippedModifiers(mesh);
+            List<CharacterMeshMod> compatibleModifiers = GetCompatibleEquippedModifiers(mesh);
             string report = null;
             if (compatibleModifiers.Count == 0)
             {
@@ -352,7 +357,7 @@ namespace CharacterCreation
         {
             for (int i = 0; i < equippedMeshModifiersByMeshModifierCategory.Length; i++)
             {
-                CharacterMeshModifier modifier = equippedMeshModifiersByMeshModifierCategory[i];
+                CharacterMeshMod modifier = equippedMeshModifiersByMeshModifierCategory[i];
                 if (modifier != null)
                 {
                     if (!HasCompatibleEquippedMeshes(modifier))
@@ -365,7 +370,7 @@ namespace CharacterCreation
             }
         }
 
-        private bool TryEquipMeshModifier(CharacterMeshModifier modifier)
+        private bool TryEquipMeshModifier(CharacterMeshMod modifier)
         {
             if (modifier.Categories == 0)
             {
@@ -439,37 +444,62 @@ namespace CharacterCreation
             }
         }
 
-        private bool ApplyModifierToRenderer(CharacterMeshModifier modifier, Renderer renderer)
+        private bool ApplyModifierToRenderer(CharacterMeshMod mod, Renderer renderer)
         {
             bool succeeded = false;
 
-            if (modifier is CharacterTextures)
+            if (mod is CharacterMatsMod)
             {
-                CharacterTextures characterTextures = (CharacterTextures)modifier;
-                CharacterTextures.MaterialTexture[] materialTextures = characterTextures.MaterialTextures;
-
-                for (int j = 0; j < materialTextures.Length; j++)
+                CharacterMatsMod matsMod = (CharacterMatsMod)mod;
                 {
-                    CharacterTextures.MaterialTexture materialTexture = materialTextures[j];
-                    int materialIndex = materialTexture.materialIndex;
-                    //NOTE: renderer.Materials.Length causes an instance of a modified material to be created!
-                    if (materialIndex < 0 || materialIndex >= renderer.sharedMaterials.Length)
+                    CharacterMatsMod.ColourMod[] colourMods = matsMod.ColourMods;
+                    if (colourMods != null && colourMods.Length > 0)
                     {
-                        Debug.LogError("Illegal material index!");
-                        continue;
+                        for (int i = 0; i < colourMods.Length; i++)
+                        {
+                            ref CharacterMatsMod.ColourMod colourMod = ref colourMods[i];
+                            int matIndex = colourMod.matIndex;
+                            //NOTE: renderer.Materials.Length causes an instance of a modified material to be created!
+                            if (matIndex < 0 || matIndex >= renderer.sharedMaterials.Length)
+                            {
+                                Debug.LogError("Illegal material index!");
+                                continue;
+                            }
+                            renderer.GetPropertyBlock(materialPropertyBlock, matIndex);
+                            materialPropertyBlock.SetColor(colourMod.colourName.ToString(), colourMod.colour);
+                            renderer.SetPropertyBlock(materialPropertyBlock, matIndex);
+                        }
                     }
-                    renderer.GetPropertyBlock(materialPropertyBlock, materialIndex);
-                    Texture texture = materialTexture.texture2D != null ? materialTexture.texture2D : Texture2D.whiteTexture;
-                    materialPropertyBlock.SetTexture("_MainTex", texture);
-                    materialPropertyBlock.SetColor("_Color", materialTexture.colour);
-                    renderer.SetPropertyBlock(materialPropertyBlock, materialIndex);
                 }
+                {
+                    CharacterMatsMod.TextureMod[] textureMods = matsMod.TextureMods;
+                    if (textureMods != null && textureMods.Length > 0)
+                    {
+                        for (int i = 0; i < textureMods.Length; i++)
+                        {
+                            ref CharacterMatsMod.TextureMod textureMod = ref textureMods[i];
+                            int matIndex = textureMod.matIndex;
+                            //NOTE: renderer.Materials.Length causes an instance of a modified material to be created!
+                            if (matIndex < 0 || matIndex >= renderer.sharedMaterials.Length)
+                            {
+                                Debug.LogError("Illegal material index!");
+                                continue;
+                            }
+                            Texture texture = textureMod.texture != null ? textureMod.texture : Texture2D.whiteTexture;
+                            renderer.GetPropertyBlock(materialPropertyBlock, matIndex);
+                            materialPropertyBlock.SetTexture(textureMod.textureName.ToString(), texture);
+                            renderer.SetPropertyBlock(materialPropertyBlock, matIndex);
+                           // Debug.Log("SET TEXTURE");
+                        }
+                    }
+                }
+
                 succeeded = true;
 
             }
-            else if (modifier is CharacterMorph)
+            else if (mod is CharacterMorph)
             {
-                CharacterMorph morph = (CharacterMorph)modifier;
+                CharacterMorph morph = (CharacterMorph)mod;
                 if (renderer is SkinnedMeshRenderer)
                 {
                     SkinnedMeshRenderer morphedSkinnedMesh = (SkinnedMeshRenderer)renderer;
@@ -494,7 +524,7 @@ namespace CharacterCreation
 
         #region Compatibility:
 
-        private bool HasCompatibleEquippedMeshes(CharacterMeshModifier modifier)
+        private bool HasCompatibleEquippedMeshes(CharacterMeshMod modifier)
         {
             List<Renderer> compatibleRenderers = new List<Renderer>();
 
@@ -533,7 +563,7 @@ namespace CharacterCreation
             return false;
         }
 
-        private List<Renderer> GetCompatableRenderers(CharacterMeshModifier modifier)
+        private List<Renderer> GetCompatableRenderers(CharacterMeshMod modifier)
         {
             List<Renderer> compatibleRenderers = new List<Renderer>();
 
@@ -593,15 +623,15 @@ namespace CharacterCreation
             return compatibleRenderers;
         }
 
-        private List<CharacterMeshModifier> GetCompatibleEquippedModifiers(CharacterMesh characterMesh)
+        private List<CharacterMeshMod> GetCompatibleEquippedModifiers(CharacterMesh characterMesh)
         {
-            List<CharacterMeshModifier> compatibleModifiers = new List<CharacterMeshModifier>();
+            List<CharacterMeshMod> compatibleModifiers = new List<CharacterMeshMod>();
 
             MeshModifierCategories compatibleModifierCategories =
                   CategoriesCompatability.GetCompatableModifierCategories(characterMesh.Categories);
             for (int i = 0; i < equippedMeshModifiersByMeshModifierCategory.Length; i++)
             {
-                CharacterMeshModifier modifier = equippedMeshModifiersByMeshModifierCategory[i];
+                CharacterMeshMod modifier = equippedMeshModifiersByMeshModifierCategory[i];
                 if (modifier != null)
                 {
                     bool modifierIsCompatible = false;
@@ -703,10 +733,31 @@ namespace CharacterCreation
 
         public void ShowGun(bool value)
         {
-            if(gun != null && gun.activeSelf != value)
+            if (gun != null && gun.activeSelf != value)
             {
                 gun.SetActive(value);
             }
         }
+
+        public void ShowBanana(bool value)
+        {
+            if (banana != null && banana.activeSelf != value)
+            {
+                banana.SetActive(value);
+            }
+        }
+
+        public void ShowWings(bool value)
+        {
+            if(wings != null)
+            {
+                for (int i = 0; i < wings.Length; i++)
+                {
+                    wings[i].SetActive(value);
+                }
+            }
+        }
+
+      //  public void HiseWings()
     }
 }

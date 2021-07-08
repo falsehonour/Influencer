@@ -74,17 +74,21 @@ public abstract class Spawnable : NetworkBehaviour
     {
         float size = 1;
 
-        while (size > 0)
+        while (true)
         {
             if (IsAlive)
             {
-                goto Break;
+                goto StopCoroutine;
             }
             size -= speed * Time.deltaTime;
+            if(size < 0)
+            {
+                break;
+            }
             myTransform.localScale = size * Vector3.one;
             yield return null;
         }
         myTransform.localScale = Vector3.zero;
-    Break: { }
+    StopCoroutine: { }
     }
 }

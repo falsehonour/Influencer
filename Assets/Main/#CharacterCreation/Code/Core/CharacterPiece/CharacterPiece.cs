@@ -39,9 +39,9 @@ namespace CharacterCreation
         FaceMorph =          0b_0000_0000_0000_0001, 
         NoseMorph =          0b_0000_0000_0000_0010, 
         MouthMorph =         0b_0000_0000_0000_0100,
-        HairTextures =       0b_0000_0000_0000_1000,
+        HairColour =         0b_0000_0000_0000_1000,
         EyebrowsMorph =      0b_0000_0000_0001_0000, 
-        EyebrowsTextures =   0b_0000_0000_0010_0000, 
+        EyebrowsColour =     0b_0000_0000_0010_0000, 
         SkinColourTextures = 0b_0000_0000_0100_0000, 
         FeetTextures =       0b_0000_0000_1000_0000,
         LegsTextures =       0b_0000_0001_0000_0000,
@@ -53,7 +53,7 @@ namespace CharacterCreation
         Length = 12
     }
 
-    public abstract class CharacterMeshModifier : CharacterPiece
+    public abstract class CharacterMeshMod : CharacterPiece
     {
         [SerializeField] private MeshModifierCategories categories;
         public MeshModifierCategories Categories => categories;

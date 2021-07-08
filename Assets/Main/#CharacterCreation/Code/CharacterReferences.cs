@@ -7,7 +7,7 @@ namespace CharacterCreation
     {
         [SerializeField] private Character[] allCharacterPreFabs;
         [SerializeField] private CharacterMesh[] allCharacterMeshes;
-        [SerializeField] private CharacterMeshModifier[] allCharacterMeshModifiers;
+        [SerializeField] private CharacterMeshMod[] allCharacterMeshModifiers;
 
         public byte? GetCharacterMeshIndex(CharacterMesh mesh)
         {
@@ -22,7 +22,7 @@ namespace CharacterCreation
             return null;
         }
 
-        public byte? GetCharacterMeshModifierIndex(CharacterMeshModifier modifier)
+        public byte? GetCharacterMeshModifierIndex(CharacterMeshMod modifier)
         {
             for (byte i = 0; i < allCharacterMeshModifiers.Length; i++)
             {
@@ -59,7 +59,7 @@ namespace CharacterCreation
             return allCharacterMeshes[index];
         }
 
-        public CharacterMeshModifier GetCharacterMeshModifier(byte index)
+        public CharacterMeshMod GetCharacterMeshModifier(byte index)
         {
             return allCharacterMeshModifiers[index];
         }
@@ -67,7 +67,7 @@ namespace CharacterCreation
         public void UpdateRefferences()
         {
             allCharacterMeshes = Resources.LoadAll<CharacterMesh>("");
-            allCharacterMeshModifiers = Resources.LoadAll<CharacterMeshModifier>("");
+            allCharacterMeshModifiers = Resources.LoadAll<CharacterMeshMod>("");
 
             if (allCharacterMeshes.Length >= byte.MaxValue || allCharacterMeshModifiers.Length >= byte.MaxValue)
             {

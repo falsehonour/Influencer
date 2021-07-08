@@ -8,7 +8,7 @@ namespace CharacterCreation
     public class NetworkedCharacterSkin : NetworkBehaviour
     {
 
-        [SerializeField] private Character character;
+        [SerializeField] public Character character;
         private PlayerSkinDataHolder.Data serverCachedSkinData;
 
         [Command]
@@ -206,12 +206,6 @@ namespace CharacterCreation
                 Cmd_SendSkin();
 
             }
-        }
-
-
-        public void ShowGun(bool value)
-        {
-            character.ShowGun(value);
         }
     }
 }

@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: Girl_SkinColour2
   m_EditorClassIdentifier: 
   characterPieces:
-  - {fileID: 11400000, guid: fbe3bdc7bca7be54988988f83942ad12, type: 2}
+  - {fileID: 11400000, guid: def50f4bd208d6647b17d1701ce62a4f, type: 2}
+  characterPreFab: {fileID: 0}
   linkedButtonBehaviours: []
   icon: {fileID: 0}
+  iconTint: {r: 1, g: 1, b: 1, a: 1}

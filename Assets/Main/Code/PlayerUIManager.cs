@@ -22,6 +22,7 @@ public class PlayerUIManager : MonoBehaviour
 
     public static PlayerUI CreatePlayerUI(Transform anchor)
     {
+
         return instance.CreateNewPlayerUI(anchor);
     }
 

@@ -27,6 +27,7 @@ public class GameManager : NetworkBehaviour
     [SerializeField] private GameObject playerSettingsCanvas;
     
     [SerializeField] private float playerCircleRadius = 2f;
+    private static List<PlayerController> relevantPlayersCache = new List<PlayerController>();
 
     private static GameManager instance;
 
@@ -121,7 +122,6 @@ public class GameManager : NetworkBehaviour
         IEnumerator spinCoroutine = kevin.SpinCoroutine(circleSpawnSpots[taggerIndex].transform.position);
         yield return new wait(spinCoroutine != null);*/
         yield return kevin.SpinCoroutine(circleSpawnPoints[taggerIndex].position);
-        //yield return new WaitForSeconds(3f);//Hardcoded
         yield return new WaitForSeconds(0.2f);//Hardcoded
 
         for (int i = 0; i < playerCount; i++)
@@ -144,21 +144,19 @@ public class GameManager : NetworkBehaviour
         countdown.Server_StartCounting(roomManager.settings.countdown);
     }
 
-
     private static List<PlayerController> GetRelevantPlayers()
     {
-        List<PlayerController> relevantPlayers = new List<PlayerController>();
-
+        relevantPlayersCache.Clear();
         int playerCount = PlayerController.allPlayers.Count;
         for (int i = 0; i < playerCount; i++)
         {
             PlayerController player = PlayerController.allPlayers[i];
-            if (player.IsAlive)
+            if (player.IsAlive())
             {
-                relevantPlayers.Add(player);
+                relevantPlayersCache.Add(player);
             }
         }
-        return relevantPlayers;
+        return relevantPlayersCache;
     }
 
     [Server]
@@ -176,7 +174,7 @@ public class GameManager : NetworkBehaviour
             else if (relevantPlayersCount == 1)
             {
                 instance.countdown.Server_StopCounting();
-                instance.DeclareWinner(relevantPlayers[0]);
+                instance.EndGame(relevantPlayers[0]);
             }
             else
             {
@@ -191,6 +189,7 @@ public class GameManager : NetworkBehaviour
                     {
                         return;
                     }
+                    //TODO: But what about the rare occasion where the highest health value is shared among more than a single player 
                     else if (player.Health > nextTagger.Health)
                     {
                         nextTagger = player;
@@ -199,7 +198,6 @@ public class GameManager : NetworkBehaviour
                 nextTagger.SetTagger(true);
             }
         }
-       
     }
 
     [Server]
@@ -219,20 +217,33 @@ public class GameManager : NetworkBehaviour
             for (int i = 0; i <  relevantPlayersCount; i++)
             {
                 PlayerController player = relevantPlayers[i];
+                //TODO: But what about the rare occasion where the highest health value is shared among more than a single player 
                 if (player.Health > winner.Health)
                 {
                     winner = player;
                 }
             }
-            instance.DeclareWinner(winner);
+            instance.EndGame(winner);
         }
     }
 
     [Server]
-    private void DeclareWinner(PlayerController winner)
+    private void EndGame(PlayerController winner)
     {
         Debug.Log(winner.name + "WON THE MATCH!");
-        winner.Rpc_Win();
+        winner.Win();
+
+        List<PlayerController> relevantPlayers = GetRelevantPlayers();
+        int relevantPlayersCount = relevantPlayers.Count;
+        for (int i = 0; i < relevantPlayersCount; i++)
+        {
+            PlayerController player = relevantPlayers[i];
+            if (player != winner)
+            {
+                player.Lose();
+            }
+        }
+
         state = GameStates.PostGame;
     }
 }

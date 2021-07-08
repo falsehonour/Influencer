@@ -21,13 +21,14 @@ TrueTypeFontImporter:
   - {fileID: 12800000, guid: 8a406076b7de34849be1f35585875a66, type: 3}
   - {instanceID: 0}
   - {instanceID: 0}
-  - {fileID: 12800000, guid: 6ed7389dc6cc157418355b24d4ed743d, type: 3}
+  - {instanceID: 0}
   - {instanceID: 0}
   - {instanceID: 0}
   customCharacters: 
-  fontRenderingMode: 0
+  fontRenderingMode: 2
   ascentCalculationMode: 1
   useLegacyBoundsCalculation: 0
+  shouldRoundAdvanceValue: 1
   userData: 
   assetBundleName: 
   assetBundleVariant: 

@@ -18,8 +18,8 @@ TagManager:
   - Players
   - PhysicalMines
   - TriggerMines
-  - 
-  - 
+  - NoPhysics
+  - Enviroment
   - 
   - 
   - 

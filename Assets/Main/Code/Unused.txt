@@ -144,3 +144,32 @@ velocity.x = movement.x;
         }
     }
     */
+
+
+	    private void UpdateBackgroundImage()
+    {
+        fillImage.fillAmount = (timeLeft / initialTime);
+    }
+
+
+	    private void OnCollisionEnter(Collision collision)
+    {
+        //Debug.Log("Banana: OnCollisionEnter");
+
+        if (IsAlive)
+        {
+            if (isServer)
+            {
+                //TODO: These invokes mess up everythin, put some death timer instead
+                PlayerController playerController = 
+                    collision.gameObject.GetComponentInParent<PlayerController>();
+                if(playerController != null)
+                {
+                    Debug.Log("Banana: playerController != null");
+                    playerController.OnFootballHit();
+                    CancelInvoke("Die");
+                    Die();
+                }
+            }
+        }
+    }

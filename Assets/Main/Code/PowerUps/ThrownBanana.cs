@@ -51,13 +51,19 @@ public class ThrownBanana : Spawnable
             {
                 PlayerController playerController = other.gameObject.GetComponentInParent<PlayerController>();
                 //NOTE: Players who enter a banana while being ammune to slipping will not slip even once they are immune no lomger. should we use OnTriggerStay instead??
-                if (playerController != null && playerController.CanSlip())
-                {//NOTE: Landing on a banana after slipping gives ammunity from the next banana
-                    playerController.Slip();
-                    //TODO: These invokes mess up everythin, put some death timer instead
-                    CancelInvoke(nameof(Die));
-                    Die();
+                if (playerController != null)
+                {
+                    Debug.Log("Player Stepped in za banan");
+
+                    if (playerController.CanSlip())
+                    {//NOTE: Landing on a banana after slipping gives ammunity from the next banana
+                        playerController.Slip();
+                        //TODO: These invokes mess up everythin, put some death timer instead
+                        CancelInvoke(nameof(Die));
+                        Die();
+                    }
                 }
+
             }
         }
     }

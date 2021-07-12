@@ -50,7 +50,7 @@ public class PlayerController : NetworkBehaviour
     {
         Standing = 0 , Walking = 1, Running = 2, Sprinting = 3
     }
-    [SyncVar] private GaitTypes gait;
+    private GaitTypes gait;
     [SerializeField] private CharacterController characterController;
     private Transform myTransform;
     private Joystick joystick;
@@ -95,7 +95,7 @@ public class PlayerController : NetworkBehaviour
     //[SyncVar] private bool isAlive;//TODO: Is this noit overkill??
     #endregion
     [SerializeField] private CharacterCreation.NetworkedCharacterSkin skin;
-    private CharacterCreation.Character skinCharacter;
+    //private CharacterCreation.Character skinCharacter;
     [SerializeField] private GameObject placeholderGraphics;
     [SerializeField] private Transform playerUIAnchor;
     private PlayerUI playerUI;
@@ -170,12 +170,13 @@ public class PlayerController : NetworkBehaviour
         {
             Destroy(placeholderGraphics);
             skin.Initialise();
-            skinCharacter = skin.character;
+            //skinCharacter = skin.character;
         }
+
+        playerUI.SetPlayerName(displayName);
 
         football.SetActive(false);
         initialised = true;
-
        /* if(characterController.attachedRigidbody != null)
         {
             characterController.attachedRigidbody.interpolation = RigidbodyInterpolation.Interpolate;
@@ -183,19 +184,28 @@ public class PlayerController : NetworkBehaviour
     }
 
     #region PlayerName
-    [SyncVar(hook = nameof(SetName))] private string displayName;
+    [SyncVar] private string displayName ;
+    [SyncVar] private int displayNameNumber;
+
     //TODO: Remove this region, it is supposed to be temporary
     [Command]
     private void Cmd_SetName(string newName)
     {
         displayName = newName;
+        displayNameNumber = 8;
+        //Rpc_SetName(newName);
     }
 
     [Client]
-    private void SetName(string oldValue ,string newValue)
+    private void OnNameSet(string oldValue, string newValue)
     {
         playerUI.SetPlayerName(newValue);
     }
+
+   /* private void SetName()
+    {
+        playerUI.SetPlayerName(displayName);
+    }*/
 
     #endregion
 
@@ -279,7 +289,7 @@ public class PlayerController : NetworkBehaviour
             
             if(oldValue == MovementStates.Sprinting && powerUp.type != PowerUp.Type.Sprint)
             {
-                skinCharacter.ShowWings(false);
+                skin.character.ShowWings(false);
             }
         }
     }
@@ -614,6 +624,8 @@ public class PlayerController : NetworkBehaviour
 
     private void Update()
     {
+        playerUI.SetPlayerName(displayName + displayNameNumber.ToString());
+
         //float deltaTime = Time.deltaTime;
         if (localPlayerController == this)
         {
@@ -766,6 +778,7 @@ public class PlayerController : NetworkBehaviour
             if (newGait != gait)
             {
                 gait = newGait;
+                SetGait(newGait);
                 if (animator != null)
                 {
                     int animationSpeedState = (int)gait;
@@ -798,6 +811,13 @@ public class PlayerController : NetworkBehaviour
         //NOTE: Might interfere with RotateRoutine
         myTransform.rotation = Quaternion.RotateTowards
             (myTransform.rotation, desiredRotation, maxRotationSpeed * deltaTime);
+    }
+
+    [Command]
+    private void SetGait(GaitTypes newGait)
+    {
+        //NOTE: The reason we don't use a sync var is cause syncvars can't be set on clients
+        this.gait = newGait;
     }
 
     #region Interactables:
@@ -934,6 +954,7 @@ public class PlayerController : NetworkBehaviour
     public bool CanSlip()
     {
         //TODO: Meke it so that players have to move fast in order to slip
+        //Debug.Log("Slip? : MovementState: " + MovementState.ToString() + "gait: " + gait.ToString());
         return (MovementState != MovementStates.Frozen && gait >= GaitTypes.Running );
     }
 
@@ -975,18 +996,18 @@ public class PlayerController : NetworkBehaviour
                     {//TODO: Turning the wings off has become convoluted...
                         if (MovementState != MovementStates.Sprinting)
                         {
-                            skinCharacter.ShowWings(false);
+                            skin.character.ShowWings(false);
                         }
                         break;
                     }
                 case PowerUp.Type.Gun:
                     {//TODO: Show the gun for a bit if it just shot??
-                        skinCharacter.ShowGun(false);
+                        skin.character.ShowGun(false);
                         break;
                     }
                 case PowerUp.Type.Banana:
                     {
-                        skinCharacter.ShowBanana(false);
+                        skin.character.ShowBanana(false);
                         break;
                     }
             }
@@ -1000,17 +1021,17 @@ public class PlayerController : NetworkBehaviour
                     }
                 case PowerUp.Type.Sprint:
                     {
-                        skinCharacter.ShowWings(true);
+                        skin.character.ShowWings(true);
                         break;
                     }
                 case PowerUp.Type.Gun:
                     {
-                        skinCharacter.ShowGun(true);
+                        skin.character.ShowGun(true);
                         break;
                     }
                 case PowerUp.Type.Banana:
                     {
-                        skinCharacter.ShowBanana(true);
+                        skin.character.ShowBanana(true);
                         break;
                     }
             }

@@ -1,14 +1,12 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace Mirror
 {
     public class NetworkConnectionToClient : NetworkConnection
     {
-        static readonly ILogger logger = LogFactory.GetLogger<NetworkConnectionToClient>();
-
-        public override string address => Transport.activeTransport.ServerGetClientAddress(connectionId);
+        public override string address =>
+            Transport.activeTransport.ServerGetClientAddress(connectionId);
 
         // batching from server to client.
         // fewer transport calls give us significantly better performance/scale.
@@ -22,6 +20,8 @@ namespace Mirror
         internal class Batch
         {
             // batched messages
+            // IMPORTANT: we queue the serialized messages!
+            //            queueing NetworkMessage would box and allocate!
             internal Queue<PooledNetworkWriter> messages = new Queue<PooledNetworkWriter>();
 
             // each channel's batch has its own lastSendTime.
@@ -39,16 +39,7 @@ namespace Mirror
         }
         Dictionary<int, Batch> batches = new Dictionary<int, Batch>();
 
-        // batching is optional because due to mirror's non-optimal update order
-        // it would increase latency.
-
-        // batching is still optional until we improve mirror's update order.
-        // right now it increases latency because:
-        //   enabling batching flushes all state updates in same frame, but
-        //   transport processes incoming messages afterwards so server would
-        //   batch them until next frame's flush
-        // => disable it for super fast paced games
-        // => enable it for high scale / cpu heavy games
+        // batch messages and send them out in LateUpdate (or after batchInterval)
         bool batching;
 
         // batch interval is 0 by default, meaning that we send immediately.
@@ -102,8 +93,8 @@ namespace Mirror
                         writer.Position + segment.Count >= max)
                     {
                         // flush & reset writer
-                        Transport.activeTransport.ServerSend(connectionId, channelId, writer.ToArraySegment());
-                        writer.SetLength(0);
+                        Transport.activeTransport.ServerSend(connectionId, writer.ToArraySegment(), channelId);
+                        writer.Position = 0;
                     }
 
                     // now add to writer in any case
@@ -124,8 +115,8 @@ namespace Mirror
                 // send it.
                 if (writer.Position > 0)
                 {
-                    Transport.activeTransport.ServerSend(connectionId, channelId, writer.ToArraySegment());
-                    writer.SetLength(0);
+                    Transport.activeTransport.ServerSend(connectionId, writer.ToArraySegment(), channelId);
+                    writer.Position = 0;
                 }
             }
 
@@ -133,10 +124,8 @@ namespace Mirror
             batch.lastSendTime = NetworkTime.time;
         }
 
-        internal override void Send(ArraySegment<byte> segment, int channelId = Channels.DefaultReliable)
+        internal override void Send(ArraySegment<byte> segment, int channelId = Channels.Reliable)
         {
-            if (logger.LogEnabled()) logger.Log("ConnectionSend " + this + " bytes:" + BitConverter.ToString(segment.Array, segment.Offset, segment.Count));
-
             //Debug.Log("ConnectionSend " + this + " bytes:" + BitConverter.ToString(segment.Array, segment.Offset, segment.Count));
 
             // validate packet size first.
@@ -157,10 +146,7 @@ namespace Mirror
                     batch.messages.Enqueue(writer);
                 }
                 // otherwise send directly to minimize latency
-                else
-                {
-                    Transport.activeTransport.ServerSend(connectionId, channelId, segment);
-                }
+                else Transport.activeTransport.ServerSend(connectionId, segment, channelId);
             }
         }
 
@@ -188,16 +174,20 @@ namespace Mirror
             }
         }
 
-        /// <summary>
-        /// Disconnects this connection.
-        /// </summary>
+        /// <summary>Disconnects this connection.</summary>
         public override void Disconnect()
         {
             // set not ready and handle clientscene disconnect in any case
             // (might be client or host mode here)
             isReady = false;
             Transport.activeTransport.ServerDisconnect(connectionId);
-            RemoveObservers();
+
+            // IMPORTANT: NetworkConnection.Disconnect() is NOT called for
+            // voluntary disconnects from the other end.
+            // -> so all 'on disconnect' cleanup code needs to be in
+            //    OnTransportDisconnect, where it's called for both voluntary
+            //    and involuntary disconnects!
+            RemoveFromObservingsObservers();
         }
     }
 }

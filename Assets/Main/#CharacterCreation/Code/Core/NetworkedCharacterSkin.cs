@@ -144,7 +144,7 @@ namespace CharacterCreation
             return (serverCachedSkinData.meshIndexes != null && serverCachedSkinData.meshModifierIndexes != null);
         }
 
-        [Command(ignoreAuthority = true)]
+        [Command(requiresAuthority = false)]
         private void Cmd_SendSkin(NetworkConnectionToClient conn = null)
         {
             StartCoroutine(WaitForSkin(conn));    

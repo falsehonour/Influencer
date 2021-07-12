@@ -98,8 +98,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 1
-  m_LightingDataAsset: {fileID: 112000000, guid: ba0171d09317c30458a85a8acf37a059,
-    type: 2}
+  m_LightingDataAsset: {fileID: 0}
   m_LightingSettings: {fileID: 1479912411}
 --- !u!196 &4
 NavMeshSettings:
@@ -7107,6 +7106,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sceneId: 955428300
   serverOnly: 0
+  visible: 0
   m_AssetId: 
   hasSpawned: 0
 --- !u!1001 &344516897
@@ -17825,9 +17825,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   dontDestroyOnLoad: 1
+  PersistNetworkManagerToOfflineScene: 0
   runInBackground: 1
   autoStartServerBuild: 1
-  showDebugMessages: 0
   serverTickRate: 42
   serverBatching: 0
   serverBatchInterval: 0
@@ -31530,6 +31530,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   secretHandshake: 2266394359029157180
   serverBroadcastListenPort: 47777
+  enableActiveDiscovery: 1
   ActiveDiscoveryInterval: 3
   transport: {fileID: 904242531}
   OnServerFound:
@@ -33380,7 +33381,7 @@ LightingSettings:
   m_Name: Settings.lighting
   serializedVersion: 3
   m_GIWorkflowMode: 1
-  m_EnableBakedLightmaps: 1
+  m_EnableBakedLightmaps: 0
   m_EnableRealtimeLightmaps: 0
   m_RealtimeEnvironmentLighting: 1
   m_BounceScale: 1
@@ -41058,6 +41059,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sceneId: 1274480754
   serverOnly: 0
+  visible: 0
   m_AssetId: 
   hasSpawned: 0
 --- !u!1 &1836011831
@@ -43863,8 +43865,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1963407830}
-  - component: {fileID: 1963407833}
-  - component: {fileID: 1963407832}
   - component: {fileID: 1963407831}
   m_Layer: 10
   m_Name: CapsuleCollider
@@ -43901,55 +43901,6 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
---- !u!23 &1963407832
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1963407829}
-  m_Enabled: 0
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
---- !u!33 &1963407833
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1963407829}
-  m_Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1001 &1966192524
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -48807,6 +48758,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sceneId: 2782559185
   serverOnly: 0
+  visible: 0
   m_AssetId: 
   hasSpawned: 0
 --- !u!114 &2538889142300940303
@@ -48906,6 +48858,11 @@ MonoBehaviour:
   localPositionSensitivity: 0.02
   localRotationSensitivity: 0.02
   localScaleSensitivity: 0.1
+  compressRotation: 0
+  interpolateScale: 1
+  interpolateRotation: 1
+  interpolatePosition: 1
+  syncScale: 1
 --- !u!114 &2538889142300940306
 MonoBehaviour:
   m_ObjectHideFlags: 0

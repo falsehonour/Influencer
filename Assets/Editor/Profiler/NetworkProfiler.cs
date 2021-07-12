@@ -177,9 +177,9 @@ namespace Mirror.Profiler
                     netId = msg.netId;
                     break;
 #endif
-                case UpdateVarsMessage msg:
+               /* case UpdateVarsMessage msg:
                     netId = msg.netId;
-                    break;
+                    break;*/
                 case RpcMessage msg:
                     netId = msg.netId;
                     break;

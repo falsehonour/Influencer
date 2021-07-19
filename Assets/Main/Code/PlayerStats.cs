@@ -1,73 +1,76 @@
 ﻿using System;
 using UnityEngine;
-using CharacterCreation;
 using System.Collections.Generic;
 
-namespace CharacterCreation
+namespace HashtagChampion
 {
-    [Serializable]
-    public class PlayerSkinDataHolder : ISavable
+    namespace CharacterCreation
     {
         [Serializable]
-        public struct Data
+        public class PlayerSkinDataHolder : ISavable
         {
-            public byte characterPrefabIndex;
-            public byte[] meshIndexes;
-            public byte[] meshModifierIndexes;
-            public Data(byte characterPrefabIndex, byte[] meshIndexes, byte[] meshModifierIndexes)
+            [Serializable]
+            public struct Data
             {
-                this.characterPrefabIndex = characterPrefabIndex;
-                this.meshIndexes = meshIndexes;
-                this.meshModifierIndexes = meshModifierIndexes;
-            }
-        }
-        public Data data;
-
-        public PlayerSkinDataHolder() { }
-
-        public PlayerSkinDataHolder(byte characterPrefabIndex, byte[] meshIndexes, byte[] meshModifierIndexes)
-        {
-            data = new Data(characterPrefabIndex, meshIndexes, meshModifierIndexes);
-        }
-
-        public string GetSaveFileName()
-        {
-            return "player_skin";
-        }
-
-        public static PlayerSkinDataHolder CreatePlayerSkinData(Character characterPreFab, CharacterMesh[] meshes, CharacterMeshMod[] modifiers)
-        {
-            CharacterReferences references = CharacterCreationReferencer.References;
-            byte characterPrefabIndex = (byte)references.GetCharacterPreFabIndex(characterPreFab);
-            List<byte> meshIndexes = new List<byte>();
-            for (int i = 0; i < meshes.Length; i++)
-            {
-                if(meshes[i] != null)
+                public byte characterPrefabIndex;
+                public byte[] meshIndexes;
+                public byte[] meshModifierIndexes;
+                public Data(byte characterPrefabIndex, byte[] meshIndexes, byte[] meshModifierIndexes)
                 {
-                    byte meshIndex = (byte)references.GetCharacterMeshIndex(meshes[i]);
-                    if (!meshIndexes.Contains(meshIndex))
-                    {
-                        meshIndexes.Add(meshIndex);
-                    }
+                    this.characterPrefabIndex = characterPrefabIndex;
+                    this.meshIndexes = meshIndexes;
+                    this.meshModifierIndexes = meshModifierIndexes;
                 }
             }
-            List<byte> modifierIndexes = new List<byte>();
-            for (int i = 0; i < modifiers.Length; i++)
+            public Data data;
+
+            public PlayerSkinDataHolder() { }
+
+            public PlayerSkinDataHolder(byte characterPrefabIndex, byte[] meshIndexes, byte[] meshModifierIndexes)
             {
-                if (modifiers[i] != null)
-                {
-                    byte modifierIndex = (byte)references.GetCharacterMeshModifierIndex(modifiers[i]);
-                    if (!modifierIndexes.Contains(modifierIndex))
-                    {
-                        modifierIndexes.Add(modifierIndex);
-                    }
-                }
+                data = new Data(characterPrefabIndex, meshIndexes, meshModifierIndexes);
             }
 
-            return new PlayerSkinDataHolder(characterPrefabIndex, meshIndexes.ToArray(), modifierIndexes.ToArray());
-        }
+            public string GetSaveFileName()
+            {
+                return "player_skin";
+            }
 
+            public static PlayerSkinDataHolder CreatePlayerSkinData(Character characterPreFab, CharacterMesh[] meshes, CharacterMeshMod[] modifiers)
+            {
+                CharacterReferences references = CharacterCreationReferencer.References;
+                byte characterPrefabIndex = (byte)references.GetCharacterPreFabIndex(characterPreFab);
+                List<byte> meshIndexes = new List<byte>();
+                for (int i = 0; i < meshes.Length; i++)
+                {
+                    if (meshes[i] != null)
+                    {
+                        byte meshIndex = (byte)references.GetCharacterMeshIndex(meshes[i]);
+                        if (!meshIndexes.Contains(meshIndex))
+                        {
+                            meshIndexes.Add(meshIndex);
+                        }
+                    }
+                }
+                List<byte> modifierIndexes = new List<byte>();
+                for (int i = 0; i < modifiers.Length; i++)
+                {
+                    if (modifiers[i] != null)
+                    {
+                        byte modifierIndex = (byte)references.GetCharacterMeshModifierIndex(modifiers[i]);
+                        if (!modifierIndexes.Contains(modifierIndex))
+                        {
+                            modifierIndexes.Add(modifierIndex);
+                        }
+                    }
+                }
+
+                return new PlayerSkinDataHolder(characterPrefabIndex, meshIndexes.ToArray(), modifierIndexes.ToArray());
+            }
+
+        }
     }
+
 }
 
 /*public static class LocalPlayerData
@@ -84,13 +87,13 @@ namespace CharacterCreation
     }*/
 
 
-   /* public static void SaveChanges()
-    {
-        SaveAndLoadManager.SavePlayerData(data);
-    }
+/* public static void SaveChanges()
+ {
+     SaveAndLoadManager.SavePlayerData(data);
+ }
 
-    public static LocalPlayerData LoadSavedData()
-    {
-       return SaveAndLoadManager.LoadPlayerSavedData();
-    }
+ public static LocalPlayerData LoadSavedData()
+ {
+    return SaveAndLoadManager.LoadPlayerSavedData();
+ }
 }*/

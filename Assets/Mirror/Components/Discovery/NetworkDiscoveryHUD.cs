@@ -11,6 +11,7 @@ namespace Mirror.Discovery
     {
         readonly Dictionary<long, ServerResponse> discoveredServers = new Dictionary<long, ServerResponse>();
         Vector2 scrollViewPos = Vector2.zero;
+        [SerializeField] private GUISkin overrideGUISkin;
 
         public NetworkDiscovery networkDiscovery;
 
@@ -25,13 +26,11 @@ namespace Mirror.Discovery
             }
         }
 #endif
-        [SerializeField] private GUISkin customGUISkin;
 
         void OnGUI()
         {
-            /* Font font = new Font();
-GUI.skin.font = font;// .fontSize = 32;*/
-            GUI.skin = customGUISkin;
+            GUI.skin = overrideGUISkin;
+
             if (NetworkManager.singleton == null)
                 return;
 
@@ -87,6 +86,7 @@ GUI.skin.font = font;// .fontSize = 32;*/
 
         void StopButtons()
         {
+
             // stop host if host mode
             if (NetworkServer.active && NetworkClient.isConnected)
             {

@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 
+namespace HashtagChampion
+{
 namespace CharacterCreation
 {
     [CreateAssetMenu(fileName = "CharacterMorph", menuName = "Character Creation Piece/CharacterMorph")]
@@ -18,4 +20,6 @@ namespace CharacterCreation
         public MorphBlendShape[] MorphBlendShapes => morphBlendShapes;
     }
 }
+}
+
     

@@ -1,53 +1,56 @@
-﻿namespace CharacterCreation
+﻿
+namespace HashtagChampion
 {
-    public static class CategoriesCompatability
+    namespace CharacterCreation
     {
-        public static MeshCategories GetCompatableMeshCategories(MeshModifierCategories modifierCategories)
+        public static class CategoriesCompatability
         {
-            MeshCategories meshCategories = 0;
-            for (int i = 0; i < categoriesCompatabilityBlocks.Length; i++)
+            public static MeshCategories GetCompatableMeshCategories(MeshModifierCategories modifierCategories)
             {
-                CompatabilityBlock compatabilityBlock = categoriesCompatabilityBlocks[i];
-                if ((modifierCategories & compatabilityBlock.ModifierCategories) != 0)
+                MeshCategories meshCategories = 0;
+                for (int i = 0; i < categoriesCompatabilityBlocks.Length; i++)
                 {
-                    meshCategories |= compatabilityBlock.MeshCategories;
+                    CompatabilityBlock compatabilityBlock = categoriesCompatabilityBlocks[i];
+                    if ((modifierCategories & compatabilityBlock.ModifierCategories) != 0)
+                    {
+                        meshCategories |= compatabilityBlock.MeshCategories;
+                    }
+                }
+
+                return meshCategories;
+            }
+
+            public static MeshModifierCategories GetCompatableModifierCategories(MeshCategories meshCategories)
+            {
+                MeshModifierCategories modifierCategories = 0;
+                for (int i = 0; i < categoriesCompatabilityBlocks.Length; i++)
+                {
+                    CompatabilityBlock compatabilityBlock = categoriesCompatabilityBlocks[i];
+                    if ((meshCategories & compatabilityBlock.MeshCategories) != 0)
+                    {
+                        modifierCategories |= compatabilityBlock.ModifierCategories;
+                    }
+                }
+
+                return modifierCategories;
+            }
+
+            private struct CompatabilityBlock
+            {
+                private readonly MeshModifierCategories modifierCategories;
+                private readonly MeshCategories meshCategories;
+                public MeshModifierCategories ModifierCategories => modifierCategories;
+                public MeshCategories MeshCategories => meshCategories;
+
+                public CompatabilityBlock(MeshModifierCategories modifierCategories, MeshCategories meshCategories)
+                {
+                    this.modifierCategories = modifierCategories;
+                    this.meshCategories = meshCategories;
                 }
             }
 
-            return meshCategories;
-        }
-
-        public static MeshModifierCategories GetCompatableModifierCategories(MeshCategories meshCategories)
-        {
-            MeshModifierCategories modifierCategories = 0;
-            for (int i = 0; i < categoriesCompatabilityBlocks.Length; i++)
+            private static readonly CompatabilityBlock[] categoriesCompatabilityBlocks =
             {
-                CompatabilityBlock compatabilityBlock = categoriesCompatabilityBlocks[i];
-                if ((meshCategories & compatabilityBlock.MeshCategories) != 0)
-                {
-                    modifierCategories |= compatabilityBlock.ModifierCategories;
-                }
-            }
-
-            return modifierCategories;
-        }
-
-        private struct CompatabilityBlock
-        {
-            private readonly MeshModifierCategories modifierCategories;
-            private readonly MeshCategories meshCategories;
-            public MeshModifierCategories ModifierCategories => modifierCategories;
-            public MeshCategories MeshCategories => meshCategories;
-
-            public CompatabilityBlock(MeshModifierCategories modifierCategories, MeshCategories meshCategories)
-            {
-                this.modifierCategories = modifierCategories;
-                this.meshCategories = meshCategories;
-            }
-        }
-
-        private static readonly CompatabilityBlock[] categoriesCompatabilityBlocks =
-        {
            new CompatabilityBlock(MeshModifierCategories.FaceMorph, MeshCategories.Body),
            new CompatabilityBlock(MeshModifierCategories.NoseMorph, MeshCategories.Body),
            new CompatabilityBlock(MeshModifierCategories.MouthMorph, MeshCategories.Body),
@@ -61,5 +64,8 @@
            new CompatabilityBlock(MeshModifierCategories.EyeColourTextures, MeshCategories.Body),
 
         };
+        }
     }
+
 }
+

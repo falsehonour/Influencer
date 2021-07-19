@@ -1,0 +1,107 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &7761816779606606926
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3788985800713552737}
+  - component: {fileID: 1260470160843082939}
+  m_Layer: 0
+  m_Name: Girl_FullBody0
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3788985800713552737
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7761816779606606926}
+  m_LocalRotation: {x: -0.7071068, y: 0, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: -0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!137 &1260470160843082939
+SkinnedMeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7761816779606606926}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: ff1f9cf7c16f4a74cad24eaabd7e4cd5, type: 2}
+  - {fileID: 2100000, guid: 474b6c4d9e93607408183b272f025867, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  serializedVersion: 2
+  m_Quality: 0
+  m_UpdateWhenOffscreen: 0
+  m_SkinnedMotionVectors: 1
+  m_Mesh: {fileID: 4300000, guid: 6952fe4e6a7ae014bafad4c14d471b50, type: 2}
+  m_Bones:
+  - {fileID: -3271373375355014143, guid: b15ba841d036a244cb3f7dcd04e3512d, type: 3}
+  - {fileID: 2391989992480274452, guid: b15ba841d036a244cb3f7dcd04e3512d, type: 3}
+  - {fileID: -1948201623134130644, guid: b15ba841d036a244cb3f7dcd04e3512d, type: 3}
+  - {fileID: -1189196738635028255, guid: b15ba841d036a244cb3f7dcd04e3512d, type: 3}
+  - {fileID: -7712589135821807252, guid: b15ba841d036a244cb3f7dcd04e3512d, type: 3}
+  - {fileID: -7809473752575366837, guid: b15ba841d036a244cb3f7dcd04e3512d, type: 3}
+  - {fileID: -7751294896354107140, guid: b15ba841d036a244cb3f7dcd04e3512d, type: 3}
+  - {fileID: 4779056940804796993, guid: b15ba841d036a244cb3f7dcd04e3512d, type: 3}
+  - {fileID: -9091347292355720792, guid: b15ba841d036a244cb3f7dcd04e3512d, type: 3}
+  - {fileID: 6294965493739774372, guid: b15ba841d036a244cb3f7dcd04e3512d, type: 3}
+  - {fileID: -3706592392703345541, guid: b15ba841d036a244cb3f7dcd04e3512d, type: 3}
+  - {fileID: 3115440843870951285, guid: b15ba841d036a244cb3f7dcd04e3512d, type: 3}
+  - {fileID: 5628763692326693746, guid: b15ba841d036a244cb3f7dcd04e3512d, type: 3}
+  - {fileID: -7038653687078290109, guid: b15ba841d036a244cb3f7dcd04e3512d, type: 3}
+  - {fileID: -8709869413478730099, guid: b15ba841d036a244cb3f7dcd04e3512d, type: 3}
+  - {fileID: -4695965559474300436, guid: b15ba841d036a244cb3f7dcd04e3512d, type: 3}
+  - {fileID: 9088701947054368463, guid: b15ba841d036a244cb3f7dcd04e3512d, type: 3}
+  - {fileID: -6081470830831867213, guid: b15ba841d036a244cb3f7dcd04e3512d, type: 3}
+  - {fileID: 6828972192591493113, guid: b15ba841d036a244cb3f7dcd04e3512d, type: 3}
+  - {fileID: 7832530994782193614, guid: b15ba841d036a244cb3f7dcd04e3512d, type: 3}
+  - {fileID: -1181531605344838280, guid: b15ba841d036a244cb3f7dcd04e3512d, type: 3}
+  - {fileID: 1872232550404790105, guid: b15ba841d036a244cb3f7dcd04e3512d, type: 3}
+  m_BlendShapeWeights: []
+  m_RootBone: {fileID: 3788985800713552737}
+  m_AABB:
+    m_Center: {x: -0.06961316, y: -0.01998514, z: 0.0000013113022}
+    m_Extent: {x: 0.4577766, y: 0.2810053, z: 0.35793573}
+  m_DirtyAABB: 0

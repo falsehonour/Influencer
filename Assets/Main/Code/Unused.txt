@@ -87,3 +87,89 @@ velocity.x = movement.x;
              UpdateFakeFootballButtonText();
          }
      }*/
+
+
+
+             float velocitySquaredMagnitude = controlledVelocity.sqrMagnitude;
+        float maxVelocitySquaredMagnitude = currentMaxMovementSpeed * currentMaxMovementSpeed;//TODO: Pre-Calculate
+        float velocityPercentage = (velocitySquaredMagnitude / maxVelocitySquaredMagnitude);
+
+        if(velocityPercentage < 0.1f)//HARDCODED
+        {
+            //Stay in place if input is negligible
+            controlledVelocity = Vector3.zero;
+            velocityPercentage = 0;
+        } 
+        //Debug.Log($"velocitySquaredMagnitude: {velocitySquaredMagnitude.ToString("f2")}");
+        if(animator != null)
+        {
+            //TODO: do this in bigger intervals for performance
+            animator.SetFloat(AnimatorParameters.Speed, velocityPercentage);
+        }
+
+		                /*if (serverData.trapTimer.IsActive)
+                {
+                    Debug.LogError("NOT IMPLEMENTED anymore..");
+                    bool unTrap = serverData.trapTimer.Update(deltaTime);
+                    if (unTrap)
+                    {
+                        maxMovementSpeed = PlayerServerData.MAX_HEALTHY_MOVEMENT_SPEED;
+                    }
+                }*/
+
+
+				    /*[Client]
+    public void TryThrowFootball()
+    {
+        //Debug.Log("TryShoot");
+        fakeFootballButton.Press();
+
+        if (footballCount > 0)
+        {
+            networkAnimator.SetTrigger(AnimatorParameters.Throw);
+            Cmd_TryThrowFootball(myTransform.position, myTransform.rotation);
+        }
+    }*/
+
+    /*[Command]
+    private void Cmd_TryThrowFootball(Vector3 clientPlayerPosition, Quaternion clientRotation)
+    {
+        if (footballCount > 0)
+        {
+            footballCount--;
+            Vector3 ballSpawnPosition =
+                (clientPlayerPosition + (myTransform.forward * 1f) + (Vector3.up * 0.5f));//HARDCODED
+            Quaternion ballSpawnRotation = clientRotation;
+            Spawner.Spawn(Spawnables.ThrownFootball, ballSpawnPosition, ballSpawnRotation);
+        }
+    }
+    */
+
+
+	    private void UpdateBackgroundImage()
+    {
+        fillImage.fillAmount = (timeLeft / initialTime);
+    }
+
+
+	    private void OnCollisionEnter(Collision collision)
+    {
+        //Debug.Log("Banana: OnCollisionEnter");
+
+        if (IsAlive)
+        {
+            if (isServer)
+            {
+                //TODO: These invokes mess up everythin, put some death timer instead
+                PlayerController playerController = 
+                    collision.gameObject.GetComponentInParent<PlayerController>();
+                if(playerController != null)
+                {
+                    Debug.Log("Banana: playerController != null");
+                    playerController.OnFootballHit();
+                    CancelInvoke("Die");
+                    Die();
+                }
+            }
+        }
+    }

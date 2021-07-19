@@ -2,7 +2,7 @@
 using UnityEngine;
 using Mirror;
 
-public class Spawnable : NetworkBehaviour
+public abstract class Spawnable : NetworkBehaviour
 {
     private static readonly Vector3 HIDDEN_LOCATION = new Vector3(0, -10, 0);
     //private NetworkTransform networkTransform;
@@ -16,22 +16,22 @@ public class Spawnable : NetworkBehaviour
     }
 
     [Server]
-    public void Spawn(Vector3 position, Quaternion rotation)
+    public void Spawn(Vector3 position, Quaternion rotation, uint callerNetID)
     {
-        OnSpawn(position, rotation);
-        Rpc_Spawn(position, rotation);
+        OnSpawn(position, rotation, callerNetID);
+        Rpc_Spawn(position, rotation, callerNetID);
     }
 
     [ClientRpc]
-    private void Rpc_Spawn(Vector3 position, Quaternion rotation)
+    private void Rpc_Spawn(Vector3 position, Quaternion rotation, uint callerNetID)
     {
         if (isClientOnly)
         {
-            OnSpawn(position, rotation);
+            OnSpawn(position, rotation, callerNetID);
         }
     }
 
-    protected virtual void OnSpawn(Vector3 position, Quaternion rotation)
+    protected virtual void OnSpawn(Vector3 position, Quaternion rotation, uint callerNetID)
     {
         // gameObject.SetActive(true);
         myTransform.position = position;
@@ -74,17 +74,21 @@ public class Spawnable : NetworkBehaviour
     {
         float size = 1;
 
-        while (size > 0)
+        while (true)
         {
             if (IsAlive)
             {
-                goto Break;
+                goto StopCoroutine;
             }
             size -= speed * Time.deltaTime;
+            if(size < 0)
+            {
+                break;
+            }
             myTransform.localScale = size * Vector3.one;
             yield return null;
         }
         myTransform.localScale = Vector3.zero;
-    Break: { }
+    StopCoroutine: { }
     }
 }

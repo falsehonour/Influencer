@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: Girl_FullBody0_Texture1
   m_EditorClassIdentifier: 
   characterPieces:
-  - {fileID: 11400000, guid: 1fee6e51da3b2e84f8fc2c3b5beb5328, type: 2}
+  - {fileID: 11400000, guid: 70353398a6796c840a369e68a025e088, type: 2}
+  characterPreFab: {fileID: 0}
   linkedButtonBehaviours: []
   icon: {fileID: 0}
+  iconTint: {r: 1, g: 1, b: 1, a: 1}

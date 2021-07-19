@@ -1,0 +1,24 @@
+            //NOTE: Why the FUCK does mirror not sync the the top three???
+            //I think I understand: Our NetworkAnimator only cares about parameters that used to be on our original animator. 
+            //This means that further bugs may occur due to the animator swap we do 
+            /*animator.SetInteger(AnimatorParameters.SpeedState, animationSpeedState);
+            animator.SetInteger("WhatTheHellInt", animationSpeedState);
+            animator.SetFloat("WhatTheHellFloat", animationSpeedState);
+            animator.SetFloat(AnimatorParameters.Speed, animationSpeedState);*/
+
+
+
+                    private char definedChar = ' ';
+        private char undefinedChar;
+
+        private void Test()
+        {
+            string defined = string.Empty;
+            defined += "0" + definedChar;
+            defined += "1";
+            Debug.Log(defined);//prints "0 1"
+
+            string undefined = "0" + undefinedChar;
+            undefined += "1";
+            Debug.Log(undefined);//prints "0"
+        }

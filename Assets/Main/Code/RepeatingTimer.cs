@@ -1,4 +1,6 @@
-﻿
+﻿using System;
+using System.Runtime.CompilerServices;
+
 public struct RepeatingTimer
 {
     private float timeLeft;
@@ -29,21 +31,43 @@ public struct RepeatingTimer
             return false;
         }
     }
+    public void SetCurrentIteration(float value)
+    {
+        if (value < 0)
+        {
+            UnityEngine.Debug.LogWarning("Can't set timeLeft to less than zero. Bye!");
+            value = 0;
+        }
+        timeLeft = value;
+    }
+    /*public void AddToCurrentIteration(float addition)
+    {
+        if(addition < 0)
+        {
+            UnityEngine.Debug.LogWarning("AddToCurrentIteration is meant for positive additions only. Bye!");
+            return;
+        }
+        timeLeft += addition;
+    }*/
+
+
 }
 
 public struct SingleCycleTimer
 {
     private float timeLeft;
-    private bool isActive;
-    public bool IsActive
+    public float TimeLeft => timeLeft;
+    //private bool isActive;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool IsActive() 
     {
-       get { return isActive; }
+        return timeLeft > 0; 
     }
 
     public void Start(float time)
     {
         timeLeft = time;
-        isActive = true;
+        //isActive = true;
     }
 
     public bool Update(float timePassed)
@@ -52,7 +76,7 @@ public struct SingleCycleTimer
         timeLeft -= timePassed;
         if (timeLeft < 0)
         {
-            isActive = false;
+            //isActive = false;
             return true;
         }
         else

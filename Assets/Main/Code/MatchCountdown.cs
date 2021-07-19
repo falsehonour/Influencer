@@ -5,117 +5,116 @@ using UnityEngine;
 using Mirror;
 using UnityEngine.UI;
 
-public class MatchCountdown : NetworkBehaviour
+namespace HashtagChampion
 {
-    //TODO: Perhaps seperate into 2 classed, one for server and one for client graphics??? 
-    [SerializeField] private GameObject UIObject;
-    [SerializeField] private TMPro.TextMeshProUGUI text;
-    [SerializeField] private Image fillImage;
-
-    private float initialTime;
-    private float timeLeft;
-    private Coroutine countRoutine;
-    //private bool isActive;
-    //private UInt16 previousTimeLeftUInt16;
-
-    private void Start()
+    public class MatchCountdown : NetworkBehaviour
     {
-        ShowGraphics(false);
-    }
+        //TODO: Perhaps seperate into 2 classed, one for server and one for client graphics??? 
+        [SerializeField] private GameObject UIObject;
+        [SerializeField] private Image[] digits;
+        [SerializeField] private Sprite[] digitsSprites;
 
-    [Server]
-    public void Server_StartCounting(float time)
-    {
-        /* timeLeft = time;
-         previousTimeLeftUInt16 = 0;*/
-        countRoutine = StartCoroutine(CountdownRoutine(time));
-        Rpc_StartCounting(time);
-       // isActive = true;
-    }
+        private float timeLeft;
+        private Coroutine countRoutine;
+        //private UInt16 previousTimeLeftUInt16;
 
-    [ClientRpc]
-    private void Rpc_StartCounting(float time)
-    {
-        if (isClientOnly)
+        private void Start()
         {
-            countRoutine = StartCoroutine(CountdownRoutine(time));
+            ShowGraphics(false);
         }
-    }
 
-    private IEnumerator CountdownRoutine(float time)
-    {
-        ShowGraphics(true);
-
-        UInt16 previousTimeLeftUInt16 = 0;
-        initialTime = time;
-        timeLeft = time;
-        bool dedicatedServer = isServerOnly;
-        while (timeLeft > 0)
+        [Server]
+        public void Server_StartCounting(float time)
         {
-            //TODO: will it be more efficient to wait for seconds..?
-            timeLeft -= Time.deltaTime;
-            if (!dedicatedServer)
+            /* timeLeft = time;
+             previousTimeLeftUInt16 = 0;*/
+            countRoutine = StartCoroutine(CountdownRoutine(time));
+            Rpc_StartCounting(time);
+            // isActive = true;
+        }
+
+        [ClientRpc]
+        private void Rpc_StartCounting(float time)
+        {
+            if (isClientOnly)
             {
-                UInt16 currentTimeLeftUInt16 = (UInt16)timeLeft;
-                if (currentTimeLeftUInt16 != previousTimeLeftUInt16)
+                countRoutine = StartCoroutine(CountdownRoutine(time));
+            }
+        }
+
+        private IEnumerator CountdownRoutine(float time)
+        {
+            ShowGraphics(true);
+
+            UInt16 previousTimeLeftUInt16 = 0;
+            timeLeft = time;
+            bool dedicatedServer = isServerOnly;
+            do //while (timeLeft > 0)
+            {
+                //TODO: will it be more efficient to wait for seconds..?
+                timeLeft -= Time.deltaTime;
+                if (!dedicatedServer)
                 {
-                    UpdateText(currentTimeLeftUInt16);
+                    UInt16 currentTimeLeftUInt16 = (UInt16)Mathf.CeilToInt(timeLeft);
+                    if (currentTimeLeftUInt16 != previousTimeLeftUInt16)
+                    {
+                        UpdateDigits(currentTimeLeftUInt16);
+                    }
+                    previousTimeLeftUInt16 = currentTimeLeftUInt16;
                 }
-                UpdateBackgroundImage();
-                previousTimeLeftUInt16 = currentTimeLeftUInt16;
+
+                yield return null;
+
+            } while (timeLeft > 0);
+
+            if (isServer)
+            {
+                GameManager.OnCountdownStopped();
             }
 
-            yield return null;
         }
 
-        //TODO: cache his bool so we don't call a getter..?
-        if (isServer)
+        private void ShowGraphics(bool value)
         {
-            GameManager.OnCountdownStopped();
+            UIObject.SetActive(value);
         }
 
-    }
+        private void UpdateDigits(UInt16 timeLeft)
+        {
+            string timeLeftString = timeLeft.ToString();
+            int digitsDifference = digits.Length - timeLeftString.Length;
+            if (digitsDifference > 0)
+            {
 
-    private void ShowGraphics(bool value)
-    {
-        UIObject.SetActive(value);
-    }
+                for (int i = digits.Length - 1; i > digits.Length - 1 - digitsDifference; i--)
+                {
+                    digits[i].sprite = digitsSprites[0];
+                }
+            }
+            //int length = timeLeftString.Length < digits.Length ? timeLeftString.Length : digits.Length;
+            for (int i = 0; i < timeLeftString.Length; i++)
+            {
+                char digitIndexChar = timeLeftString[i];
+                int digitIndex = int.Parse(digitIndexChar.ToString());
+                Sprite sprite = digitsSprites[digitIndex];
+                digits[timeLeftString.Length - 1 - i].sprite = sprite;
+            }
+        }
 
-    private void UpdateText(UInt16 timeLeft)
-    {
-        text.text = timeLeft.ToString();
-    }
-
-    private void UpdateBackgroundImage()
-    {
-        fillImage.fillAmount = (timeLeft / initialTime);
-    }
-
-    [Server]
-    public void Server_StopCounting()
-    {
-        StopCoroutine(countRoutine);
-        Rpc_StopCounting();
-    }
-
-    [ClientRpc]
-    public void Rpc_StopCounting()
-    {
-        if (isClientOnly)
+        [Server]
+        public void Server_StopCounting()
         {
             StopCoroutine(countRoutine);
+            Rpc_StopCounting();
+        }
+
+        [ClientRpc]
+        public void Rpc_StopCounting()
+        {
+            if (isClientOnly)
+            {
+                StopCoroutine(countRoutine);
+            }
         }
     }
-    /* [ClientRpc]
-private void Rpc_UpdateText(UInt16 timeLeft)
-{
-    text.text = timeLeft.ToString();
-}*/
-
-    /*[Server]
-private void StopCounting()
-{
-    isActive = false;
-    GameManager.OnCounterStopped();
-}*/
 }

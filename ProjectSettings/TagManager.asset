@@ -16,10 +16,10 @@ TagManager:
   - Bullets
   - Particles
   - Players
-  - 
-  - 
-  - 
-  - 
+  - PhysicalMines
+  - TriggerMines
+  - NoPhysics
+  - Enviroment
   - 
   - 
   - 

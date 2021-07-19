@@ -6,13 +6,7 @@ public class DirectionsTest : MonoBehaviour
 {
     [SerializeField] private Transform a;
     [SerializeField] private Transform b;
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
+    [SerializeField] private float multiplier;
     // Update is called once per frame
     void Update()
     {
@@ -24,9 +18,21 @@ public class DirectionsTest : MonoBehaviour
 
     private void Test()
     {
-        Vector3 vector = (a.forward - b.forward);
-        Debug.Log("vector:" + vector);
-        Debug.Log("vector mag:" + vector.sqrMagnitude);
+         Vector3 vector = (a.forward - b.forward);
+         Debug.Log("vector:" + vector);
+         float sqrMagnitude = vector.sqrMagnitude;
+         Debug.Log("sqrMagnitude:" + sqrMagnitude.ToString());
+         float normalisedSqrMagnitude = sqrMagnitude * multiplier;
+         Debug.Log("normalisedSqrMagnitude:" + normalisedSqrMagnitude);
+        /* Vector3 af = a.forward;
+         Vector3 bf = b.forward;
+         Vector3 vector = new Vector3
+             (Mathf.Abs(af.x - bf.x), Mathf.Abs(af.y - bf.y), Mathf.Abs(af.z - bf.z));
+         Debug.Log("vector:" + vector);
+         Debug.Log("vector mag:" + vector.magnitude); */
+
+        /*Debug.Log("a.y" + a.rotation.eulerAngles.y);
+        Debug.Log("b.y" + b.rotation.eulerAngles.y);*/
 
     }
 }

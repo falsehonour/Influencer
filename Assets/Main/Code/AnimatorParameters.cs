@@ -4,18 +4,21 @@ using UnityEngine;
 
 public static class AnimatorParameters
 {
-    public static readonly int Speed = Animator.StringToHash(nameof(Speed));
     public static readonly int Push = Animator.StringToHash(nameof(Push));
     public static readonly int FlipForward = Animator.StringToHash(nameof(FlipForward));
+    public static readonly int FallBackward = Animator.StringToHash(nameof(FallBackward));
     public static readonly int Slap = Animator.StringToHash(nameof(Slap));
     public static readonly int Recover = Animator.StringToHash(nameof(Recover));
     public static readonly int Lose = Animator.StringToHash(nameof(Lose));
-    public static readonly int Win = Animator.StringToHash(nameof(Win));
+    public static readonly int Dance = Animator.StringToHash(nameof(Dance));
+    public static readonly int DanceIndex = Animator.StringToHash(nameof(DanceIndex));
     public static readonly int ThrowForward = Animator.StringToHash(nameof(ThrowForward));
     public static readonly int ThrowBackward = Animator.StringToHash(nameof(ThrowBackward));
-
-
-
+    public static readonly int Gait = Animator.StringToHash(nameof(Gait));
+    public static readonly int State = Animator.StringToHash(nameof(State));
+    public static readonly int Shoot = Animator.StringToHash(nameof(Shoot));
+    public static readonly int Kick = Animator.StringToHash(nameof(Kick));
+    public static readonly int Hurting = Animator.StringToHash(nameof(Hurting));
     /* static AnimatorParameters()
      {
          //TODO: Is there a way to throw the fields in a collection and itterate over them..?

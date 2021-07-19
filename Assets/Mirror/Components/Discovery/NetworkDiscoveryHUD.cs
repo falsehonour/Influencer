@@ -5,12 +5,13 @@ namespace Mirror.Discovery
 {
     [DisallowMultipleComponent]
     [AddComponentMenu("Network/NetworkDiscoveryHUD")]
-    [HelpURL("https://mirror-networking.com/docs/Articles/Components/NetworkDiscovery.html")]
+    [HelpURL("https://mirror-networking.gitbook.io/docs/components/network-discovery")]
     [RequireComponent(typeof(NetworkDiscovery))]
     public class NetworkDiscoveryHUD : MonoBehaviour
     {
         readonly Dictionary<long, ServerResponse> discoveredServers = new Dictionary<long, ServerResponse>();
         Vector2 scrollViewPos = Vector2.zero;
+        [SerializeField] private GUISkin overrideGUISkin;
 
         public NetworkDiscovery networkDiscovery;
 
@@ -28,14 +29,16 @@ namespace Mirror.Discovery
 
         void OnGUI()
         {
-            if (NetworkManager.singleton == null)
-                return;
+            GUI.skin = overrideGUISkin;
 
-            if (NetworkServer.active || NetworkClient.active)
+            if (NetworkManager.singleton == null)
                 return;
 
             if (!NetworkClient.isConnected && !NetworkServer.active && !NetworkClient.active)
                 DrawGUI();
+
+            if (NetworkServer.active || NetworkClient.active)
+                StopButtons();
         }
 
         void DrawGUI()
@@ -79,6 +82,36 @@ namespace Mirror.Discovery
                     Connect(info);
 
             GUILayout.EndScrollView();
+        }
+
+        void StopButtons()
+        {
+
+            // stop host if host mode
+            if (NetworkServer.active && NetworkClient.isConnected)
+            {
+                if (GUILayout.Button("Stop Host"))
+                {
+                    NetworkManager.singleton.StopHost();
+                }
+            }
+            // stop client if client-only
+            else if (NetworkClient.isConnected)
+            {
+                if (GUILayout.Button("Stop Client"))
+                {
+                    NetworkManager.singleton.StopClient();
+                }
+            }
+            // stop server if server-only
+            else if (NetworkServer.active)
+            {
+                if (GUILayout.Button("Stop Server"))
+                {
+                    NetworkManager.singleton.StopServer();
+                }
+            }
+
         }
 
         void Connect(ServerResponse info)

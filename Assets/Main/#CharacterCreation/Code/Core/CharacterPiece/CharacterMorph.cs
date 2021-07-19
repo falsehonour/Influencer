@@ -1,9 +1,11 @@
 ﻿using UnityEngine;
 
+namespace HashtagChampion
+{
 namespace CharacterCreation
 {
     [CreateAssetMenu(fileName = "CharacterMorph", menuName = "Character Creation Piece/CharacterMorph")]
-    public class CharacterMorph : CharacterMeshModifier
+    public class CharacterMorph : CharacterMeshMod
     {
         [System.Serializable]
         public struct MorphBlendShape
@@ -18,4 +20,6 @@ namespace CharacterCreation
         public MorphBlendShape[] MorphBlendShapes => morphBlendShapes;
     }
 }
+}
+
     

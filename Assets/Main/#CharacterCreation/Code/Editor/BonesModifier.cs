@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using UnityEditor;
 
+namespace HashtagChampion
+{
 namespace CharacterCreation
 {
     public class BonesModifier : EditorWindow
@@ -37,5 +39,7 @@ namespace CharacterCreation
             }
         }
     }
+}
+
 }
 

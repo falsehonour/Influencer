@@ -3,40 +3,54 @@ using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
 
-public class TagNetworkManager : NetworkManager
+namespace HashtagChampion
 {
-    [SerializeField] private GameManager gameManager;
-
-    private void Start()
+    public class TagNetworkManager : NetworkManager
     {
-        RegisterPrefabs();
-    }
+        [SerializeField] private GameManager gameManager;
 
-    public override void OnStartServer()
-    {
-        base.OnStartServer();
-        Spawner.Initialise();
-        StartCoroutine(InitialiseGameManager());
-    }
 
-    private IEnumerator InitialiseGameManager()
-    {
-        while (!gameManager.isActiveAndEnabled)
+        public override void Start()
         {
-
-            yield return new WaitForSeconds(0.1f);
+            base.Start();
+            RegisterPrefabs();
 
         }
-        gameManager.OnServerStarted();
-    }
-
-    private void RegisterPrefabs()
-    {
-        GameObject[] prefabs = Spawner.GetAllSpawnablePrefabs();
-        for (int i = 0; i < prefabs.Length; i++)
+        public override void OnStartServer()
         {
-            GameObject prefab = prefabs[i];
-            ClientScene.RegisterPrefab(prefab);
+            base.OnStartServer();
+            Spawner.Initialise();
+            StartCoroutine(InitialiseGameManager());
+        }
+
+        private IEnumerator InitialiseGameManager()
+        {
+            if (gameManager)
+            {
+                while (!gameManager.isActiveAndEnabled)
+                {
+
+                    yield return new WaitForSeconds(0.1f);
+
+                }
+                gameManager.OnServerStarted();
+            }
+            else
+            {
+                Debug.LogError("gameManager is null. cannot initialise it");
+            }
+        }
+
+        private void RegisterPrefabs()
+        {
+            GameObject[] prefabs = Spawner.GetAllSpawnablePrefabs();
+            for (int i = 0; i < prefabs.Length; i++)
+            {
+                GameObject prefab = prefabs[i];
+                NetworkClient.RegisterPrefab(prefab);
+                //ClientScene.RegisterPrefab(prefab);
+            }
         }
     }
 }
+

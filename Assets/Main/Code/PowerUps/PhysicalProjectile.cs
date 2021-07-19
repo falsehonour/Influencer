@@ -4,146 +4,151 @@ using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
 
-public abstract class PhysicalProjectile : Spawnable
+namespace HashtagChampion
 {
-    private const int PROJECTILE_LAYER = 8;
-    private const int PARTICLES_LAYER = 9;
-    //private static readonly float FIXED_UPDATE_SPEED = SPEED * Time.fixedDeltaTime;
-    [SerializeField] private Rigidbody rigidbody;
-    [SerializeField] private Collider myCollider;
-    private Collider ignoredCollider;
-    //private Vector3 cachedFixedUpdateMovement;
-    private bool isFlying;
-
-
-    protected virtual float Speed { get; }
-
-
-    protected override void OnSpawn(Vector3 position, Quaternion rotation, uint callerNetId)
+    public abstract class PhysicalProjectile : Spawnable
     {
-        base.OnSpawn(position, rotation, callerNetId);
-        //TODO: Stop invoking.. use our custom timer perhaps;
-        if (isServer)
+        private const int PROJECTILE_LAYER = 8;
+        private const int PARTICLES_LAYER = 9;
+        //private static readonly float FIXED_UPDATE_SPEED = SPEED * Time.fixedDeltaTime;
+        [SerializeField] private Rigidbody rigidbody;
+        [SerializeField] private Collider myCollider;
+        private Collider ignoredCollider;
+        //private Vector3 cachedFixedUpdateMovement;
+        private bool isFlying;
+
+
+        protected virtual float Speed { get; }
+
+
+        protected override void OnSpawn(Vector3 position, Quaternion rotation, uint callerNetId)
         {
-            CancelInvoke("Die");
-        }
-        Invoke("Die", 8f);
-        //cachedFixedUpdateMovement = myTransform.forward * SPEED * Time.fixedDeltaTime;
-        myTransform.localScale = Vector3.one;
-        //TODO: Go back to the previous system where callerNetId is sent seperately from OnSpawn. 
-        //Most spawnables don't care about their senders and the delay you thought you saw might not exist
-        NetworkIdentity networkIdentity = NetworkIdentity.spawned[callerNetId];
-        if (networkIdentity == null)
-        {
-            Debug.LogError($"THE NETWORK IDENTITY {callerNetId} LOOKING FOR DOES NOT EXIST!");
-        }
-        else
-        {
-            Collider collider = networkIdentity.GetComponent<Collider>();
-            if(collider == null)
+            base.OnSpawn(position, rotation, callerNetId);
+            //TODO: Stop invoking.. use our custom timer perhaps;
+            if (isServer)
             {
-                Debug.LogError($"This networkIdentity {networkIdentity.name} has no collider to speak of...!");
+                CancelInvoke("Die");
+            }
+            Invoke("Die", 8f);
+            //cachedFixedUpdateMovement = myTransform.forward * SPEED * Time.fixedDeltaTime;
+            myTransform.localScale = Vector3.one;
+            //TODO: Go back to the previous system where callerNetId is sent seperately from OnSpawn. 
+            //Most spawnables don't care about their senders and the delay you thought you saw might not exist
+            NetworkIdentity networkIdentity = NetworkIdentity.spawned[callerNetId];
+            if (networkIdentity == null)
+            {
+                Debug.LogError($"THE NETWORK IDENTITY {callerNetId} LOOKING FOR DOES NOT EXIST!");
             }
             else
             {
-                IgnoreCollider(collider);
-            }
-        }
-
-
-        rigidbody.isKinematic = false;
-        rigidbody.useGravity = false;
-        rigidbody.angularVelocity = Vector3.zero;
-        rigidbody.velocity = Vector3.zero;
-        rigidbody.AddForce(myTransform.forward * Speed, ForceMode.VelocityChange);
-        //rigidbody.isKinematic = true;
-        isFlying = true;
-
-        PhysicsUtility.SetRootAndDecendentsLayers(gameObject, PROJECTILE_LAYER);
-    }
-
-    protected override void OnDeath()
-    {
-        base.OnDeath();
-        rigidbody.isKinematic = true;
-        //Hide();
-        StartCoroutine(Shrink(3f));
-    }
-
-    private void OnCollisionEnter(Collision collision)
-    {
-        if (IsAlive && isFlying)
-        {
-            if (isServer)
-            {
-                //TODO: These invokes mess up everythin, put some death timer instead
-                CancelInvoke("Die");
-                Invoke("Die", 2f);//HARDCODED
-                PlayerController player = collision.gameObject.GetComponent<PlayerController>();
-                if(player != null /*&& player != originator*/)
+                Collider collider = networkIdentity.GetComponent<Collider>();
+                if (collider == null)
                 {
-                    Debug.Log("Player HIT");
-                    Hit(player);
-                    //playerController.OnFootballHit();
+                    Debug.LogError($"This networkIdentity {networkIdentity.name} has no collider to speak of...!");
                 }
-                // Server_OnTriggerEnter(other);
-            }
-            Stop();
-        }
-    }
-
-   /* private void OnTriggerEnter(Collider other)
-    {
-        if (IsAlive && isFlying)
-        {
-            if (isServer)
-            {
-                //TODO: These invokes mess up everythin, put some death timer instead
-                CancelInvoke("Die");
-                Invoke("Die", 2f);//HARDCODED
-                PlayerController player = other.gameObject.GetComponent<PlayerController>();
-                if (player != null)
+                else
                 {
-                    Debug.Log("Player HIT");
-                    Hit(player);
+                    IgnoreCollider(collider);
                 }
             }
-            Stop();
+
+
+            rigidbody.isKinematic = false;
+            rigidbody.useGravity = false;
+            rigidbody.angularVelocity = Vector3.zero;
+            rigidbody.velocity = Vector3.zero;
+            rigidbody.AddForce(myTransform.forward * Speed, ForceMode.VelocityChange);
+            //rigidbody.isKinematic = true;
+            isFlying = true;
+
+            PhysicsUtility.SetRootAndDecendentsLayers(gameObject, PROJECTILE_LAYER);
         }
-    }*/
 
-
-    protected virtual void Hit(PlayerController player){}
-
-    private void Stop()
-    {
-        //SwitchKinematicState(false);
-        rigidbody.useGravity = true;
-        rigidbody.AddForce((myTransform.forward * -1) * 2f, ForceMode.Impulse);//HARDCODED
-        isFlying = false;
-        PhysicsUtility.SetRootAndDecendentsLayers(gameObject, PARTICLES_LAYER);
-    }
-
-    private void IgnoreCollider(Collider collider)
-    {
-        if (ignoredCollider != null)
+        protected override void OnDeath()
         {
-            Physics.IgnoreCollision(myCollider, ignoredCollider, false);
+            base.OnDeath();
+            rigidbody.isKinematic = true;
+            //Hide();
+            StartCoroutine(Shrink(3f));
         }
 
-        ignoredCollider = collider;
-        Physics.IgnoreCollision(myCollider, ignoredCollider, true);
-    }
-    /*public void SetIgnoredCollider(Collider collider)
-    {
-        if (ignoredCollider != null)
+        private void OnCollisionEnter(Collision collision)
         {
-            Physics.IgnoreCollision(myCollider, ignoredCollider, false);
+            if (IsAlive && isFlying)
+            {
+                if (isServer)
+                {
+                    //TODO: These invokes mess up everythin, put some death timer instead
+                    CancelInvoke("Die");
+                    Invoke("Die", 2f);//HARDCODED
+                    Player player = collision.gameObject.GetComponent<Player>();
+                    if (player != null /*&& player != originator*/)
+                    {
+                        Debug.Log("Player HIT");
+                        Hit(player);
+                        //playerController.OnFootballHit();
+                    }
+                    // Server_OnTriggerEnter(other);
+                }
+                Stop();
+            }
         }
 
-        ignoredCollider = collider;
-        Physics.IgnoreCollision(myCollider, ignoredCollider, true);
-    }*/
+        /* private void OnTriggerEnter(Collider other)
+         {
+             if (IsAlive && isFlying)
+             {
+                 if (isServer)
+                 {
+                     //TODO: These invokes mess up everythin, put some death timer instead
+                     CancelInvoke("Die");
+                     Invoke("Die", 2f);//HARDCODED
+                     PlayerController player = other.gameObject.GetComponent<PlayerController>();
+                     if (player != null)
+                     {
+                         Debug.Log("Player HIT");
+                         Hit(player);
+                     }
+                 }
+                 Stop();
+             }
+         }*/
 
+
+        protected virtual void Hit(Player player) { }
+
+        private void Stop()
+        {
+            //SwitchKinematicState(false);
+            rigidbody.useGravity = true;
+            rigidbody.AddForce((myTransform.forward * -1) * 2f, ForceMode.Impulse);//HARDCODED
+            isFlying = false;
+            PhysicsUtility.SetRootAndDecendentsLayers(gameObject, PARTICLES_LAYER);
+        }
+
+        private void IgnoreCollider(Collider collider)
+        {
+            if (ignoredCollider != null)
+            {
+                Physics.IgnoreCollision(myCollider, ignoredCollider, false);
+            }
+
+
+            ignoredCollider = collider;
+            Physics.IgnoreCollision(myCollider, ignoredCollider, true);
+        }
+        /*public void SetIgnoredCollider(Collider collider)
+        {
+            if (ignoredCollider != null)
+            {
+                Physics.IgnoreCollision(myCollider, ignoredCollider, false);
+            }
+
+            ignoredCollider = collider;
+            Physics.IgnoreCollision(myCollider, ignoredCollider, true);
+        }*/
+
+
+    }
 
 }

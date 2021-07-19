@@ -26,4 +26,5 @@ public class FontManipulator : MonoBehaviour
     {
         MakeThemCrispy();
     }
+
 }

@@ -17779,7 +17779,6 @@ GameObject:
   m_Component:
   - component: {fileID: 904242533}
   - component: {fileID: 904242532}
-  - component: {fileID: 904242534}
   - component: {fileID: 904242531}
   m_Layer: 0
   m_Name: NetworkManager
@@ -17797,21 +17796,20 @@ MonoBehaviour:
   m_GameObject: {fileID: 904242530}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c7424c1070fad4ba2a7a96b02fbeb4bb, type: 3}
+  m_Script: {fileID: 11500000, guid: 6b0fecffa3f624585964b0d0eb21b18e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  port: 7777
+  Port: 7777
   NoDelay: 1
-  SendTimeout: 5000
-  ReceiveTimeout: 5000
-  serverMaxMessageSize: 16384
-  serverMaxReceivesPerTick: 10000
-  serverSendQueueLimitPerConnection: 10000
-  serverReceiveQueueLimitPerConnection: 10000
-  clientMaxMessageSize: 16384
-  clientMaxReceivesPerTick: 1000
-  clientSendQueueLimit: 10000
-  clientReceiveQueueLimit: 10000
+  Interval: 10
+  Timeout: 10000
+  FastResend: 2
+  CongestionWindow: 0
+  SendWindowSize: 4096
+  ReceiveWindowSize: 4096
+  debugLog: 0
+  statisticsGUI: 0
+  statisticsLog: 0
 --- !u!114 &904242532
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17829,8 +17827,6 @@ MonoBehaviour:
   runInBackground: 1
   autoStartServerBuild: 1
   serverTickRate: 42
-  serverBatching: 0
-  serverBatchInterval: 0
   offlineScene: Assets/Main/Scenes/MainMenu.unity
   onlineScene: Assets/Main/Scenes/Game22_6_21.unity
   transport: {fileID: 904242531}
@@ -17859,21 +17855,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &904242534
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 904242530}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6442dc8070ceb41f094e44de0bf87274, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  showGUI: 1
-  offsetX: 0
-  offsetY: 0
 --- !u!1 &909524200
 GameObject:
   m_ObjectHideFlags: 0
@@ -31514,8 +31495,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 88c37d3deca7a834d80cfd8d3cfcc510, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  overrideGUISkin: {fileID: 11400000, guid: bd120d72ddc389a409771b1b91208264, type: 2}
   networkDiscovery: {fileID: 1373271138}
-  customGUISkin: {fileID: 11400000, guid: bd120d72ddc389a409771b1b91208264, type: 2}
 --- !u!114 &1373271138
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -31532,7 +31513,7 @@ MonoBehaviour:
   serverBroadcastListenPort: 47777
   enableActiveDiscovery: 1
   ActiveDiscoveryInterval: 3
-  transport: {fileID: 904242531}
+  transport: {fileID: 0}
   OnServerFound:
     m_PersistentCalls:
       m_Calls:
@@ -33389,8 +33370,8 @@ LightingSettings:
   m_IndirectOutputScale: 1
   m_UsingShadowmask: 0
   m_BakeBackend: 1
-  m_LightmapMaxSize: 256
-  m_BakeResolution: 8
+  m_LightmapMaxSize: 512
+  m_BakeResolution: 32
   m_Padding: 2
   m_TextureCompression: 1
   m_AO: 1
@@ -33398,7 +33379,7 @@ LightingSettings:
   m_CompAOExponent: 1
   m_CompAOExponentDirect: 1
   m_ExtractAO: 0
-  m_MixedBakeMode: 1
+  m_MixedBakeMode: 0
   m_LightmapsBakeMode: 1
   m_FilterMode: 1
   m_LightmapParameters: {fileID: 15204, guid: 0000000000000000f000000000000000, type: 0}
@@ -48859,9 +48840,9 @@ MonoBehaviour:
   localRotationSensitivity: 0.02
   localScaleSensitivity: 0.1
   compressRotation: 0
-  interpolateScale: 1
-  interpolateRotation: 1
   interpolatePosition: 1
+  interpolateRotation: 1
+  interpolateScale: 1
   syncScale: 1
 --- !u!114 &2538889142300940306
 MonoBehaviour:

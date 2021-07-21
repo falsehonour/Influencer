@@ -69,7 +69,15 @@ namespace HashtagChampion
 
             if (isServer)
             {
-                GameManager.OnCountdownStopped();
+                GameManager gameManager = FindObjectOfType<GameManager>();
+                if (gameManager)
+                {
+                    gameManager.OnCountdownStopped();
+                }
+                else
+                {
+                    Debug.LogError("Cannot find a game manager, Cannot stop time.");
+                }
             }
 
         }

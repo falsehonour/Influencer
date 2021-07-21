@@ -512,7 +512,7 @@ namespace HashtagChampion
             if (!IsAlive())
             {
                 Lose();
-                GameManager.UpdatePlayersState();
+                //GameManager.UpdatePlayersState();
             }
         }
 
@@ -613,7 +613,7 @@ namespace HashtagChampion
         private void FixedUpdate()
         {
             float deltaTime = Time.fixedDeltaTime;
-            GameStates gameState = GameManager.State;
+            GameStates gameState = GameStates.TagGame;// GameManager.State;
             if (IsAlive() && (gameState == GameStates.Waiting || gameState == GameStates.TagGame))
             {
                 if (powerUpCooldownTimer.IsActive())
@@ -1134,7 +1134,7 @@ namespace HashtagChampion
         private void Server_OnDestroy()
         {
             RemovePlayer(this);
-            GameManager.UpdatePlayersState();
+            //GameManager.UpdatePlayersState();
         }
 
         [Server]

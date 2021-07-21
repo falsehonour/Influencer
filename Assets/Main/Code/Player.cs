@@ -11,9 +11,11 @@ namespace HashtagChampion
         public class PlayerServerData
         {
             public static readonly float INJURED_SPEED = UnitConvertor.KilometresPerHourToMetresPerSecond(10.5f);
-            public static readonly float MAX_NONTAGGER_SPEED = UnitConvertor.KilometresPerHourToMetresPerSecond(19.8f);
-            public static readonly float MAX_TAGGER_SPEED = MAX_NONTAGGER_SPEED;
+            public static readonly float NONTAGGER_SPEED = UnitConvertor.KilometresPerHourToMetresPerSecond(19.8f);
+            public static float taggerSpeed;
             public static readonly float SPRINT_SPEED = UnitConvertor.KilometresPerHourToMetresPerSecond(28.8f);
+
+            public static float rotationSpeed;
 
             public const sbyte MAX_HEALTH = 100;
             private const float TAGGER_FULL_LIFETIME = 40f;
@@ -36,6 +38,24 @@ namespace HashtagChampion
             {
                 healthReductionTimer = new RepeatingTimer(TAGGER_HEALTH_LOSS_INTERVAL);
                 movementStateTimer = new SingleCycleTimer();
+            }
+
+            public static void UpdateTaggerSpeed(float taggerSpeedBoostInKilometresPerHour)
+            {
+                taggerSpeed = (NONTAGGER_SPEED + UnitConvertor.KilometresPerHourToMetresPerSecond(taggerSpeedBoostInKilometresPerHour));
+            }
+
+            public static void UpdateRotationSpeed(float rotationSpeed)
+            {
+                PlayerServerData.rotationSpeed = rotationSpeed;
+                if(allPlayers != null && allPlayers.Count > 0)
+                {
+                    for (int i = 0; i < allPlayers.Count; i++)
+                    {
+                        allPlayers[i].TargetRpc_SetRotationSpeed(PlayerServerData.rotationSpeed);
+                    }
+                }
+                //Debug.Log("PlayerServerData:UpdateRotationSpeed: " + PlayerServerData.rotationSpeed);
             }
         }
         //This object should exist only on the server.
@@ -112,7 +132,18 @@ namespace HashtagChampion
         #endregion
         private bool initialised = false;
         public static Player localPlayerController;
-        public static List<Player> allPlayers = new List<Player>();
+        public static List<Player> allPlayers;
+        private static GameManager gameManager;
+
+        #region Testing:
+        [SerializeField] private bool handlingMovement;
+        #endregion
+
+        public static void Initialise(GameManager gameManager)
+        {
+            allPlayers = new List<Player>();
+            Player.gameManager = gameManager;
+        }
 
         private void Awake()
         {
@@ -128,7 +159,6 @@ namespace HashtagChampion
 
         private void Start()
         {
-
 
             if (isServer)
             {
@@ -220,13 +250,20 @@ namespace HashtagChampion
         [Server]
         private void Server_Initialise()
         {
-
             serverData = new PlayerServerData();
             AddPlayer(this);
             DT_health = PlayerServerData.MAX_HEALTH;
             PowerUp initialPowerUp = new PowerUp { count = 0, type = PowerUp.Type.None };
             this.powerUp = initialPowerUp;
             SetMovementState(MovementStates.Normal);
+            TargetRpc_SetRotationSpeed(PlayerServerData.rotationSpeed);
+        }
+
+        [TargetRpc] 
+        private void TargetRpc_SetRotationSpeed(float rotationSpeed)
+        {
+            maxRotationSpeed = rotationSpeed;
+
         }
 
         [Server]
@@ -247,7 +284,7 @@ namespace HashtagChampion
                     }
                 case MovementStates.Normal:
                     {
-                        currentMaxMovementSpeed = tagger ? PlayerServerData.MAX_TAGGER_SPEED : PlayerServerData.MAX_NONTAGGER_SPEED;
+                        currentMaxMovementSpeed = tagger ? PlayerServerData.taggerSpeed : PlayerServerData.NONTAGGER_SPEED;
                         break;
                     }
                 case MovementStates.Sprinting:
@@ -338,7 +375,7 @@ namespace HashtagChampion
         {
             tagger = value;
             SetMovementState(MovementStates.Normal);//TODO: Not an ideal way to conform to tagger's speed..
-                                                    //currentMaxMovementSpeed = value ? PlayerServerData.MAX_TAGGER_SPEED : PlayerServerData.MAX_NONTAGGER_SPEED;
+             //currentMaxMovementSpeed = value ? PlayerServerData.MAX_TAGGER_SPEED : PlayerServerData.MAX_NONTAGGER_SPEED;
 
             //This is done in order to prevent a new tagger from tagging previously stored players somehow
             //TODO: should we do this upon freeze??
@@ -484,7 +521,7 @@ namespace HashtagChampion
             if (!IsAlive())
             {
                 Lose();
-                GameManager.UpdatePlayersState();
+                gameManager.UpdatePlayersState();
             }
         }
 
@@ -578,7 +615,7 @@ namespace HashtagChampion
         private void FixedUpdate()
         {
             float deltaTime = Time.fixedDeltaTime;
-            GameStates gameState = GameManager.State;
+            GameStates gameState = gameManager.State;
             if (IsAlive() && (gameState == GameStates.Waiting || gameState == GameStates.TagGame))
             {
                 if (powerUpCooldownTimer.IsActive())
@@ -592,6 +629,11 @@ namespace HashtagChampion
                 if (localPlayerController == this)
                 {
                     HandleMovement(ref deltaTime);
+                    handlingMovement = true;
+                }
+                else
+                {
+                    handlingMovement = false;
                 }
                 if (isServer) //Lots of network activity
                 {
@@ -691,7 +733,6 @@ namespace HashtagChampion
             Vector3 totalVelocity = (controlledVelocity + externalForces);
             totalVelocity.y += currentGravity;
             characterController.Move(totalVelocity * deltaTime);
-
 
             /*characterController.enabled = false;
             myTransform.position += velocity * deltaTime;*/
@@ -1099,7 +1140,7 @@ namespace HashtagChampion
         private void Server_OnDestroy()
         {
             RemovePlayer(this);
-            GameManager.UpdatePlayersState();
+            gameManager.UpdatePlayersState();
         }
 
         [Server]

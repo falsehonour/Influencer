@@ -13,9 +13,9 @@ namespace HashtagChampion
     public class GameManager : NetworkBehaviour
     {
         [SyncVar] private GameStates state;
-        public static GameStates State
+        public  GameStates State
         {
-            get { return instance.state; }
+            get { return state; }
         }
 
         //private RoomSettings roomSettings;
@@ -23,20 +23,17 @@ namespace HashtagChampion
 
         [SerializeField] private Kevin kevin;
         [SerializeField] private MatchCountdown countdown;
-        [SerializeField] private RoomManager roomManager;
         [SerializeField] private PlayerSettingsManager playerSettingsManager;
         [SerializeField] private GameObject roomManagementCanvas;
         [SerializeField] private GameObject playerSettingsCanvas;
 
         [SerializeField] private float playerCircleRadius = 2f;
-        private static List<Player> relevantPlayersCache = new List<Player>();
+        private List<Player> relevantPlayersCache = new List<Player>();
 
-        private static GameManager instance;
 
-        private void Awake()
+        private RoomManager GetRoomManager()
         {
-            instance = this;
-            //roomSettings = 
+            return TagNetworkManager.instance.roomManager;
         }
 
         [Server]
@@ -44,6 +41,9 @@ namespace HashtagChampion
         {
             Rpc_OnServerStarted();
             StartCoroutine(WaitForPlayers());
+            RoomManager roomManager = GetRoomManager();
+            Player.PlayerServerData.UpdateTaggerSpeed(roomManager.settings.taggerSpeedBoostInKilometresPerHour);
+            Player.PlayerServerData.UpdateRotationSpeed(roomManager.settings.playerRotationSpeed);
         }
 
         private void Start()
@@ -55,6 +55,7 @@ namespace HashtagChampion
             }
             playerSettingsManager.ApplySettings();
             playerSettingsCanvas.gameObject.SetActive(false);
+            Player.Initialise(this);
         }
 
         [ClientRpc]
@@ -71,10 +72,8 @@ namespace HashtagChampion
         private IEnumerator WaitForPlayers()
         {
             //HARDCODED values, can we store these in a file seperate to the game so that we don't have to rebuild the game every time we change these
-            Debug.Log("WaitForPlayers()");
-
             state = GameStates.Waiting;
-
+            RoomManager roomManager = GetRoomManager();
             while (Player.allPlayers.Count < roomManager.settings.playerCount)
             {
                 yield return new WaitForSeconds(0.25f);
@@ -146,10 +145,10 @@ namespace HashtagChampion
         {
             state = GameStates.TagGame;
             kevin.StartDropRoutine();
-            countdown.Server_StartCounting(roomManager.settings.countdown);
+            countdown.Server_StartCounting(GetRoomManager().settings.countdown);
         }
 
-        private static List<Player> GetRelevantPlayers()
+        private List<Player> GetRelevantPlayers()
         {
             relevantPlayersCache.Clear();
             int playerCount = Player.allPlayers.Count;
@@ -165,7 +164,7 @@ namespace HashtagChampion
         }
 
         [Server]
-        public static void UpdatePlayersState()
+        public void UpdatePlayersState()
         {
             if (State == GameStates.TagGame)
             {
@@ -178,8 +177,8 @@ namespace HashtagChampion
                 }
                 else if (relevantPlayersCount == 1)
                 {
-                    instance.countdown.Server_StopCounting();
-                    instance.EndGame(relevantPlayers[0]);
+                    countdown.Server_StopCounting();
+                    EndGame(relevantPlayers[0]);
                 }
                 else
                 {
@@ -206,7 +205,7 @@ namespace HashtagChampion
         }
 
         [Server]
-        public static void OnCountdownStopped()
+        public void OnCountdownStopped()
         {
             List<Player> relevantPlayers = GetRelevantPlayers();
             int relevantPlayersCount = relevantPlayers.Count;
@@ -228,7 +227,7 @@ namespace HashtagChampion
                         winner = player;
                     }
                 }
-                instance.EndGame(winner);
+                EndGame(winner);
             }
         }
 
@@ -250,6 +249,28 @@ namespace HashtagChampion
             }
 
             state = GameStates.PostGame;
+            Invoke(nameof(StopServer),4f);
+        }
+
+        private void StopServer()
+        {
+            if (NetworkServer.active)
+            {
+                if (NetworkClient.isConnected)
+                {
+                    NetworkManager.singleton.StopHost();
+                }
+                // stop server if server-only
+                else
+                {
+                    NetworkManager.singleton.StopServer();
+                }
+            }
+            else
+            {
+                Debug.LogError("StopServer: !NetworkServer.active");
+            }
+
         }
     }
 }

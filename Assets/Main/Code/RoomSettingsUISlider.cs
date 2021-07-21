@@ -9,17 +9,43 @@ public class RoomSettingsUISlider : MonoBehaviour
     //[SerializeField] private Text text;
     [SerializeField] private Slider slider;
     [SerializeField] private InputField inputField;
-    public event Action<float> OnValueChangedAction;
+    public event Action<float> OnValueChangedEvent;
+    private float valueNormaliser;
 
-    public void SetValue(float value, bool invokeAction)
+    public void Initialise(Action<float> onValueChangedAction, float initialValue, float minValue, float maxValue,  float valueNormaliser = 1 )
+    {
+        this.valueNormaliser = valueNormaliser;
+        slider.minValue = minValue;
+        slider.maxValue = maxValue;
+        slider.wholeNumbers = false;
+        OnValueChangedEvent += onValueChangedAction;
+        SetValue(initialValue, false);
+    }
+
+    private void SetValue(float value, bool invokeAction)
     {
         //NOTE Yeah, we are setting the slider/ input field to value they already have sometimes 
+        value = NormaliseValue(value);
         slider.value = value;
         inputField.text = value.ToString();
         if (invokeAction)
         {
-            OnValueChangedAction?.Invoke(value);
+            OnValueChangedEvent?.Invoke(value);
         }
+    }
+
+    private float NormaliseValue(float value)
+    {
+        float remainder = (value % valueNormaliser);
+        if(remainder < (valueNormaliser * 0.5f))
+        {
+            value -= remainder;
+        }
+        else
+        {
+            value += (valueNormaliser-remainder);
+        }
+        return value;
     }
 
     private void Awake()

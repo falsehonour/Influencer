@@ -572,7 +572,7 @@ namespace HashtagChampion
                 CharacterMesh[] modifierCompatibleMeshes = modifier.CompatibleMeshes;
                 if (modifierCompatibleMeshes == null || modifierCompatibleMeshes.Length == 0)
                 {
-                    Debug.LogWarning("compatibleRenderers is empty or nonexistent. Resorting to check compatability by categories.");
+                    //Debug.LogWarning("compatibleRenderers is empty or nonexistent. Resorting to check compatability by categories.");
                     MeshCategories compatibleMeshCategories = CategoriesCompatability.GetCompatableMeshCategories(modifier.Categories);
                     for (int i = 0; i < equippedMeshesByMeshCategory.Length; i++)
                     {

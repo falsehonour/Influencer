@@ -44,6 +44,8 @@ namespace HashtagChampion
         {
             Rpc_OnServerStarted();
             StartCoroutine(WaitForPlayers());
+            Player.PlayerServerData.UpdateTaggerSpeed(roomManager.settings.taggerSpeedBoostInKilometresPerHour);
+            Player.PlayerServerData.UpdateRotationSpeed(roomManager.settings.playerRotationSpeed);
         }
 
         private void Start()

@@ -132,7 +132,18 @@ namespace HashtagChampion
         #endregion
         private bool initialised = false;
         public static Player localPlayerController;
-        public static List<Player> allPlayers = new List<Player>();
+        public static List<Player> allPlayers;
+        private static GameManager gameManager;
+
+        #region Testing:
+        [SerializeField] private bool handlingMovement;
+        #endregion
+
+        public static void Initialise(GameManager gameManager)
+        {
+            allPlayers = new List<Player>();
+            Player.gameManager = gameManager;
+        }
 
         private void Awake()
         {
@@ -151,7 +162,6 @@ namespace HashtagChampion
 
             if (isServer)
             {
-                Debug.Log("calling Server_Initialise");
                 Server_Initialise();
             }
 
@@ -511,7 +521,7 @@ namespace HashtagChampion
             if (!IsAlive())
             {
                 Lose();
-                GameManager.UpdatePlayersState();
+                gameManager.UpdatePlayersState();
             }
         }
 
@@ -605,7 +615,7 @@ namespace HashtagChampion
         private void FixedUpdate()
         {
             float deltaTime = Time.fixedDeltaTime;
-            GameStates gameState = GameManager.State;
+            GameStates gameState = gameManager.State;
             if (IsAlive() && (gameState == GameStates.Waiting || gameState == GameStates.TagGame))
             {
                 if (powerUpCooldownTimer.IsActive())
@@ -619,6 +629,11 @@ namespace HashtagChampion
                 if (localPlayerController == this)
                 {
                     HandleMovement(ref deltaTime);
+                    handlingMovement = true;
+                }
+                else
+                {
+                    handlingMovement = false;
                 }
                 if (isServer) //Lots of network activity
                 {
@@ -1125,7 +1140,7 @@ namespace HashtagChampion
         private void Server_OnDestroy()
         {
             RemovePlayer(this);
-            GameManager.UpdatePlayersState();
+            gameManager.UpdatePlayersState();
         }
 
         [Server]

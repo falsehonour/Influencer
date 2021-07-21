@@ -14,19 +14,23 @@ public class RoomSettingsUISlider : MonoBehaviour
 
     public void Initialise(Action<float> onValueChangedAction, float initialValue, float minValue, float maxValue,  float valueNormaliser = 1 )
     {
+        InitialiseListeners();
+
         this.valueNormaliser = valueNormaliser;
         slider.minValue = minValue;
         slider.maxValue = maxValue;
         slider.wholeNumbers = false;
         OnValueChangedEvent += onValueChangedAction;
         SetValue(initialValue, false);
+        slider.value = initialValue;//TODO: This was done only to avoid stack overflow. find a way to change the slider value without triggering slider.onValueChanged
     }
 
     private void SetValue(float value, bool invokeAction)
     {
         //NOTE Yeah, we are setting the slider/ input field to value they already have sometimes 
         value = NormaliseValue(value);
-        slider.value = value;
+        //slider.value = value;//TODO: This was done only to avoid stack overflow. find a way to change the slider value without triggering slider.onValueChanged
+        //Debug.Log(gameObject.name + "Value was set");
         inputField.text = value.ToString();
         if (invokeAction)
         {
@@ -48,14 +52,16 @@ public class RoomSettingsUISlider : MonoBehaviour
         return value;
     }
 
-    private void Awake()
+    private void InitialiseListeners()
     {
+        slider.onValueChanged.RemoveAllListeners();
         slider.onValueChanged.AddListener(delegate 
         {
             float value = slider.value;
             SetValue(value,true);
         });
-       
+
+        inputField.onEndEdit.RemoveAllListeners();
         inputField.onEndEdit.AddListener(delegate 
         {
             float value = 0;

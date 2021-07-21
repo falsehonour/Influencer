@@ -20,7 +20,7 @@ public class Spawner : MonoBehaviour//NetworkBehaviour
         public int poolSize;
     }
 
-    public static Spawner instance;
+    private static Spawner instance;
     [SerializeField] private SpawnableObjectDefinition[] spawnableObjectDefinitions;
     private  static SpawnableObjectDefinition nullDefinition = new SpawnableObjectDefinition();
     private static Spawnable[][] spawnablesPools;
@@ -33,7 +33,7 @@ public class Spawner : MonoBehaviour//NetworkBehaviour
     }
 
     [Server]
-    public static void Initialise()
+    public void Initialise()
     {
         instance.InitialisePools();
     }

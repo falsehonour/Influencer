@@ -44,6 +44,7 @@ namespace HashtagChampion
             RoomManager roomManager = GetRoomManager();
             Player.PlayerServerData.UpdateTaggerSpeed(roomManager.settings.taggerSpeedBoostInKilometresPerHour);
             Player.PlayerServerData.UpdateRotationSpeed(roomManager.settings.playerRotationSpeed);
+            kevin.Initialise();
         }
 
         private void Start()

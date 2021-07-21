@@ -55,16 +55,7 @@ namespace HashtagChampion
                 if (instance == null)
                 {
                     instance = this;
-                    myTransform = transform;
-                    dropPoints = new Transform[dropPointsParent.childCount];
-                    for (int i = 0; i < dropPoints.Length; i++)
-                    {
-                        dropPoints[i] = dropPointsParent.GetChild(i);
-                    }
-                    InitialiseDroppableItems();
-                    SpawnInitialPickups();
-                    previousRoutine = nameof(IdleRoutine);
-                    StartCoroutine(previousRoutine);
+
                     // allowedDroppedItems = new Spawnables[] { Spawnables.HealthPickup, Spawnables.FootballPickup/*, Spawnables.Trap*/ };
                 }
                 else
@@ -78,6 +69,20 @@ namespace HashtagChampion
                 Destroy(navAgent);
                 Destroy(this);
             }
+        }
+
+        public void Initialise()
+        {
+            myTransform = transform;
+            dropPoints = new Transform[dropPointsParent.childCount];
+            for (int i = 0; i < dropPoints.Length; i++)
+            {
+                dropPoints[i] = dropPointsParent.GetChild(i);
+            }
+            InitialiseDroppableItems();
+            SpawnInitialPickups();//TODO: Move to where the game begins
+            previousRoutine = nameof(IdleRoutine);
+            StartCoroutine(previousRoutine);
         }
 
         private void InitialiseDroppableItems()
@@ -220,7 +225,7 @@ namespace HashtagChampion
         {
             //TODO: דיויד, וודא שההגרלה יוצאת כמו שמצופה והחלף את המודל אם יש צורך
             int chance = Random.Range(0, droppableItemsOverallChancePoints);
-            Debug.Log($"chance = {chance}");
+            //Debug.Log($"chance = {chance}");
             Spawnables spawnable = Spawnables.Null;
             for (int i = 0; i < droppableItems.Length; i++)
             {

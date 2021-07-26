@@ -25,7 +25,6 @@ namespace HashtagChampion
         [SerializeField] private MatchCountdown countdown;
         [SerializeField] private PlayerSettingsManager playerSettingsManager;
         [SerializeField] private GameObject roomManagementCanvas;
-        [SerializeField] private GameObject playerSettingsCanvas;
 
         [SerializeField] private float playerCircleRadius = 2f;
         private List<Player> relevantPlayersCache = new List<Player>();
@@ -54,8 +53,8 @@ namespace HashtagChampion
             {
                 roomManagementCanvas.SetActive(false);
             }
-            playerSettingsManager.ApplySettings();
-            playerSettingsCanvas.gameObject.SetActive(false);
+            
+            playerSettingsManager.SetActiveJoystick(StaticData.playerSettings.fixedJoystick);
             Player.Initialise(this);
         }
 

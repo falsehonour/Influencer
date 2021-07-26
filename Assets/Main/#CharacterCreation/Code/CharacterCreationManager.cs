@@ -22,8 +22,7 @@ namespace HashtagChampion
                 CharacterCreationButton.InitialiseBackButton(backButtonBehaviour);
                 // LocalPlayerData.Initialise();
 
-                PlayerSkinDataHolder playerSkinData =
-                    SaveAndLoadManager.Load<PlayerSkinDataHolder>(new PlayerSkinDataHolder());
+                PlayerSkinDataHolder playerSkinData = SaveAndLoadManager.TryLoad<PlayerSkinDataHolder>();
 
                 InitialiseCharacter(playerSkinData);
             }

@@ -74,7 +74,7 @@ namespace HashtagChampion
         private GaitTypes gait;
         [SerializeField] private CharacterController characterController;
         private Transform myTransform;
-        private Joystick joystick;
+        private static Joystick joystick;
         [SyncVar] private Vector2 forcedMovementInput = Vector3.zero;//TODO: Remove this once testing is over
         [SyncVar(hook = nameof(OnMovementStateChange))] private MovementStates DT_movementState;
         private MovementStates MovementState => DT_movementState;
@@ -172,22 +172,6 @@ namespace HashtagChampion
                 //TODO: Remove path finding stuff if it's not gonna be used after all
                 /*pathCache = new NavMeshPath();
                 pathWayPoints = new Vector3[16];*/
-
-                //TODO: Very inappropriate, pls change
-                Joystick[] joysticks = FindObjectsOfType<Joystick>();
-                for (int i = 0; i < joysticks.Length; i++)
-                {
-                    if (joysticks[i].isActiveAndEnabled)
-                    {
-                        joystick = joysticks[i];
-                        break;
-                    }
-                }
-                if (joystick == null)
-                {
-                    Debug.LogError("NO JOYSTICK FOUND!");
-                }
-
                 tagButton = GameObject.Find("TagButton").GetComponent<PlayerInputButton>();
                 tagButton.SetIsEnabled(false);
 
@@ -215,6 +199,11 @@ namespace HashtagChampion
              {
                  characterController.attachedRigidbody.interpolation = RigidbodyInterpolation.Interpolate;
              }*/
+        }
+
+        public static void SetActiveJoystick(Joystick activeJoystick)
+        {
+           joystick = activeJoystick;
         }
 
         #region PlayerName

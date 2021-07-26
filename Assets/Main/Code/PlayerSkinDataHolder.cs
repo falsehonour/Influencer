@@ -31,11 +31,11 @@ namespace HashtagChampion
                 data = new Data(characterPrefabIndex, meshIndexes, meshModifierIndexes);
             }
 
-            public string GetSaveFileName()
+            /*public string GetSaveFileName()
             {
                 return "player_skin";
             }
-
+            */
             public static PlayerSkinDataHolder CreatePlayerSkinData(Character characterPreFab, CharacterMesh[] meshes, CharacterMeshMod[] modifiers)
             {
                 CharacterReferences references = CharacterCreationReferencer.References;

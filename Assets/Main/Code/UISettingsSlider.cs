@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System;
-public class RoomSettingsUISlider : MonoBehaviour
+
+public class UISettingsSlider : MonoBehaviour
 {
     //public event Action<float> OnValueChangedAction;
     //[SerializeField] private Text text;
@@ -85,6 +86,4 @@ public class RoomSettingsUISlider : MonoBehaviour
          text.text = value.ToString();
          //OnValueChangedAction.Invoke(value);
      }*/
-    //[SerializeField] private Slider playerCountSlider;
-
 }

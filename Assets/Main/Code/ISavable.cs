@@ -1,6 +1,6 @@
 ﻿public interface ISavable 
 {
-    string GetSaveFileName();
+    //string GetSaveFileName();
 
     //public ISavable() { };
 }

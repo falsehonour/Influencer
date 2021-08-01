@@ -8,10 +8,13 @@ namespace HashtagChampion
     public class TagNetworkManager : NetworkManager
     {
         //[SerializeField] private GameManager gameManager;
+        private static TagNetworkManager instance => (TagNetworkManager)singleton;
         [SerializeField] private Spawner spawner;
+        public static Spawner Spawner => instance.spawner;
+        [SerializeField] private RoomManager roomManager;
+        public static RoomManager RoomManager => instance.roomManager;
         [SerializeField] private Mirror.Discovery.NetworkDiscoveryHUD discoveryHUD;
-        public static TagNetworkManager instance => (TagNetworkManager)singleton;
-        public RoomManager roomManager;
+
 
         public override void Start()
         {
@@ -28,6 +31,8 @@ namespace HashtagChampion
         public override void OnServerChangeScene(string newSceneName)
         {
             base.OnServerChangeScene(newSceneName);
+            OnChangeScene(newSceneName);
+
             if (newSceneName == onlineScene)
             {
                 //Debug.Log("Active Scene: " + UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
@@ -38,14 +43,22 @@ namespace HashtagChampion
         public override void OnClientChangeScene(string newSceneName, SceneOperation sceneOperation, bool customHandling)
         {
             base.OnClientChangeScene(newSceneName, sceneOperation, customHandling);
-            bool enableDiscoveryHUD = (newSceneName == offlineScene);
+            OnChangeScene(newSceneName);
+
+
             //discoveryHUD.enabled = enableDiscoveryHUD;
 
-           /* if (newSceneName == onlineScene)
-            {
-                //Debug.Log("Active Scene: " + UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
-              //  StartCoroutine(InitialiseClientGameScene());
-            }*/
+            /* if (newSceneName == onlineScene)
+             {
+                 //Debug.Log("Active Scene: " + UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+               //  StartCoroutine(InitialiseClientGameScene());
+             }*/
+        }
+
+        public static void OnChangeScene(string newSceneName)
+        {
+            bool enableDiscovery = (newSceneName == instance.offlineScene) || (newSceneName == instance.onlineScene);
+            instance.discoveryHUD.enabled = enableDiscovery;
         }
 
         private IEnumerator InitialiseServerGameScene()
@@ -54,22 +67,13 @@ namespace HashtagChampion
             while (UnityEngine.SceneManagement.SceneManager.GetActiveScene().path != onlineScene)
             {
                 yield return new WaitForSeconds(0.1f);
+                //TODO: Potential threat- what if for some reason someone tries to spawn something between these WaitForSeconds?
             }
             spawner.Initialise();
-            GameManager gameManager = FindObjectOfType<GameManager>();
-            if (gameManager)
-            {
-                gameManager.OnServerStarted();
-            }
-            else
-            {
-                Debug.LogError("gameManager is null. cannot initialise it");
-            }
         }
 
        /* private IEnumerator InitialiseClientGameScene()
         {
-
             while (UnityEngine.SceneManagement.SceneManager.GetActiveScene().path != onlineScene)
             {
                 yield return new WaitForSeconds(0.15f);
@@ -79,7 +83,7 @@ namespace HashtagChampion
 
         private void RegisterPrefabs()
         {
-            GameObject[] prefabs = Spawner.GetAllSpawnablePrefabs();
+            GameObject[] prefabs = spawner.GetAllSpawnablePrefabs();
             for (int i = 0; i < prefabs.Length; i++)
             {
                 GameObject prefab = prefabs[i];

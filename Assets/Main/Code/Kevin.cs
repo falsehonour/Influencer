@@ -80,7 +80,6 @@ namespace HashtagChampion
                 dropPoints[i] = dropPointsParent.GetChild(i);
             }
             InitialiseDroppableItems();
-            SpawnInitialPickups();//TODO: Move to where the game begins
             previousRoutine = nameof(IdleRoutine);
             StartCoroutine(previousRoutine);
         }
@@ -103,9 +102,9 @@ namespace HashtagChampion
             }
         }
 
-        private void SpawnInitialPickups()
+        public void SpawnInitialPickups()
         {
-            int initialPickups = TagNetworkManager.instance.roomManager.settings.initialPickups;
+            int initialPickups = TagNetworkManager.RoomManager.settings.initialPickups;
             if (initialPickups > 0)
             {
                 int dropPointsCount = dropPoints.Length;
@@ -146,7 +145,7 @@ namespace HashtagChampion
             {
                 Vector3 dropPoint = dropPoints[nextDropPointIndex].position;//TODO: We could cache this for performance but what if drop point is supposed to be dynamic?
                 float squaredDistanceFromDestination = Vector3.SqrMagnitude(myTransform.position - dropPoint);
-                if (squaredDistanceFromDestination < REQUIRED_DROP_POINT_DISTANCE)//HARDCODED
+                if (squaredDistanceFromDestination < REQUIRED_DROP_POINT_DISTANCE)
                 {
                     DropItem(dropPoint);
                     //NOTE: This wait is here mainly to ensure that OverlapSphere performed in ChangeDestination 
@@ -242,7 +241,7 @@ namespace HashtagChampion
             }
             //int droppedItemIndex = Random.Range(0, allowedDroppedItems.Length);
             // Vector3 itemPosition = dropPoints[nextDropPointIndex].position; //myTransform.position;// + (myTransform.forward * -1.1f);//HARDCODED
-            Spawner.Spawn(spawnable, dropPosition, Quaternion.identity, null);
+            TagNetworkManager.Spawner.Spawn(spawnable, dropPosition, Quaternion.identity, null);
         }
 
         [Server]
@@ -284,12 +283,6 @@ namespace HashtagChampion
             }
 
             return foundValidDestination;
-        }
-
-        [Server]
-        public void Spin(Vector3 lookAtPoint)
-        {
-            StartCoroutine(SpinCoroutine(lookAtPoint));
         }
 
         [Server]

@@ -24,7 +24,6 @@ namespace HashtagChampion
         [SerializeField] private Kevin kevin;
         [SerializeField] private MatchCountdown countdown;
         [SerializeField] private PlayerSettingsManager playerSettingsManager;
-        [SerializeField] private GameObject roomManagementCanvas;
 
         [SerializeField] private float playerCircleRadius = 2f;
         private List<Player> relevantPlayersCache = new List<Player>();
@@ -32,38 +31,22 @@ namespace HashtagChampion
 
         private RoomManager GetRoomManager()
         {
-            return TagNetworkManager.instance.roomManager;
-        }
-
-        [Server]
-        public void OnServerStarted()
-        {
-            Rpc_OnServerStarted();
-            StartCoroutine(WaitForPlayers());
-            RoomManager roomManager = GetRoomManager();
-            Player.PlayerServerData.UpdateTaggerSpeed(roomManager.settings.taggerSpeedBoostInKilometresPerHour);
-            Player.PlayerServerData.UpdateRotationSpeed(roomManager.settings.playerRotationSpeed);
-            kevin.Initialise();
+            return TagNetworkManager.RoomManager;
         }
 
         private void Start()
         {
-            //TODO: not the most fitting place for this
-            if (roomManagementCanvas)
-            {
-                roomManagementCanvas.SetActive(false);
-            }
             
             playerSettingsManager.SetActiveJoystick(StaticData.playerSettings.fixedJoystick);
             Player.Initialise(this);
-        }
 
-        [ClientRpc]
-        private void Rpc_OnServerStarted()
-        {
-            if (isClientOnly)
+            if (isServer)
             {
-                roomManagementCanvas.SetActive(false);
+                StartCoroutine(WaitForPlayers());
+                RoomManager roomManager = GetRoomManager();
+                Player.PlayerServerData.UpdateTaggerSpeed(roomManager.settings.taggerSpeedBoostInKilometresPerHour);
+                Player.PlayerServerData.UpdateRotationSpeed(roomManager.settings.playerRotationSpeed);
+                kevin.Initialise();
             }
         }
 
@@ -118,13 +101,11 @@ namespace HashtagChampion
                 Player player = Player.allPlayers[i];
                 player.TargetRpc_Teleport(circleSpawnPoints[i].position, circleSpawnPoints[i].rotation);
             }
+            kevin.SpawnInitialPickups();
 
             yield return new WaitForSeconds(2f);//Hardcoded
 
             //Spinning sequence
-            /*kevin.Spin(circleSpawnSpots[taggerIndex].transform.position);
-            IEnumerator spinCoroutine = kevin.SpinCoroutine(circleSpawnSpots[taggerIndex].transform.position);
-            yield return new wait(spinCoroutine != null);*/
             yield return kevin.SpinCoroutine(circleSpawnPoints[taggerIndex].position);
             yield return new WaitForSeconds(0.2f);//Hardcoded
 

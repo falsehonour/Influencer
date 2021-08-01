@@ -15,7 +15,7 @@ public class RoomSettingsUI : MonoBehaviour
 
     private void Start()
     {
-        roomManager = HashtagChampion.TagNetworkManager.instance.roomManager;
+        roomManager = HashtagChampion.TagNetworkManager.RoomManager;
         //TODO: Looks like repeating buisness to me
         //TODO: This class should not dictate min and max values for room settings.  
         playerCountSlider.Initialise(SetPlayerCount, roomManager.settings.playerCount, 1, 8, 1);

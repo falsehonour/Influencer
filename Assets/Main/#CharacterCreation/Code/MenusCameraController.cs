@@ -5,24 +5,28 @@ using UnityEngine;
 
 namespace HashtagChampion
 {
-    namespace CharacterCreation
+    public class MenusCameraController : MonoBehaviour
     {
-        public class CharacterCreationCameraController : MonoBehaviour
+
+        [SerializeField] private Transform cameraTransform;
+        [SerializeField] private Transform cameraAnchorTransform;
+        [SerializeField] private bool allowYRotation;
+        [SerializeField] private float yRotationSpeed;
+        [SerializeField] private bool allowYMovement;
+        [SerializeField] private float yMovementSpeed;
+        [SerializeField] FloatRange yRange;
+        [SerializeField] private bool allowZMovement;
+        [SerializeField] private float zMovementSpeed;
+        [SerializeField] FloatRange zRange;
+        private bool isControllable;
+        public void SetIsControllable(bool value)
         {
+            isControllable = value;
+        }
 
-            [SerializeField] private Transform cameraTransform;
-            [SerializeField] private Transform cameraAnchorTransform;
-            [SerializeField] private bool allowYRotation;
-            [SerializeField] private float yRotationSpeed;
-            [SerializeField] private bool allowYMovement;
-            [SerializeField] private float yMovementSpeed;
-            [SerializeField] FloatRange yRange;
-            [SerializeField] private bool allowZMovement;
-            [SerializeField] private float zMovementSpeed;
-            [SerializeField] FloatRange zRange;
-
-            // Update is called once per frame
-            void Update()
+        void Update()
+        {
+            if (isControllable)
             {
                 if (Input.GetMouseButton(0))
                 {
@@ -54,6 +58,7 @@ namespace HashtagChampion
 
                 }
             }
+            
         }
     }
 

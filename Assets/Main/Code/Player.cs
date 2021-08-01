@@ -812,7 +812,7 @@ namespace HashtagChampion
                 (myTransform.position + (myTransform.forward * 0.75f) + (Vector3.up * 0.82f));//HARDCODED
             Quaternion bulletSpawnRotation = myTransform.rotation;
             PhysicalProjectile projectile =
-                (PhysicalProjectile)Spawner.Spawn(Spawnables.Bullet, bulletSpawnPosition, bulletSpawnRotation, netId);
+                (PhysicalProjectile)TagNetworkManager.Spawner.Spawn(Spawnables.Bullet, bulletSpawnPosition, bulletSpawnRotation, netId);
             // projectile.SetIgnoredCollider(characterController/* GetComponent<Collider>()*/);
             // projectile.SetIgnoredCollider(this/* GetComponent<Collider>()*/);
         }
@@ -834,7 +834,7 @@ namespace HashtagChampion
             Vector3 ballSpawnPosition =
                 (myTransform.position + (myTransform.forward * 0.7f) + (Vector3.up * 0.5f));//HARDCODED
             Quaternion ballSpawnRotation = myTransform.rotation;
-            Spawner.Spawn(Spawnables.ThrownFootball, ballSpawnPosition, ballSpawnRotation, netId);
+            TagNetworkManager.Spawner.Spawn(Spawnables.ThrownFootball, ballSpawnPosition, ballSpawnRotation, netId);
 
         }
 
@@ -854,7 +854,7 @@ namespace HashtagChampion
             Vector3 bananaPosition =
                 myTransform.position + (myTransform.forward * -0.92f) + (Vector3.up * 1.8f);//HARDCODED as F%$#
             Quaternion bananaRotation = Quaternion.Euler(0, Random.Range(0, 360), 0);
-            Spawner.Spawn(Spawnables.ThrownBanana, bananaPosition, bananaRotation, netId);
+            TagNetworkManager.Spawner.Spawn(Spawnables.ThrownBanana, bananaPosition, bananaRotation, netId);
         }
 
         [Server]

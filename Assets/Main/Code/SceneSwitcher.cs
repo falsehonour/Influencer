@@ -5,11 +5,19 @@ public class SceneSwitcher : MonoBehaviour
 {
     public void GoToScene(string sceneName)
     {
-        SceneManager.LoadScene(sceneName);
+        GoToScene( SceneManager.GetSceneByName(sceneName));
     }
 
     public void GoToScene(int sceneIndex)
     {
-        SceneManager.LoadScene(sceneIndex);
+        GoToScene(SceneManager.GetSceneByBuildIndex(sceneIndex));
+
+    }
+
+    private void GoToScene(Scene scene)
+    {
+        HashtagChampion.TagNetworkManager.OnChangeScene(scene.path);
+        SceneManager.LoadScene(scene.buildIndex);
+
     }
 }

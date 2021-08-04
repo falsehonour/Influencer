@@ -6,7 +6,7 @@ namespace HashtagChampion
 {
     namespace CharacterCreation
     {
-        public class CharacterCreationManager : MonoBehaviour
+        public class CharacterCreationManager : MenuManager
         {
             private static Character characterPreFab;
             private static Character character;
@@ -14,11 +14,10 @@ namespace HashtagChampion
             [SerializeField] private ButtonBehaviour backButtonBehaviour;
             [SerializeField] private CharacterCreationPanel leftPanel;
             [SerializeField] private CharacterCreationPanel rightPanel;
-            private static CharacterCreationManager instance;
+            [SerializeField] private MenusCameraController cameraController;
 
             void Start()
             {
-                instance = this;
                 CharacterCreationButton.InitialiseBackButton(backButtonBehaviour);
                 // LocalPlayerData.Initialise();
 
@@ -27,6 +26,19 @@ namespace HashtagChampion
                 InitialiseCharacter(playerSkinData);
             }
 
+            public override void Activate()
+            {
+                base.Activate();
+                InitialisePanels();
+                cameraController.SetIsControllable(true);
+
+            }
+
+            public override void Deactivate()
+            {
+                base.Deactivate();
+                cameraController.SetIsControllable(false);
+            }
             private void InitialiseCharacter(PlayerSkinDataHolder skinDataHolder = null)
             {
                 //TODO: This function is kinda gross, should be split.
@@ -62,7 +74,6 @@ namespace HashtagChampion
                     }
                 }
                 character.TryEquipFallbackPieces();
-                InitialisePanels();
             }
 
             public void SaveCharacter()
@@ -71,6 +82,14 @@ namespace HashtagChampion
                     (characterPreFab, character.equippedMeshesByMeshCategory, character.equippedMeshModifiersByMeshModifierCategory);
 
                 SaveAndLoadManager.Save<PlayerSkinDataHolder>(playerSkinDataHolder);
+            }
+
+            public void RevertCharacter()
+            {
+                //TODO: This is identical to what happens on Start();
+                PlayerSkinDataHolder playerSkinData = SaveAndLoadManager.TryLoad<PlayerSkinDataHolder>();
+
+                InitialiseCharacter(playerSkinData);
             }
 
             #region GUI:

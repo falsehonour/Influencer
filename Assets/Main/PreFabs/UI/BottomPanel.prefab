@@ -37,7 +37,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 650.2, y: 108}
+  m_SizeDelta: {x: 1266, y: 144}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!222 &6204476197033549134
 CanvasRenderer:
@@ -159,7 +159,7 @@ PrefabInstance:
     - target: {fileID: 3407583922139597925, guid: f74438482aeff344e8366fbe24cb64fe,
         type: 3}
       propertyPath: m_fontSize
-      value: 36
+      value: 48
       objectReference: {fileID: 0}
     - target: {fileID: 3407583922139597925, guid: f74438482aeff344e8366fbe24cb64fe,
         type: 3}
@@ -209,7 +209,7 @@ PrefabInstance:
     - target: {fileID: 4138997413756011165, guid: f74438482aeff344e8366fbe24cb64fe,
         type: 3}
       propertyPath: m_SizeDelta.y
-      value: 75
+      value: 105
       objectReference: {fileID: 0}
     - target: {fileID: 4138997413756011165, guid: f74438482aeff344e8366fbe24cb64fe,
         type: 3}
@@ -249,7 +249,7 @@ PrefabInstance:
     - target: {fileID: 4138997413756011165, guid: f74438482aeff344e8366fbe24cb64fe,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 150
+      value: 205
       objectReference: {fileID: 0}
     - target: {fileID: 4138997413756011165, guid: f74438482aeff344e8366fbe24cb64fe,
         type: 3}
@@ -275,6 +275,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: ApplyAndSaveButton
+      objectReference: {fileID: 0}
+    - target: {fileID: 8619442442431671501, guid: f74438482aeff344e8366fbe24cb64fe,
+        type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 300
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f74438482aeff344e8366fbe24cb64fe, type: 3}
@@ -315,7 +320,7 @@ PrefabInstance:
     - target: {fileID: 3407583922139597925, guid: f74438482aeff344e8366fbe24cb64fe,
         type: 3}
       propertyPath: m_fontSize
-      value: 36
+      value: 48
       objectReference: {fileID: 0}
     - target: {fileID: 3407583922139597925, guid: f74438482aeff344e8366fbe24cb64fe,
         type: 3}
@@ -365,7 +370,7 @@ PrefabInstance:
     - target: {fileID: 4138997413756011165, guid: f74438482aeff344e8366fbe24cb64fe,
         type: 3}
       propertyPath: m_SizeDelta.y
-      value: 75
+      value: 105
       objectReference: {fileID: 0}
     - target: {fileID: 4138997413756011165, guid: f74438482aeff344e8366fbe24cb64fe,
         type: 3}
@@ -405,7 +410,7 @@ PrefabInstance:
     - target: {fileID: 4138997413756011165, guid: f74438482aeff344e8366fbe24cb64fe,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -150
+      value: -205
       objectReference: {fileID: 0}
     - target: {fileID: 4138997413756011165, guid: f74438482aeff344e8366fbe24cb64fe,
         type: 3}
@@ -431,6 +436,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: CancelButton
+      objectReference: {fileID: 0}
+    - target: {fileID: 8619442442431671501, guid: f74438482aeff344e8366fbe24cb64fe,
+        type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 300
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f74438482aeff344e8366fbe24cb64fe, type: 3}

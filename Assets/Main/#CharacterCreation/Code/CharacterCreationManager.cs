@@ -29,7 +29,7 @@ namespace HashtagChampion
             public override void Activate()
             {
                 base.Activate();
-                InitialisePanels();
+                //InitialisePanels();
                 cameraController.SetIsControllable(true);
 
             }
@@ -39,6 +39,7 @@ namespace HashtagChampion
                 base.Deactivate();
                 cameraController.SetIsControllable(false);
             }
+
             private void InitialiseCharacter(PlayerSkinDataHolder skinDataHolder = null)
             {
                 //TODO: This function is kinda gross, should be split.
@@ -74,6 +75,8 @@ namespace HashtagChampion
                     }
                 }
                 character.TryEquipFallbackPieces();
+
+                InitialisePanels();
             }
 
             public void SaveCharacter()

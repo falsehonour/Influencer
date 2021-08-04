@@ -11,6 +11,7 @@ public class MenusManager : MonoBehaviour
     [SerializeField] private MenuManager mainMenuManager;
     [SerializeField] private MenuManager playerSettingsMenuManager;
     [SerializeField] private MenuManager roomSettingsMenuManager;
+    [SerializeField] private MenuManager joinGameMenuManager;
 
     private MenuManager activeMenu;
 
@@ -24,7 +25,7 @@ public class MenusManager : MonoBehaviour
         characterCreationManager.Deactivate();
         playerSettingsMenuManager.Deactivate();
         roomSettingsMenuManager.Deactivate();
-
+        joinGameMenuManager.Deactivate();
     }
 
     public void SwitchRoomSettingsMenu()
@@ -62,5 +63,10 @@ public class MenusManager : MonoBehaviour
     public void GoToRoomSettingsMenu()
     {
         GoToMenu(roomSettingsMenuManager);
+    }
+
+    public void GoToJoinGameMenu()
+    {
+        GoToMenu(joinGameMenuManager);
     }
 }

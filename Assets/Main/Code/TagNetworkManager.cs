@@ -51,7 +51,7 @@ namespace HashtagChampion
             /* if (newSceneName == onlineScene)
              {
                  //Debug.Log("Active Scene: " + UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
-               //  StartCoroutine(InitialiseClientGameScene());
+                 //StartCoroutine(InitialiseClientGameScene());
              }*/
         }
 
@@ -90,6 +90,11 @@ namespace HashtagChampion
                 NetworkClient.RegisterPrefab(prefab);
                 //ClientScene.RegisterPrefab(prefab);
             }
+        }
+
+        public void SwitchDiscovery()
+        {
+            discoveryHUD.enabled = !discoveryHUD.enabled;
         }
     }
 }

@@ -36,7 +36,7 @@ TextureImporter:
       213: 8131123870852940960
     second: uikit4K_21
   externalObjects: {}
-  serializedVersion: 10
+  serializedVersion: 11
   mipmaps:
     mipMapMode: 0
     enableMipMap: 0
@@ -56,6 +56,7 @@ TextureImporter:
   isReadable: 0
   streamingMipmaps: 0
   streamingMipmapsPriority: 0
+  vTOnly: 0
   grayScaleToAlpha: 0
   generateCubemap: 6
   cubemapConvolution: 0
@@ -65,11 +66,11 @@ TextureImporter:
   textureSettings:
     serializedVersion: 2
     filterMode: 1
-    aniso: -1
-    mipBias: -100
+    aniso: 1
+    mipBias: 0
     wrapU: 1
     wrapV: 1
-    wrapW: -1
+    wrapW: 0
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
@@ -87,9 +88,13 @@ TextureImporter:
   textureType: 8
   textureShape: 1
   singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
   maxTextureSizeSet: 0
   compressionQualitySet: 0
   textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 1
   platformSettings:
   - serializedVersion: 3
     buildTarget: DefaultTexturePlatform
@@ -633,27 +638,6 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: uikit4K_30
-      rect:
-        serializedVersion: 2
-        x: 2336
-        y: 1816
-        width: 1057
-        height: 489
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 28, y: 41, z: 35, w: 24}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 92d71a37764519830800000000000000
-      internalID: 4076131941045337385
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
       name: uikit4K_31
       rect:
         serializedVersion: 2
@@ -733,27 +717,6 @@ TextureImporter:
       bones: []
       spriteID: e8db68413d151fde0800000000000000
       internalID: -1301168850309038706
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: uikit4K_35
-      rect:
-        serializedVersion: 2
-        x: 96
-        y: 1848
-        width: 1530
-        height: 422
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 84, y: 0, z: 102, w: 79}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: ae5d7a6f451c7ca40800000000000000
-      internalID: 5388488049831695850
       vertices: []
       indices: 
       edges: []
@@ -1077,13 +1040,13 @@ TextureImporter:
       name: uikit4K_53
       rect:
         serializedVersion: 2
-        x: 104
-        y: 84
-        width: 280
+        x: 98
+        y: 87
+        width: 309
         height: 238
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
+      border: {x: 79, y: 51, z: 69, w: 35}
       outline: []
       physicsShape: []
       tessellationDetail: 0
@@ -1098,13 +1061,13 @@ TextureImporter:
       name: uikit4K_54
       rect:
         serializedVersion: 2
-        x: 433
+        x: 438
         y: 84
-        width: 993
+        width: 1015
         height: 238
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
-      border: {x: 59, y: 57, z: 49, w: 33}
+      border: {x: 82, y: 57, z: 72, w: 33}
       outline: []
       physicsShape: []
       tessellationDetail: 0
@@ -1221,48 +1184,6 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: uikit4K_12
-      rect:
-        serializedVersion: 2
-        x: 2984
-        y: 98
-        width: 489
-        height: 226
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 19, y: 46, z: 19, w: 44}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 8148f721815bf0a20800000000000000
-      internalID: 3030840189237822488
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: uikit4K_19
-      rect:
-        serializedVersion: 2
-        x: 3533
-        y: 98
-        width: 489
-        height: 226
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 19, y: 46, z: 19, w: 44}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 60744384ad0766f00800000000000000
-      internalID: 1109698441009972998
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
       name: uikit4K_20
       rect:
         serializedVersion: 2
@@ -1287,19 +1208,40 @@ TextureImporter:
       name: uikit4K_21
       rect:
         serializedVersion: 2
-        x: 1472
+        x: 1479
         y: 81
-        width: 997
+        width: 1029
         height: 242
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
-      border: {x: 56, y: 68, z: 44, w: 42}
+      border: {x: 84, y: 68, z: 79, w: 42}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
       spriteID: 0a483ea741e87d070800000000000000
       internalID: 8131123870852940960
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: uikit4K_12
+      rect:
+        serializedVersion: 2
+        x: 1773
+        y: 445
+        width: 2292
+        height: 304
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8148f721815bf0a20800000000000000
+      internalID: 3030840189237822488
       vertices: []
       indices: 
       edges: []

@@ -15,6 +15,7 @@ public class UISettingsSlider : MonoBehaviour
 
     public void Initialise(Action<float> onValueChangedAction, float initialValue, float minValue, float maxValue,  float valueNormaliser = 1 )
     {
+
         InitialiseListeners();
 
         this.valueNormaliser = valueNormaliser;

@@ -37,7 +37,7 @@ namespace HashtagChampion
         private void Start()
         {
             
-            playerSettingsManager.SetActiveJoystick(StaticData.playerSettings.fixedJoystick);
+            playerSettingsManager.SetActiveJoystick(StaticData.playerSettings.joystickType == JoystickTypes.Fixed);
             Player.Initialise(this);
 
             if (isServer)

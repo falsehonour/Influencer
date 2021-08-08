@@ -1,36 +1,46 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UI;
+﻿[System.Serializable]
 
-public class PlayerName : MonoBehaviour
+public class PlayerName : ISavable
 {
-    //TODO: This is a temporary class, get rid of it.
-    private static readonly string fallbackName = "Player";
-    public static string name = fallbackName;
-    private static PlayerName instance;
-    [SerializeField] private InputField nameInputField;
+    private const string DEFAULT_NAME = "Player123567";
+    public const int MAX_LETTER_COUNT = 16;
+    public string name;
+    //[SerializeField] private InputField nameInputField;
 
-    private void Awake()
+    public PlayerName()
     {
-        instance = this;
+        //Default values:
+        name = DEFAULT_NAME;
     }
 
-    public void OnInputFieldUpdated()
+    public static string LegaliseName(string name)
     {
-        SetName(nameInputField.text);
-    }
-
-    private void SetName(string newName)
-    {
-        if(newName != string.Empty)
+        int letterCount = name.Length;
+        if (letterCount < 1)
         {
-            name = newName;
+            name = DEFAULT_NAME;
         }
-        else
+        else if(letterCount > MAX_LETTER_COUNT)
         {
-            name = fallbackName;
+            name = name.Remove(MAX_LETTER_COUNT);
         }
+        return name;
     }
+    /* public void OnInputFieldUpdated()
+     {
+         SetName(nameInputField.text);
+     }*/
+
+    /* private void SetName(string newName)
+     {
+         if(newName != string.Empty)
+         {
+             name = newName;
+         }
+         else
+         {
+             name = fallbackName;
+         }
+     }*/
 }
 

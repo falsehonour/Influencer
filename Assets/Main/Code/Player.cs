@@ -181,7 +181,7 @@ namespace HashtagChampion
                 characterCamera = FindObjectOfType<CharacterCamera>();
                 characterCamera.Initialise(myTransform/*, cameraAnchor*/);
 
-                Cmd_SetName(PlayerName.name);
+                Cmd_SetName(StaticData.playerName.name);
             }
 
             if (skin != null)

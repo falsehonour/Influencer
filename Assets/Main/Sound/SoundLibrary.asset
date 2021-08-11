@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2a025659895ab7458ffbb1cf50d7f93, type: 3}
+  m_Name: SoundLibrary
+  m_EditorClassIdentifier: 
+  soundEffects:
+  - name: 1
+    audioClips:
+    - {fileID: 8300000, guid: dfbf87d0b5e63d34bb48f06285575ab3, type: 3}
+    pitchRange:
+      min: 0.9
+      max: 1.1
+  - name: 2
+    audioClips:
+    - {fileID: 8300000, guid: 4d1e11f0787cfb242a83f843f215c8d4, type: 3}
+    pitchRange:
+      min: 0.9
+      max: 1.1
+  - name: 3
+    audioClips:
+    - {fileID: 8300000, guid: 7b0806a19a0a54747a7913d02f5ffcb0, type: 3}
+    pitchRange:
+      min: 1
+      max: 1
+  musicTracks:
+  - name: 4
+    audioClip: {fileID: 8300000, guid: ee0cecc23128cd441bc1c87afee07f01, type: 3}
+  oneShotSoundPreFab: {fileID: 1916568572546162760, guid: c82180c95176efc48b87e19cad222a49,
+    type: 3}

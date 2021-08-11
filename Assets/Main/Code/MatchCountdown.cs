@@ -59,6 +59,10 @@ namespace HashtagChampion
                     if (currentTimeLeftUInt16 != previousTimeLeftUInt16)
                     {
                         UpdateDigits(currentTimeLeftUInt16);
+                        if(currentTimeLeftUInt16 <= 10)
+                        {
+                            SoundManager.PlayOneShotSound(SoundNames.CountdownCritical, null);
+                        }
                     }
                     previousTimeLeftUInt16 = currentTimeLeftUInt16;
                 }

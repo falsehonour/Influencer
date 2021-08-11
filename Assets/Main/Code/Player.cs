@@ -65,7 +65,7 @@ namespace HashtagChampion
             Frozen, Injured, Normal, Sprinting
         }
         private readonly static float MIN_MOVEMENT_SPEED = UnitConvertor.KilometresPerHourToMetresPerSecond(1f);
-        private readonly static float MIN_RUN_SPEED = UnitConvertor.KilometresPerHourToMetresPerSecond(7.65f);
+        private readonly static float MIN_RUN_SPEED = UnitConvertor.KilometresPerHourToMetresPerSecond(7.8f);
         private readonly static float MIN_SPRINT_SPEED = UnitConvertor.KilometresPerHourToMetresPerSecond(22f);
         public enum GaitTypes : byte
         {
@@ -378,6 +378,12 @@ namespace HashtagChampion
             }
         }
 
+        [ClientRpc]
+        private void Rpc_OnTagged()
+        {
+            SoundManager.PlayOneShotSound(SoundNames.Tagged);
+        }
+
         [Client]
         private void OnTaggerChange(bool oldValue, bool newValue)
         {
@@ -455,6 +461,7 @@ namespace HashtagChampion
                             }
                         }
                     }
+                    Rpc_OnTagged();
                     nextTagger.SetTagger(true, PlayerServerData.TAGGER_FREEZE_DURATION);
                     Vector3 pushForce = myTransform.forward * PUSH_FORCE;
                     Push(nextTagger, pushForce, PlayerServerData.TAGGER_FREEZE_DURATION);
@@ -781,6 +788,7 @@ namespace HashtagChampion
         private void Collect(PickUp pickUp)
         {
             pickUp.Collect();
+            PowerUp.Type powerUpType = PowerUp.Type.None;
             if (pickUp is HealthPickUp)
             {
                 ModifyHealth(PlayerServerData.HEALTH_PICK_UP_BONUS);
@@ -789,8 +797,22 @@ namespace HashtagChampion
             {
                 PowerUpPickUp powerUpPickUp = (PowerUpPickUp)pickUp;
                 powerUp = powerUpPickUp.GetPowerUp();
+                powerUpType = powerUp.type;
             }
+
+            TargetRpc_OnCollect(powerUpType);
         }
+
+        [TargetRpc]
+        private void TargetRpc_OnCollect(PowerUp.Type powerUpType)
+        {
+
+            SoundManager.PlayOneShotSound(SoundNames.Collect, null);
+            SoundNames powerUpSound = PowerUpsProperties.GetCollectionSound(powerUpType);
+            SoundManager.PlayOneShotSound(powerUpSound, null);
+
+        }
+
 
         [Server]
         private void GetInjured(float duration)
@@ -864,6 +886,7 @@ namespace HashtagChampion
             Vector3 force = myTransform.forward * SLIP_FORCE;
             Freeze(PlayerServerData.SLIP_FREEZE_DURATION);//HARDCODED
             TargetRpc_OnSlip(force);
+            Rpc_OnSlip();
             Kevin.TryLaughAt(myTransform);
         }
 
@@ -881,6 +904,12 @@ namespace HashtagChampion
             //TODO: merge with freeze perhaps?
             networkAnimator.SetTrigger(AnimatorParameters.FlipForward);
             externalForces += force;
+        }
+
+        [ClientRpc]
+        private void Rpc_OnSlip()
+        {
+            SoundManager.PlayOneShotSound(SoundNames.BananaSlip, myTransform.position);
         }
 
         #endregion

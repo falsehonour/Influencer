@@ -28,6 +28,8 @@ namespace HashtagChampion
             rigidbody.velocity = Vector3.zero;
             triggerCollider.enabled = true;
 
+            SoundManager.PlayOneShotSound(SoundNames.BananaThrow, position);
+
             // PhysicsUtility.SetRootAndDecendentsLayers(gameObject, PROJECTILE_LAYER);
 
         }

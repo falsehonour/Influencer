@@ -84,6 +84,9 @@ public class PlayerSettingsMenuManager : MenuManager
         PlayerSettings.Copy(modifiedSettings, StaticData.playerSettings);
         //TODO: Should we let StaticData do the saving?
         SaveAndLoadManager.Save<PlayerSettings>(modifiedSettings);
+
+        //TODO: Move this away. also, u might wanna apply setting every time something is changed on the menu
+        SoundManager.ConformToPlayerSettings();
     }
 
     public void ResetToDefault()

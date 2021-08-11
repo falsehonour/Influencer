@@ -85,7 +85,7 @@ namespace HashtagChampion
                     if (player != null /*&& player != originator*/)
                     {
                         Debug.Log("Player HIT");
-                        Hit(player);
+                        HitPlayer(player);
                         //playerController.OnFootballHit();
                     }
                     // Server_OnTriggerEnter(other);
@@ -115,9 +115,9 @@ namespace HashtagChampion
          }*/
 
 
-        protected virtual void Hit(Player player) { }
+        protected virtual void HitPlayer(Player player) { }
 
-        private void Stop()
+        protected virtual void Stop()
         {
             //SwitchKinematicState(false);
             rigidbody.useGravity = true;

@@ -6,9 +6,9 @@ namespace HashtagChampion
         private const float SPEED = 11f;
         protected override float Speed => SPEED;
 
-        protected override void Hit(Player player)
+        protected override void HitPlayer(Player player)
         {
-            base.Hit(player);
+            base.HitPlayer(player);
             player.OnFootballHit();
         }
     }

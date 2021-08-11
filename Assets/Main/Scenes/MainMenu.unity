@@ -2328,6 +2328,16 @@ PrefabInstance:
       propertyPath: m_Name
       value: NetworkManagement
       objectReference: {fileID: 0}
+    - target: {fileID: 6622942107474586950, guid: 8b719343aced9b6479906e828528ed13,
+        type: 3}
+      propertyPath: transport
+      value: 
+      objectReference: {fileID: 360841472}
+    - target: {fileID: 6622942107474586950, guid: 8b719343aced9b6479906e828528ed13,
+        type: 3}
+      propertyPath: networkAddress
+      value: 18.197.2.233
+      objectReference: {fileID: 0}
     - target: {fileID: 6622942107474586951, guid: 8b719343aced9b6479906e828528ed13,
         type: 3}
       propertyPath: m_RootOrder
@@ -2383,7 +2393,8 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 6622942107474586945, guid: 8b719343aced9b6479906e828528ed13, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 8b719343aced9b6479906e828528ed13, type: 3}
 --- !u!1 &334367805
 GameObject:
@@ -2589,6 +2600,51 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 359721872}
   m_CullTransparentMesh: 0
+--- !u!1 &360841467 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6622942107474586944, guid: 8b719343aced9b6479906e828528ed13,
+    type: 3}
+  m_PrefabInstance: {fileID: 331003696}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &360841472
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 360841467}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7424c1070fad4ba2a7a96b02fbeb4bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  port: 7777
+  NoDelay: 1
+  SendTimeout: 5000
+  ReceiveTimeout: 30000
+  serverMaxMessageSize: 16384
+  serverMaxReceivesPerTick: 10000
+  serverSendQueueLimitPerConnection: 10000
+  serverReceiveQueueLimitPerConnection: 10000
+  clientMaxMessageSize: 16384
+  clientMaxReceivesPerTick: 1000
+  clientSendQueueLimit: 10000
+  clientReceiveQueueLimit: 10000
+--- !u!114 &360841474
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 360841467}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6442dc8070ceb41f094e44de0bf87274, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  showGUI: 1
+  offsetX: 0
+  offsetY: 0
 --- !u!1001 &361532539
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -13491,7 +13547,7 @@ MonoBehaviour:
     type: 3}
   m_PrefabInstance: {fileID: 331003696}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 360841467}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 83c0c493194d0094a8bdcdf9df05eac7, type: 3}
@@ -21761,7 +21817,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: 46.87, y: 0}
+  m_AnchoredPosition: {x: 46.870117, y: 0}
   m_SizeDelta: {x: 868.7, y: 144}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &6204476195330293345

@@ -6,11 +6,9 @@ using UnityEngine.Audio;
 
 public enum SoundNames : byte
 {
-   None = 0, BananaSlip, BananaThrow, BananaCollect, MenuMusic,
-    GunShot, BulletHit,
-    Collect,
-    CountdownCritical,
-    Tagged
+    None = 0, BananaSlip=1, BananaThrow=2, BananaCollect=3, MenuMusic=4,
+    GunShot=5, BulletHit=6, Collect=7, CountdownCritical=8, Tagged=9, FootballCollect=10, SprintCollect=11,
+    HealthCollect =12, GunCollect=13, 
 }
 
 [Serializable]

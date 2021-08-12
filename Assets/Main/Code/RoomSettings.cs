@@ -5,5 +5,7 @@ public struct RoomSettings
     public byte playerCount;
     ///<summary>The time a match will last in seconds</summary>
     public float countdown;
-    public byte initialPickups; 
+    public byte initialPickups;
+    public float taggerSpeedBoostInKilometresPerHour;
+    public float playerRotationSpeed;
 }

@@ -5,3 +5,20 @@
             animator.SetInteger("WhatTheHellInt", animationSpeedState);
             animator.SetFloat("WhatTheHellFloat", animationSpeedState);
             animator.SetFloat(AnimatorParameters.Speed, animationSpeedState);*/
+
+
+
+                    private char definedChar = ' ';
+        private char undefinedChar;
+
+        private void Test()
+        {
+            string defined = string.Empty;
+            defined += "0" + definedChar;
+            defined += "1";
+            Debug.Log(defined);//prints "0 1"
+
+            string undefined = "0" + undefinedChar;
+            undefined += "1";
+            Debug.Log(undefined);//prints "0"
+        }

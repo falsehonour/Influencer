@@ -1,33 +1,36 @@
 ﻿using UnityEngine;
 
-namespace CharacterCreation
+namespace HashtagChampion
 {
-    [CreateAssetMenu(fileName = "CharacterMeshNameRequirements", menuName = "Character Creation/CharacterMeshNameRequirements")]
-    public class CharacterMeshNameRequirements : ScriptableObject
+    namespace CharacterCreation
     {
-        [System.Serializable]
-        private struct CharacterMeshNameRequirementUnit
+        [CreateAssetMenu(fileName = "CharacterMeshNameRequirements", menuName = "Character Creation/CharacterMeshNameRequirements")]
+        public class CharacterMeshNameRequirements : ScriptableObject
         {
-            public MeshCategories category;
-            public string name;
-        }
-
-        [SerializeField] private CharacterMeshNameRequirementUnit[] characterPieceNameRequirementUnits;
-        public string GetRequiredMeshName(MeshCategories categories)
-        {
-            string requiredName = null;
-
-            for (int i = 0; i < characterPieceNameRequirementUnits.Length; i++)
+            [System.Serializable]
+            private struct CharacterMeshNameRequirementUnit
             {
-                //TODO: this does not cover meshes that belong to multiple categories yet
-                if (categories == characterPieceNameRequirementUnits[i].category)
-                {
-                    requiredName = characterPieceNameRequirementUnits[i].name;
-                    break;
-                }
+                public MeshCategories category;
+                public string name;
             }
 
-            return requiredName;
+            [SerializeField] private CharacterMeshNameRequirementUnit[] characterPieceNameRequirementUnits;
+            public string GetRequiredMeshName(MeshCategories categories)
+            {
+                string requiredName = null;
+
+                for (int i = 0; i < characterPieceNameRequirementUnits.Length; i++)
+                {
+                    //TODO: this does not cover meshes that belong to multiple categories yet
+                    if (categories == characterPieceNameRequirementUnits[i].category)
+                    {
+                        requiredName = characterPieceNameRequirementUnits[i].name;
+                        break;
+                    }
+                }
+
+                return requiredName;
+            }
         }
     }
 }

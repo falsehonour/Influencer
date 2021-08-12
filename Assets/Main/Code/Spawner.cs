@@ -10,7 +10,7 @@ public enum Spawnables : byte
     Length = 9
 }
 
-public class Spawner : MonoBehaviour//NetworkBehaviour
+public class Spawner : MonoBehaviour
 {
     [System.Serializable]
     private struct SpawnableObjectDefinition
@@ -20,22 +20,16 @@ public class Spawner : MonoBehaviour//NetworkBehaviour
         public int poolSize;
     }
 
-    public static Spawner instance;
     [SerializeField] private SpawnableObjectDefinition[] spawnableObjectDefinitions;
     private  static SpawnableObjectDefinition nullDefinition = new SpawnableObjectDefinition();
     private static Spawnable[][] spawnablesPools;
     private Transform allSpawnablesParent;
     //private static int[] spawnableIndices;
 
-    private void Awake()
-    {
-        instance = this;
-    }
-
     [Server]
-    public static void Initialise()
+    public void Initialise()
     {
-        instance.InitialisePools();
+        InitialisePools();
     }
 
     [Server]
@@ -63,7 +57,7 @@ public class Spawner : MonoBehaviour//NetworkBehaviour
      }*/
 
     [Server]
-    public static Spawnable Spawn(Spawnables spawnableName, Vector3 spawnPosition, Quaternion spawnRotation, uint? callerNetID)
+    public Spawnable Spawn(Spawnables spawnableName, Vector3 spawnPosition, Quaternion spawnRotation, uint? callerNetID)
     {
         
         Spawnable validSpawnable = null;
@@ -84,11 +78,11 @@ public class Spawner : MonoBehaviour//NetworkBehaviour
         //Resize:
         {
             Debug.Log($"Resizein' {spawnableName}'s pool++");
-            ref SpawnableObjectDefinition spawnableDefinition = ref instance.GetSpawnableDefinition(spawnableName);
+            ref SpawnableObjectDefinition spawnableDefinition = ref GetSpawnableDefinition(spawnableName);
             //TODO: What's the ideal length..?
             int oldLength = spawnableArray.Length;
             int deadPoolLength = (int)(oldLength / 2);
-            Spawnable[] deadPool = instance.CreateDeadPool(spawnableDefinition.preFab, deadPoolLength);
+            Spawnable[] deadPool = CreateDeadPool(spawnableDefinition.preFab, deadPoolLength);
             Spawnable[] newSpawnableArray =  new Spawnable[deadPoolLength + oldLength];
             for (int i = 0; i < oldLength; i++)
             {
@@ -139,18 +133,16 @@ public class Spawner : MonoBehaviour//NetworkBehaviour
         Spawnable[] spawnableArray = new Spawnable[arrayLength];
         for (int i = 0; i < arrayLength; i++)
         {
-            Spawnable spawnable = spawnableArray[i] = 
-                Instantiate(preFab, allSpawnablesParent);
+            Spawnable spawnable = spawnableArray[i] = Instantiate(preFab, allSpawnablesParent);
             NetworkServer.Spawn(spawnable.gameObject);       
             spawnable.Die();
-
         }
         return spawnableArray;
     }
 
-    public static GameObject[] GetAllSpawnablePrefabs()
+    public GameObject[] GetAllSpawnablePrefabs()
     {
-        SpawnableObjectDefinition[] definitions = instance.spawnableObjectDefinitions;
+        SpawnableObjectDefinition[] definitions = spawnableObjectDefinitions;
         int length = definitions.Length;
         List<GameObject> prefabs = new List<GameObject>();
         for (int i = 0; i < length; i++)
@@ -181,14 +173,4 @@ public class Spawner : MonoBehaviour//NetworkBehaviour
         return spawnedObject;
     }*/
 
-    /*private void Update()
-    {
-        //For testing purposes:
-        if (Input.GetKeyDown(KeyCode.S))
-        {
-            float offset = 2f;
-            Vector3 spawnPosition = new Vector3(Random.Range(-offset, offset), 0, Random.Range(-offset, offset));
-            Spawn(Spawnables.Trap, spawnPosition);
-        }
-    }*/
 }

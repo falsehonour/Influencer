@@ -1,11 +1,17 @@
-﻿public class ThrownFootball : PhysicalProjectile
+﻿
+namespace HashtagChampion
 {
-    private const float SPEED = 11f;
-    protected override float Speed => SPEED;
-
-    protected override void Hit(PlayerController player)
+    public class ThrownFootball : PhysicalProjectile
     {
-        base.Hit(player);
-        player.OnFootballHit();
+        private const float SPEED = 11f;
+        protected override float Speed => SPEED;
+
+        protected override void HitPlayer(Player player)
+        {
+            base.HitPlayer(player);
+            player.OnFootballHit();
+        }
     }
 }
+
+

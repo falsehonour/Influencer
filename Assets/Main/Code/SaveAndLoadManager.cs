@@ -1,55 +1,46 @@
 ﻿using UnityEngine;
 using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
+//using System.Runtime.Serialization.Formatters.Binary;
 
 public static class SaveAndLoadManager 
 {
-    private static string BuildSaveFilePath(string fileName)
-    {
-        string persistentDataPath = Application.persistentDataPath + "/";
-        //string fileName = "player_skin";//TODO: Expand;
-        string path = (persistentDataPath + fileName + ".dat");
+    //Note: Deserialize might be dangerous: https://docs.microsoft.com/he-il/dotnet/standard/serialization/binaryformatter-security-guide
+
+    private static string BuildSaveFilePath(System.Type type )
+    {    
+        string dataPath = Application.persistentDataPath + "/";
+        string path = (dataPath + type.ToString() + ".txt");
         return path;
     }
 
-    public static T Load<T>(T data) where T : class, ISavable
-    {      
-        string path = BuildSaveFilePath(data.GetSaveFileName());
+    public static T TryLoad<T>() where T : class,  ISavable
+    {
+        //TODO: Handle situations where a ISavable  changed.
+        
+        string path = BuildSaveFilePath(typeof(T));
         if (File.Exists(path))
         {
-            BinaryFormatter binaryFormatter = new BinaryFormatter();
-            FileStream fileStream = File.Open(path, FileMode.Open);
-            //T savedData = new ;
-            Debug.Log("Loading from " + path);
-
-            object obj = binaryFormatter.Deserialize(fileStream);
-            if(obj is T)
+            //TODO: Should we cache this BinaryFormatter?
+            string json = File.ReadAllText(path);
+            try
             {
-                data = (T)obj;
-                fileStream.Close();
-                return data;
+                T loadedObject = JsonUtility.FromJson<T>(json);
+                Debug.Log("Loaded from " + path);
+                return loadedObject;
             }
-            else
+            catch
             {
-                Debug.LogError("Load Failed! The file was found but did not to the type of "+ typeof(T).ToString());
-                Debug.LogError(path);
+                Debug.LogError("JsonUtility.FromJson failed!");
             }
         }
         return null;
     }
 
-    public static void Save<T>(T data) where T : ISavable
+    public static void Save<T>(T data) where T : class, ISavable
     {
-        string path = BuildSaveFilePath(data.GetSaveFileName());
-        if (!File.Exists(path))
-        {
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
-        }
-        BinaryFormatter binaryFormatter = new BinaryFormatter();
-        FileStream fileStream = File.Open(path, FileMode.OpenOrCreate);
-        T savedData = data;// new PlayerStats.PlayerData(name, lives, powerUps);
-        binaryFormatter.Serialize(fileStream, savedData);
+        string path = BuildSaveFilePath(typeof(T));
+        string json = JsonUtility.ToJson(data);
+        File.WriteAllText(path, json);
         Debug.Log("Saving to " + path);
-        fileStream.Close();
     }
 }

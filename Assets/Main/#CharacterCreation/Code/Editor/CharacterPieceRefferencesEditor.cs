@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using UnityEditor;
 
+namespace HashtagChampion
+{
 namespace CharacterCreation
 {
     [CustomEditor(typeof(CharacterReferences))]
@@ -19,4 +21,6 @@ namespace CharacterCreation
         }
     }
 }
+}
+
 

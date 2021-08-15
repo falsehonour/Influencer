@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 
+namespace HashtagChampion
+{
 namespace CharacterCreation
 {
     public class CharacterCreationReferencer : MonoBehaviour
@@ -15,4 +17,5 @@ namespace CharacterCreation
             instance = this;
         }
     }
+}
 }

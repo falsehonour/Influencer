@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 
+namespace HashtagChampion
+{ 
 namespace CharacterCreation
 {
     [CreateAssetMenu(fileName = "CharacterStaticMesh", menuName = "Character Creation Piece/CharacterStaticMesh")]
@@ -18,6 +20,9 @@ namespace CharacterCreation
             this.transformOffset = transformOffset;
         }
     }
+}
+
+
 }
 
 

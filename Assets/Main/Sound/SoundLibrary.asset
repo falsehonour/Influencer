@@ -1,0 +1,98 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2a025659895ab7458ffbb1cf50d7f93, type: 3}
+  m_Name: SoundLibrary
+  m_EditorClassIdentifier: 
+  soundEffects:
+  - name: 9
+    audioClips:
+    - {fileID: 8300000, guid: d8fa344532904f44da75b218ae90fad5, type: 3}
+    pitchRange:
+      min: 1
+      max: 1
+  - name: 1
+    audioClips:
+    - {fileID: 8300000, guid: 05a90d86e0929114d862860d2756c3c2, type: 3}
+    pitchRange:
+      min: 0.9
+      max: 1.1
+  - name: 2
+    audioClips:
+    - {fileID: 8300000, guid: 1a6aefff85c2475499400c660e06ce26, type: 3}
+    pitchRange:
+      min: 0.9
+      max: 1.1
+  - name: 3
+    audioClips:
+    - {fileID: 8300000, guid: 1a48aa91cc44ad64d849e1e1bbcdabac, type: 3}
+    pitchRange:
+      min: 1
+      max: 1
+  - name: 6
+    audioClips:
+    - {fileID: 8300000, guid: ff5aa12a393a06b4fbadf3d9498e6e74, type: 3}
+    pitchRange:
+      min: 0.9
+      max: 1.1
+  - name: 5
+    audioClips:
+    - {fileID: 8300000, guid: e67ac685ad9c8ad469ce042d29caa6ca, type: 3}
+    pitchRange:
+      min: 0.9
+      max: 1.1
+  - name: 5
+    audioClips:
+    - {fileID: 8300000, guid: e67ac685ad9c8ad469ce042d29caa6ca, type: 3}
+    pitchRange:
+      min: 0.9
+      max: 1.1
+  - name: 7
+    audioClips:
+    - {fileID: 8300000, guid: a413b0c28db234640b57a981b1b50a66, type: 3}
+    pitchRange:
+      min: 1
+      max: 1
+  - name: 13
+    audioClips:
+    - {fileID: 8300000, guid: 3d84a7a5a2564bd4d8962c21f9e8fdc2, type: 3}
+    pitchRange:
+      min: 1
+      max: 1
+  - name: 11
+    audioClips:
+    - {fileID: 8300000, guid: c1b49b8645c8696409befc8541a2bdf2, type: 3}
+    pitchRange:
+      min: 1
+      max: 1
+  - name: 10
+    audioClips:
+    - {fileID: 8300000, guid: 94b6a61310eb1754eb1576341ae58025, type: 3}
+    pitchRange:
+      min: 1
+      max: 1
+  - name: 12
+    audioClips:
+    - {fileID: 8300000, guid: 5839743d9c4c8894eb55b41d920e10d6, type: 3}
+    pitchRange:
+      min: 1
+      max: 1
+  - name: 12
+    audioClips:
+    - {fileID: 8300000, guid: 5839743d9c4c8894eb55b41d920e10d6, type: 3}
+    pitchRange:
+      min: 1
+      max: 1
+  musicTracks:
+  - name: 4
+    audioClip: {fileID: 8300000, guid: ee0cecc23128cd441bc1c87afee07f01, type: 3}
+  oneShotSoundPreFab: {fileID: 1916568572546162760, guid: c82180c95176efc48b87e19cad222a49,
+    type: 3}

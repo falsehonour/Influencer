@@ -1,40 +1,44 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-public class PowerUpButton : PlayerInputButton
+namespace HashtagChampion
 {
-    [SerializeField] private GameObject countGraphics;
-    [SerializeField] private TMPro.TextMeshProUGUI countText;
-    [SerializeField] private Image powerUpIcon;
-    [SerializeField] private Vector3 powerUpIconBaseScale;
-    [SerializeField] private float powerUpIconSizeMultiplierWhilePressed;
-
-    public void SetGraphics(PowerUp powerUp)
+    public class PowerUpButton : PlayerInputButton
     {
-        bool showCount = (powerUp.count > 1);
-        if (showCount)
+        [SerializeField] private GameObject countGraphics;
+        [SerializeField] private TMPro.TextMeshProUGUI countText;
+        [SerializeField] private Image powerUpIcon;
+        [SerializeField] private Vector3 powerUpIconBaseScale;
+        [SerializeField] private float powerUpIconSizeMultiplierWhilePressed;
+
+        public void SetGraphics(PowerUp powerUp)
         {
-            countGraphics.SetActive(true);
-            countText.text = powerUp.count.ToString();
+            bool showCount = (powerUp.count > 1);
+            if (showCount)
+            {
+                countGraphics.SetActive(true);
+                countText.text = powerUp.count.ToString();
+            }
+            else
+            {
+                countGraphics.SetActive(false);
+            }
+            powerUpIcon.sprite = PowerUpsProperties.GetIcon(powerUp.type);
         }
-        else
+
+        protected override void OnPressed()
         {
-            countGraphics.SetActive(false);
+            base.OnPressed();
+            powerUpIcon.transform.localScale = powerUpIconBaseScale * powerUpIconSizeMultiplierWhilePressed;
+
         }
-        powerUpIcon.sprite = PowerUpsProperties.GetIcon(powerUp.type);
+
+        protected override void OnUnpressed()
+        {
+            base.OnUnpressed();
+            powerUpIcon.transform.localScale = powerUpIconBaseScale;
+
+        }
     }
 
-    protected override void OnPressed()
-    {
-        base.OnPressed();
-        powerUpIcon.transform.localScale = powerUpIconBaseScale * powerUpIconSizeMultiplierWhilePressed;
-
-    }
-
-    protected override void OnUnpressed()
-    {
-        base.OnUnpressed();
-        powerUpIcon.transform.localScale = powerUpIconBaseScale;
-
-    }
 }

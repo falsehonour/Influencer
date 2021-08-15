@@ -1,0 +1,68 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using System;
+
+//TODO: We are doing lots of fancy stuff in order to use these generic Enums. Maybe we should use a more straight-forward yet less flexible method to achieve  the same results
+public class UISettingsController<T> where T : Enum
+{
+    private UISettingsControllerMonoBehaviour monoBehaviour;
+    public event Action<T> OnValueChangedEvent;
+
+    private T value;
+    private T minValue;
+    private T maxValue;
+
+    public void Initialise(Action<T> onValueChangedAction, T initialValue, UISettingsControllerMonoBehaviour monoBehaviour)
+    {
+
+        OnValueChangedEvent += onValueChangedAction;
+        
+        minValue = (T)Enum.Parse(typeof(T), "Min");
+        maxValue = (T)Enum.Parse(typeof(T), "Max");
+        /* Debug.Log("minValue: " + minValue);
+         Debug.Log("maxValue: " + maxValue);*/
+        this.monoBehaviour = monoBehaviour;
+        InitialiseListeners();
+        SetValue(initialValue, false);
+    }
+
+    private void InitialiseListeners()
+    {
+        monoBehaviour.forwardButton.onClick.RemoveAllListeners();
+
+        monoBehaviour.forwardButton.onClick.AddListener(delegate
+        {
+            //TODO: Boxing?
+            int integerValue = ((int)(object)value) + 1;
+            T newValue = (T)Enum.ToObject(typeof(T), integerValue);
+            SetValue(newValue, true);
+        });
+
+
+    }
+
+    private void SetValue(T newValue, bool invokeAction)
+    {
+        
+        if (newValue.CompareTo(minValue) < 0)
+        //The value of newValue is less than the value of maxValue.
+        {
+            newValue = maxValue;
+        }
+        else if (newValue.CompareTo(maxValue) > 0)
+        //The value of newValue is greater than the value of maxValue, or maxValue is null.
+        {
+            newValue = minValue;
+        }
+        value = newValue;
+        monoBehaviour.text.text = value.ToString();
+        if (invokeAction)
+        {
+            OnValueChangedEvent?.Invoke(value);
+        }
+    }
+
+
+
+}

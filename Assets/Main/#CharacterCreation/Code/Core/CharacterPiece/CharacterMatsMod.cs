@@ -1,46 +1,51 @@
 ﻿using UnityEngine;
 using System;
 
-namespace CharacterCreation
+
+namespace HashtagChampion
 {
-
-    ///<summary>Character Materials Modifier</summary>
-    [CreateAssetMenu(fileName = "MatsMod", menuName = "Character Creation Piece/CharacterMatsMod")]
-    public class CharacterMatsMod : CharacterMeshMod
+    namespace CharacterCreation
     {
-        public enum MaterialParameters : byte
+
+        ///<summary>Character Materials Modifier</summary>
+        [CreateAssetMenu(fileName = "MatsMod", menuName = "Character Creation Piece/CharacterMatsMod")]
+        public class CharacterMatsMod : CharacterMeshMod
         {
-            _MainTex, _Color
+            public enum MaterialParameters : byte
+            {
+                _MainTex, _Color
+            }
+
+            [Serializable]
+            public struct ColourMod
+            {
+                public byte matIndex;
+                public MaterialParameters colourName;
+                public Color32 colour;
+            }
+
+            [Serializable]
+            public struct TextureMod
+            {
+                public byte matIndex;
+                public MaterialParameters textureName;//TODO:Find a way use index instead...
+                public Texture2D texture;
+            }
+
+            [SerializeField] private ColourMod[] colourMods;
+            public ColourMod[] ColourMods => colourMods;
+            [SerializeField] private TextureMod[] textureMods;
+            public TextureMod[] TextureMods => textureMods;
+
+            /*[System.Serializable]
+            public struct MaterialTexture
+            {
+                public Texture2D texture2D;
+                public Color32 colour;
+                public byte materialIndex;
+            }*/
+
         }
-
-        [Serializable]
-        public struct ColourMod
-        {
-            public byte matIndex;
-            public MaterialParameters colourName;
-            public Color32 colour;
-        }
-
-        [Serializable]
-        public struct TextureMod
-        {
-            public byte matIndex;
-            public MaterialParameters textureName;//TODO:Find a way use index instead...
-            public Texture2D texture;
-        }
-
-        [SerializeField] private ColourMod[] colourMods;
-        public ColourMod[] ColourMods => colourMods;
-        [SerializeField] private TextureMod[] textureMods;
-        public TextureMod[] TextureMods => textureMods;
-
-        /*[System.Serializable]
-        public struct MaterialTexture
-        {
-            public Texture2D texture2D;
-            public Color32 colour;
-            public byte materialIndex;
-        }*/
-
     }
+
 }

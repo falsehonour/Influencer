@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 4272709091172166920}
   - component: {fileID: 5249917636080238613}
   - component: {fileID: 3494930815675566202}
-  - component: {fileID: 5008776454934331560}
   m_Layer: 0
   m_Name: Reward B
   m_TagString: Untagged
@@ -60,6 +59,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -84,18 +84,4 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!64 &5008776454934331560
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 915002944872215684, guid: 0aa477c40a3c2a44db6d6a8355e6f0b4,
-    type: 3}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8713614066719215615}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 4
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 3390558720134950976, guid: 4e4eef1c8ca7ddb4988bd469481d3ed6, type: 3}
+  m_AdditionalVertexStreams: {fileID: 0}

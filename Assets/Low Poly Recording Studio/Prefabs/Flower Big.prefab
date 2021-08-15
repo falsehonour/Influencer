@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 5759287541881745519}
   - component: {fileID: 8665702024626487242}
   - component: {fileID: 6892254957331696384}
-  - component: {fileID: -2116519187398262844}
+  - component: {fileID: 8600461279607607807}
   m_Layer: 0
   m_Name: Flower Big
   m_TagString: Untagged
@@ -56,6 +56,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -80,8 +81,9 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!64 &-2116519187398262844
-MeshCollider:
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!136 &8600461279607607807
+CapsuleCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -90,7 +92,7 @@ MeshCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  serializedVersion: 4
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 8057893912577013899, guid: 61f444647dce6284bb2fdac3ff549964, type: 3}
+  m_Radius: 0.29606706
+  m_Height: 0.980289
+  m_Direction: 1
+  m_Center: {x: -0.024034545, y: 0.49714714, z: -0.005801499}

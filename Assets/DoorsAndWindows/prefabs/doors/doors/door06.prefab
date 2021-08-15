@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 8664646298020230471}
   - component: {fileID: 328071376714734280}
-  - component: {fileID: 7672841927638626333}
   m_Layer: 0
   m_Name: root
   m_TagString: frame
@@ -49,19 +48,6 @@ MonoBehaviour:
   closeFrame: 0
   speed: 1
   isOpen: 0
---- !u!65 &7672841927638626333
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4379574938441108761}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 0.41, y: 2.08, z: 1.03}
-  m_Center: {x: 0, y: -1.09, z: 0.47}
 --- !u!1 &4623926105732824268
 GameObject:
   m_ObjectHideFlags: 0
@@ -72,7 +58,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4623926105732824270}
   m_Layer: 0
-  m_Name: frame06
+  m_Name: door06
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -105,6 +91,10 @@ PrefabInstance:
       value: SM_frame06
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: f510c4c65505188428fdfe72be7a5cac, type: 3}
+      propertyPath: m_RootOrder
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: f510c4c65505188428fdfe72be7a5cac, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
@@ -117,6 +107,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: f510c4c65505188428fdfe72be7a5cac, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: f510c4c65505188428fdfe72be7a5cac, type: 3}
       propertyPath: m_LocalRotation.x
       value: -0
       objectReference: {fileID: 0}
@@ -127,14 +121,6 @@ PrefabInstance:
     - target: {fileID: 400000, guid: f510c4c65505188428fdfe72be7a5cac, type: 3}
       propertyPath: m_LocalRotation.z
       value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 400000, guid: f510c4c65505188428fdfe72be7a5cac, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 400000, guid: f510c4c65505188428fdfe72be7a5cac, type: 3}
-      propertyPath: m_RootOrder
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: f510c4c65505188428fdfe72be7a5cac, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x

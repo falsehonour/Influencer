@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 4000013015779240}
   - component: {fileID: 33000010438566556}
   - component: {fileID: 23000013751420858}
-  - component: {fileID: 65000013871410886}
   m_Layer: 0
   m_Name: Billiard_Stick8
   m_TagString: Untagged
@@ -82,19 +81,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &65000013871410886
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1000010454866336}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 0.016305313, y: 1.1272733, z: 0.017831057}
-  m_Center: {x: -0.00000006845221, y: -0.000000029802322, z: -0.000000009778887}
 --- !u!1 &1000011351140074
 GameObject:
   m_ObjectHideFlags: 0
@@ -106,7 +92,6 @@ GameObject:
   - component: {fileID: 4000013756758566}
   - component: {fileID: 33000014195113368}
   - component: {fileID: 23000013143918452}
-  - component: {fileID: 65000010237570166}
   m_Layer: 0
   m_Name: Billiard_Stick6
   m_TagString: Untagged
@@ -177,19 +162,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &65000010237570166
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1000011351140074}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 0.016386032, y: 1.1328201, z: 0.017919045}
-  m_Center: {x: -0.000000059604645, y: 0, z: 0.000000049825758}
 --- !u!1 &1000011746265910
 GameObject:
   m_ObjectHideFlags: 0
@@ -236,7 +208,6 @@ GameObject:
   - component: {fileID: 4000011661623002}
   - component: {fileID: 33000011279965446}
   - component: {fileID: 23000013205875038}
-  - component: {fileID: 65000013246284288}
   m_Layer: 0
   m_Name: Billiard_Stick7
   m_TagString: Untagged
@@ -307,19 +278,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &65000013246284288
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1000013017404142}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 0.016386032, y: 1.1328201, z: 0.01791874}
-  m_Center: {x: -0.000000059604645, y: 0, z: -0.00000002188608}
 --- !u!1 &1000013070723560
 GameObject:
   m_ObjectHideFlags: 0
@@ -331,7 +289,6 @@ GameObject:
   - component: {fileID: 4000011673059932}
   - component: {fileID: 33000010464983972}
   - component: {fileID: 23000011807060308}
-  - component: {fileID: 65000013825517906}
   m_Layer: 0
   m_Name: BRoom_StickAreaWall
   m_TagString: Untagged
@@ -402,19 +359,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &65000013825517906
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1000013070723560}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 0.1059224, y: 1.2117448, z: 0.90372306}
-  m_Center: {x: -0.052215263, y: -0.6058724, z: 0}
 --- !u!1 &1000013358392876
 GameObject:
   m_ObjectHideFlags: 0
@@ -426,7 +370,6 @@ GameObject:
   - component: {fileID: 4000013538302956}
   - component: {fileID: 33000011240921644}
   - component: {fileID: 23000011868108424}
-  - component: {fileID: 65000011319972058}
   m_Layer: 0
   m_Name: Billiard_Stick9
   m_TagString: Untagged
@@ -497,16 +440,3 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &65000011319972058
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1000013358392876}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 0.016305313, y: 1.1272733, z: 0.017831039}
-  m_Center: {x: -0.00000006845221, y: -0.000000029802322, z: 0.000000020489097}

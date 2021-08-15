@@ -12,8 +12,6 @@ GameObject:
   - component: {fileID: 33000010503059830}
   - component: {fileID: 23000011057327544}
   - component: {fileID: 65000011273320900}
-  - component: {fileID: 65000011673244166}
-  - component: {fileID: 65000012703410914}
   m_Layer: 0
   m_Name: Barbeque_Corner
   m_TagString: Untagged
@@ -97,29 +95,3 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 0.678509, y: 1.1161737, z: 4.4649}
   m_Center: {x: 0.07318258, y: 0.5575253, z: -0.0041913986}
---- !u!65 &65000011673244166
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1000011942429102}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 0.68867004, y: 1.1161737, z: 0.7728934}
-  m_Center: {x: -0.16692972, y: 0.5575253, z: 1.0191898}
---- !u!65 &65000012703410914
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1000011942429102}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 0.69845986, y: 1.1161737, z: 0.7924795}
-  m_Center: {x: -0.16203547, y: 0.5575253, z: -1.0275726}

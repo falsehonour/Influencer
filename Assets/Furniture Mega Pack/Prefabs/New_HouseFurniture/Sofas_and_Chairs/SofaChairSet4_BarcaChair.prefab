@@ -11,8 +11,7 @@ GameObject:
   - component: {fileID: 4000011337007620}
   - component: {fileID: 33000014238761326}
   - component: {fileID: 23000013220730540}
-  - component: {fileID: 65000013577937438}
-  - component: {fileID: 65000012001716710}
+  - component: {fileID: 8700091442189423421}
   m_Layer: 0
   m_Name: SofaChairSet4_Chair2
   m_TagString: Untagged
@@ -83,7 +82,7 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &65000013577937438
+--- !u!65 &8700091442189423421
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -94,21 +93,8 @@ BoxCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 0.9684957, y: 0.4198072, z: 1.0551362}
-  m_Center: {x: 0.025749916, y: 0.27398336, z: 0.0017818349}
---- !u!65 &65000012001716710
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1000010025044918}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 0.2683158, y: 0.5857656, z: 1.0551362}
-  m_Center: {x: -0.32434034, y: 0.6890348, z: 0.0017822962}
+  m_Size: {x: 0.9684957, y: 0.9781808, z: 1.0551362}
+  m_Center: {x: 0.025749965, y: 0.4928272, z: 0.0017817622}
 --- !u!1 &1000013677531164
 GameObject:
   m_ObjectHideFlags: 0

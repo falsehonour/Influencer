@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 4000013806706454}
   - component: {fileID: 33000010822562620}
   - component: {fileID: 23000010819733172}
-  - component: {fileID: 65000012334854600}
   m_Layer: 0
   m_Name: Painting7_Canvas
   m_TagString: Untagged
@@ -82,19 +81,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &65000012334854600
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1000010050272960}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 0.021278532, y: 1.1943172, z: 2.0613687}
-  m_Center: {x: 0.010641708, y: -0.5971584, z: -0.00000011920929}
 --- !u!1 &1000012391806774
 GameObject:
   m_ObjectHideFlags: 0

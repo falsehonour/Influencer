@@ -44,9 +44,6 @@ GameObject:
   - component: {fileID: 33000011728432598}
   - component: {fileID: 23000011981797252}
   - component: {fileID: 65000011288727530}
-  - component: {fileID: 65000011044849880}
-  - component: {fileID: 65000010301725982}
-  - component: {fileID: 65000013054880928}
   m_Layer: 0
   m_Name: TTRoom_SofaCushion
   m_TagString: Untagged
@@ -128,47 +125,8 @@ BoxCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 0.24947223, y: 0.90052557, z: 2.1902282}
-  m_Center: {x: -0.3012886, y: 0.45026278, z: 0.00037574768}
---- !u!65 &65000011044849880
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1000010924433644}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 0.9348608, y: 0.90052557, z: 0.1249758}
-  m_Center: {x: -0.002002716, y: 0.45026278, z: -1.0322495}
---- !u!65 &65000010301725982
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1000010924433644}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 0.9348608, y: 0.90052557, z: 0.17795682}
-  m_Center: {x: -0.002002716, y: 0.45026278, z: 1.0065098}
---- !u!65 &65000013054880928
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1000010924433644}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 0.9348608, y: 0.5884094, z: 2.1902282}
-  m_Center: {x: -0.002002716, y: 0.2942047, z: 0.00037574768}
+  m_Size: {x: 0.9348608, y: 0.90052557, z: 2.1902282}
+  m_Center: {x: -0.002001956, y: 0.45026278, z: 0.0003761053}
 --- !u!1 &1000012145939112
 GameObject:
   m_ObjectHideFlags: 0

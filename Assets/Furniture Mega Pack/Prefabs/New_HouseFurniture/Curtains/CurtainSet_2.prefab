@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 4000012501739756}
   - component: {fileID: 33000012381690602}
   - component: {fileID: 23000013353535078}
-  - component: {fileID: 65000011433264352}
   m_Layer: 0
   m_Name: CurtainSet2_Right
   m_TagString: Untagged
@@ -82,19 +81,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &65000011433264352
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1000010950336026}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 0.116793744, y: 3.034629, z: 1.059969}
-  m_Center: {x: 0.000000018626451, y: -1.5262169, z: 0.00000014901161}
 --- !u!1 &1000011326900764
 GameObject:
   m_ObjectHideFlags: 0
@@ -138,7 +124,6 @@ GameObject:
   - component: {fileID: 4000014152635182}
   - component: {fileID: 33000013773611192}
   - component: {fileID: 23000013872959764}
-  - component: {fileID: 65000012420886428}
   m_Layer: 0
   m_Name: CurtainSet2_Left
   m_TagString: Untagged
@@ -209,16 +194,3 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &65000012420886428
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1000013743792990}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 0.116792865, y: 3.034629, z: 1.0599686}
-  m_Center: {x: -0.00000013411045, y: -1.5262169, z: 0}

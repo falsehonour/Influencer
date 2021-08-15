@@ -61,7 +61,14 @@ namespace HashtagChampion
                         UpdateDigits(currentTimeLeftUInt16);
                         if(currentTimeLeftUInt16 <= 10)
                         {
-                            SoundManager.PlayOneShotSound(SoundNames.CountdownCritical, null);
+                            SoundNames sound = SoundNames.CountdownCritical;
+
+                            if (currentTimeLeftUInt16 == 0)
+                            {
+                                sound = SoundNames.CountdownTimeIsUp;
+                            }
+
+                            SoundManager.PlayOneShotSound(sound, null);
                         }
                     }
                     previousTimeLeftUInt16 = currentTimeLeftUInt16;

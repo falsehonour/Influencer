@@ -14,85 +14,205 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   soundEffects:
   - name: 9
-    audioClips:
-    - {fileID: 8300000, guid: d8fa344532904f44da75b218ae90fad5, type: 3}
+    correctedAudioClips:
+    - clip: {fileID: 8300000, guid: 6e4d266a27687da48af833228094b9de, type: 3}
+      volume: 0.65
+    pitchRange:
+      min: 1
+      max: 1
+  - name: 25
+    correctedAudioClips:
+    - clip: {fileID: 8300000, guid: a5cef6c8dd4595a4d87052b0a79a9550, type: 3}
+      volume: 0.65
     pitchRange:
       min: 1
       max: 1
   - name: 1
-    audioClips:
-    - {fileID: 8300000, guid: 05a90d86e0929114d862860d2756c3c2, type: 3}
+    correctedAudioClips:
+    - clip: {fileID: 8300000, guid: 05a90d86e0929114d862860d2756c3c2, type: 3}
+      volume: 0.5
     pitchRange:
-      min: 0.9
-      max: 1.1
+      min: 0.95
+      max: 1.05
   - name: 2
-    audioClips:
-    - {fileID: 8300000, guid: 1a6aefff85c2475499400c660e06ce26, type: 3}
+    correctedAudioClips:
+    - clip: {fileID: 8300000, guid: 1a6aefff85c2475499400c660e06ce26, type: 3}
+      volume: 0.5
     pitchRange:
-      min: 0.9
-      max: 1.1
+      min: 0.95
+      max: 1.05
+  - name: 14
+    correctedAudioClips:
+    - clip: {fileID: 8300000, guid: 24938114fd1f19740b77cd8096e8f190, type: 3}
+      volume: 0.4
+    pitchRange:
+      min: 0.93
+      max: 1.07
+  - name: 22
+    correctedAudioClips:
+    - clip: {fileID: 8300000, guid: 48fe078c2c2f5fe4cb3bf5392462c563, type: 3}
+      volume: 0.4
+    pitchRange:
+      min: 0.93
+      max: 1.07
+  - name: 20
+    correctedAudioClips:
+    - clip: {fileID: 8300000, guid: a950acb8d8ebc0947aca31a9e7892382, type: 3}
+      volume: 0.5
+    pitchRange:
+      min: 0.93
+      max: 1.07
+  - name: 19
+    correctedAudioClips:
+    - clip: {fileID: 8300000, guid: 7977cc969c26a4a44a26f6583ba65a4c, type: 3}
+      volume: 0.5
+    - clip: {fileID: 8300000, guid: 6bb2cf503c26bf94bad66e12c5b9afdd, type: 3}
+      volume: 0.5
+    pitchRange:
+      min: 0.93
+      max: 1.07
   - name: 3
-    audioClips:
-    - {fileID: 8300000, guid: 1a48aa91cc44ad64d849e1e1bbcdabac, type: 3}
+    correctedAudioClips:
+    - clip: {fileID: 8300000, guid: 1a48aa91cc44ad64d849e1e1bbcdabac, type: 3}
+      volume: 1
     pitchRange:
       min: 1
       max: 1
   - name: 6
-    audioClips:
-    - {fileID: 8300000, guid: ff5aa12a393a06b4fbadf3d9498e6e74, type: 3}
+    correctedAudioClips:
+    - clip: {fileID: 8300000, guid: ff5aa12a393a06b4fbadf3d9498e6e74, type: 3}
+      volume: 0.35
     pitchRange:
-      min: 0.9
-      max: 1.1
+      min: 0.92
+      max: 1
   - name: 5
-    audioClips:
-    - {fileID: 8300000, guid: e67ac685ad9c8ad469ce042d29caa6ca, type: 3}
-    pitchRange:
-      min: 0.9
-      max: 1.1
-  - name: 5
-    audioClips:
-    - {fileID: 8300000, guid: e67ac685ad9c8ad469ce042d29caa6ca, type: 3}
+    correctedAudioClips:
+    - clip: {fileID: 8300000, guid: e67ac685ad9c8ad469ce042d29caa6ca, type: 3}
+      volume: 0.5
     pitchRange:
       min: 0.9
       max: 1.1
   - name: 7
-    audioClips:
-    - {fileID: 8300000, guid: a413b0c28db234640b57a981b1b50a66, type: 3}
+    correctedAudioClips:
+    - clip: {fileID: 8300000, guid: a413b0c28db234640b57a981b1b50a66, type: 3}
+      volume: 0.5
     pitchRange:
       min: 1
       max: 1
   - name: 13
-    audioClips:
-    - {fileID: 8300000, guid: 3d84a7a5a2564bd4d8962c21f9e8fdc2, type: 3}
+    correctedAudioClips:
+    - clip: {fileID: 8300000, guid: 3d84a7a5a2564bd4d8962c21f9e8fdc2, type: 3}
+      volume: 0.5
     pitchRange:
       min: 1
       max: 1
   - name: 11
-    audioClips:
-    - {fileID: 8300000, guid: c1b49b8645c8696409befc8541a2bdf2, type: 3}
+    correctedAudioClips:
+    - clip: {fileID: 8300000, guid: c1b49b8645c8696409befc8541a2bdf2, type: 3}
+      volume: 0.5
     pitchRange:
       min: 1
       max: 1
   - name: 10
-    audioClips:
-    - {fileID: 8300000, guid: 94b6a61310eb1754eb1576341ae58025, type: 3}
+    correctedAudioClips:
+    - clip: {fileID: 8300000, guid: 94b6a61310eb1754eb1576341ae58025, type: 3}
+      volume: 0.5
     pitchRange:
       min: 1
       max: 1
   - name: 12
-    audioClips:
-    - {fileID: 8300000, guid: 5839743d9c4c8894eb55b41d920e10d6, type: 3}
+    correctedAudioClips:
+    - clip: {fileID: 8300000, guid: 5839743d9c4c8894eb55b41d920e10d6, type: 3}
+      volume: 0.5
     pitchRange:
       min: 1
       max: 1
-  - name: 12
-    audioClips:
-    - {fileID: 8300000, guid: 5839743d9c4c8894eb55b41d920e10d6, type: 3}
+  - name: 16
+    correctedAudioClips:
+    - clip: {fileID: 8300000, guid: 81b34ad165eb70845aba2baad1e38df1, type: 3}
+      volume: 0.5
+    - clip: {fileID: 8300000, guid: 8ecdfd680166ad34a8d26751fc2f2e59, type: 3}
+      volume: 0.35
+    - clip: {fileID: 8300000, guid: b78fa86f82dd6f542a94539e02c067a4, type: 3}
+      volume: 0.55
+    - clip: {fileID: 8300000, guid: c1ff3de58f6b49149bc5c5031e6211bc, type: 3}
+      volume: 0.55
+    pitchRange:
+      min: 0.97
+      max: 1.03
+  - name: 18
+    correctedAudioClips:
+    - clip: {fileID: 8300000, guid: 469b312abd892d74ba140934dc5420da, type: 3}
+      volume: 0.5
+    - clip: {fileID: 8300000, guid: 386110bbf9101164d9fdef036e2d2f76, type: 3}
+      volume: 0.5
+    - clip: {fileID: 8300000, guid: ae9ce508016f4004188d8be6a4b8b58f, type: 3}
+      volume: 0.5
+    - clip: {fileID: 8300000, guid: fd02830a7b0afeb47854fce8273738cf, type: 3}
+      volume: 0.5
+    - clip: {fileID: 8300000, guid: 1ac632472ac86d0458bd44c52a02a374, type: 3}
+      volume: 0.5
+    pitchRange:
+      min: 0.97
+      max: 1.03
+  - name: 26
+    correctedAudioClips:
+    - clip: {fileID: 8300000, guid: 233bd98b4dec08f48b35ca035cc656a2, type: 3}
+      volume: 0.5
+    - clip: {fileID: 8300000, guid: 49f97b7611f031740b752bbb3933fd54, type: 3}
+      volume: 0.5
+    pitchRange:
+      min: 0.97
+      max: 1.03
+  - name: 27
+    correctedAudioClips:
+    - clip: {fileID: 8300000, guid: e73671d9553cf74449222d90eca6de09, type: 3}
+      volume: 0.5
+    - clip: {fileID: 8300000, guid: b198a0d851ec97047a8846e4ca0c3d2a, type: 3}
+      volume: 0.5
+    pitchRange:
+      min: 0.97
+      max: 1.03
+  - name: 15
+    correctedAudioClips:
+    - clip: {fileID: 8300000, guid: 73814f911f8d8024a9232f12cf42f19b, type: 3}
+      volume: 0.5
+    - clip: {fileID: 8300000, guid: a4503a626a387b04595cb15c44cc4740, type: 3}
+      volume: 0.5
+    - clip: {fileID: 8300000, guid: 1a24da9e030e1274f859064cba6e99d7, type: 3}
+      volume: 0.5
+    pitchRange:
+      min: 0.97
+      max: 1.03
+  - name: 21
+    correctedAudioClips:
+    - clip: {fileID: 8300000, guid: cee48b537d7f3924a89b8d098d1aec4f, type: 3}
+      volume: 0.5
+    - clip: {fileID: 8300000, guid: 78c58e588571df94980eebe9c1cf257d, type: 3}
+      volume: 0.5
+    pitchRange:
+      min: 0.97
+      max: 1.03
+  - name: 8
+    correctedAudioClips:
+    - clip: {fileID: 8300000, guid: 21040cc30c220404e8361c2d40c80b43, type: 3}
+      volume: 0.5
+    pitchRange:
+      min: 1
+      max: 1
+  - name: 17
+    correctedAudioClips:
+    - clip: {fileID: 8300000, guid: 4691a2842cddc0d4f87641a1ef58ce97, type: 3}
+      volume: 0.5
     pitchRange:
       min: 1
       max: 1
   musicTracks:
   - name: 4
     audioClip: {fileID: 8300000, guid: ee0cecc23128cd441bc1c87afee07f01, type: 3}
+  - name: 23
+    audioClip: {fileID: 8300000, guid: 437d38e6300867546b8ded4e61ca5d2d, type: 3}
+  - name: 24
+    audioClip: {fileID: 8300000, guid: c5fd77756ea6bf24db49ee88d1f03968, type: 3}
   oneShotSoundPreFab: {fileID: 1916568572546162760, guid: c82180c95176efc48b87e19cad222a49,
     type: 3}

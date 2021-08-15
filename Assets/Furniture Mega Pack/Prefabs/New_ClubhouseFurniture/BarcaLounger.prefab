@@ -12,9 +12,6 @@ GameObject:
   - component: {fileID: 33000011631694370}
   - component: {fileID: 23000012153331624}
   - component: {fileID: 65000012931108822}
-  - component: {fileID: 65000012422089136}
-  - component: {fileID: 65000011620547358}
-  - component: {fileID: 65000011063523814}
   m_Layer: 0
   m_Name: BarcaLounger
   m_TagString: Untagged
@@ -96,44 +93,5 @@ BoxCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 0.9288679, y: 0.56989956, z: 0.91393423}
-  m_Center: {x: -0.075992584, y: 0.28368986, z: -0.00000047683716}
---- !u!65 &65000012422089136
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1000012941221562}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 1.0808544, y: 0.7955742, z: 0.21388245}
-  m_Center: {x: 0, y: 0.39652717, z: 0.566489}
---- !u!65 &65000011620547358
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1000012941221562}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 1.0808544, y: 0.7955742, z: 0.21388352}
-  m_Center: {x: 0, y: 0.39652717, z: -0.56648946}
---- !u!65 &65000011063523814
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1000012941221562}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 0.25184226, y: 1.0350657, z: 0.9231453}
-  m_Center: {x: -0.4145012, y: 0.5162729, z: 0.0046055317}
+  m_Size: {x: 0.9344685, y: 1.0350657, z: 1.3468616}
+  m_Center: {x: -0.073192954, y: 0.5162729, z: 0}

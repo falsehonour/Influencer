@@ -42,7 +42,6 @@ GameObject:
   - component: {fileID: 4000011276317634}
   - component: {fileID: 33000011622538574}
   - component: {fileID: 23000010200336084}
-  - component: {fileID: 65000012286559764}
   m_Layer: 0
   m_Name: Painting4_Canvas
   m_TagString: Untagged
@@ -113,16 +112,3 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &65000012286559764
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1000013081530910}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 0.008989258, y: 0.27658844, z: 0.1991922}
-  m_Center: {x: 0.004495277, y: -0.13829422, z: -0.000000007450581}

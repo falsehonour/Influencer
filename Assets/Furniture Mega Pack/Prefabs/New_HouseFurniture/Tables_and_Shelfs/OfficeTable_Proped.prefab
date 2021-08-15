@@ -324,7 +324,6 @@ GameObject:
   - component: {fileID: 4000012440285164}
   - component: {fileID: 33000011520048284}
   - component: {fileID: 23000012514295344}
-  - component: {fileID: 65000012097017800}
   m_Layer: 0
   m_Name: OfficeTable_Glass
   m_TagString: Untagged
@@ -395,19 +394,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &65000012097017800
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1000011076142350}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 0.9216635, y: 0.025052845, z: 1.854039}
-  m_Center: {x: 0.000000461936, y: 0.90217423, z: -0.00000017881393}
 --- !u!1 &1000012134503488
 GameObject:
   m_ObjectHideFlags: 0

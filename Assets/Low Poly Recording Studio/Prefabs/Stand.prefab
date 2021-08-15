@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 985429851333070738}
   - component: {fileID: 4180229614599733303}
   - component: {fileID: 2154937126257030397}
-  - component: {fileID: -27885143547750152}
+  - component: {fileID: 210921799489577228}
   m_Layer: 0
   m_Name: Stand
   m_TagString: Untagged
@@ -56,6 +56,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -80,8 +81,9 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!64 &-27885143547750152
-MeshCollider:
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!65 &210921799489577228
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -90,7 +92,6 @@ MeshCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  serializedVersion: 4
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: -9189612823058448048, guid: 7b528c6825683dd46a7d3b8f654c22c3, type: 3}
+  serializedVersion: 2
+  m_Size: {x: 0.8085804, y: 0.96343154, z: 0.4607115}
+  m_Center: {x: -0.0000009536743, y: 0.47668532, z: -0.0067267567}

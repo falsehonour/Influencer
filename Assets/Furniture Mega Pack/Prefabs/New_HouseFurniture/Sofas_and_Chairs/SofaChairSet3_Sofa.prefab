@@ -206,7 +206,6 @@ GameObject:
   - component: {fileID: 4000012223493408}
   - component: {fileID: 33000013557465050}
   - component: {fileID: 23000013763549122}
-  - component: {fileID: 65000013573399126}
   - component: {fileID: 65000011728606608}
   m_Layer: 0
   m_Name: SofaChairSet3_Sofa 1
@@ -278,19 +277,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &65000013573399126
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1000013880576512}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 0.6799505, y: 0.28484434, z: 1.6744761}
-  m_Center: {x: 0.03559178, y: 0.24588063, z: 0.03849411}
 --- !u!65 &65000011728606608
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -302,5 +288,5 @@ BoxCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 0.19283652, y: 0.7109329, z: 1.6744761}
-  m_Center: {x: -0.36023825, y: 0.45892492, z: 0.03849411}
+  m_Size: {x: 0.83222353, y: 0.7109329, z: 1.6744761}
+  m_Center: {x: -0.040544733, y: 0.45892492, z: 0.03849408}

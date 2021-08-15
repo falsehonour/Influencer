@@ -36,7 +36,8 @@ namespace HashtagChampion
 
         private void Start()
         {
-            
+            SoundManager.PlayMusicTrack(SoundNames.LobbyMusic);
+
             playerSettingsManager.SetActiveJoystick(StaticData.playerSettings.joystickType == JoystickTypes.Fixed);
             Player.Initialise(this);
 
@@ -65,9 +66,12 @@ namespace HashtagChampion
 
         }
 
+
+
         [Server]
         private IEnumerator ChooseTagger()
         {
+            Rpc_ChooseTagger();
             Debug.Log("ChooseTagger()");
 
             state = GameStates.ChoosingTagger;
@@ -121,12 +125,26 @@ namespace HashtagChampion
 
         }
 
+        [ClientRpc]
+        private void Rpc_ChooseTagger()
+        {
+            SoundManager.FadeOutMusic();
+        }
+
         [Server]
         private void StartMatch()
         {
             state = GameStates.TagGame;
             kevin.StartDropRoutine();
             countdown.Server_StartCounting(GetRoomManager().settings.countdown);
+            Rpc_StartMatch();
+        }
+
+
+        [ClientRpc]
+        private void Rpc_StartMatch()
+        {
+            SoundManager.PlayMusicTrack(SoundNames.GameMusic);
         }
 
         private List<Player> GetRelevantPlayers()
@@ -231,7 +249,15 @@ namespace HashtagChampion
 
             state = GameStates.PostGame;
             Invoke(nameof(StopServer),4f);
+            Rpc_EndGame();
         }
+
+        [ClientRpc]
+        private void Rpc_EndGame()
+        {
+            SoundManager.FadeOutMusic();
+        }
+
 
         private void StopServer()
         {

@@ -1,4 +1,6 @@
-﻿[System.Serializable]
+﻿using System;
+
+[System.Serializable]
 public class PlayerSettings : ISavable
 {
     public JoystickTypes joystickType;
@@ -8,6 +10,11 @@ public class PlayerSettings : ISavable
 
     public PlayerSettings()
     {
+        SetDefaultValues();
+    }
+
+    public void SetDefaultValues()
+    {
         //Default values:
         joystickType = JoystickTypes.Fixed;
         sfx = OnOffSwitch.On;
@@ -15,19 +22,18 @@ public class PlayerSettings : ISavable
         vibration = OnOffSwitch.On;
     }
 
-    public PlayerSettings(PlayerSettings copy)
+    public static void Copy(PlayerSettings from, PlayerSettings to)
     {
-        //Default values:
-        joystickType = copy.joystickType;
-        sfx = copy.sfx;
-        music = copy.music;
-        vibration = copy.vibration;
+        to.joystickType = from.joystickType;
+        to.sfx = from.sfx;
+        to.music = from.music;
+        to.vibration = from.vibration;
     }
 
-    public string GetSaveFileName()
-    {
-        return "player_settings";
-    }
+    /* public string GetSaveFileName()
+     {
+         return "player_settings";
+     }*/
 }
 
 public enum OnOffSwitch : sbyte

@@ -511,8 +511,8 @@ AnimatorStateTransition:
   m_IsExit: 0
   serializedVersion: 3
   m_TransitionDuration: 0.0554624
-  m_TransitionOffset: 0.20790602
-  m_ExitTime: 0.0000000018956825
+  m_TransitionOffset: 0.3
+  m_ExitTime: 0.000000006973742
   m_HasExitTime: 0
   m_HasFixedDuration: 1
   m_InterruptionSource: 0
@@ -1132,6 +1132,12 @@ AnimatorController:
     m_Controller: {fileID: 9100000}
   - m_Name: DanceIndex
     m_Type: 3
+    m_DefaultFloat: 0
+    m_DefaultInt: 0
+    m_DefaultBool: 0
+    m_Controller: {fileID: 9100000}
+  - m_Name: Blend
+    m_Type: 1
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0

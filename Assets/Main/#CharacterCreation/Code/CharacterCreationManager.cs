@@ -16,6 +16,9 @@ namespace HashtagChampion
             [SerializeField] private CharacterCreationPanel rightPanel;
             [SerializeField] private MenusCameraController cameraController;
 
+            private string modifiedPlayerName;
+            [SerializeField] private TMPro.TMP_InputField playerNameInputField;
+            
             void Start()
             {
                 CharacterCreationButton.InitialiseBackButton(backButtonBehaviour);
@@ -24,12 +27,17 @@ namespace HashtagChampion
                 PlayerSkinDataHolder playerSkinData = SaveAndLoadManager.TryLoad<PlayerSkinDataHolder>();
 
                 InitialiseCharacter(playerSkinData);
+
+                playerNameInputField.characterLimit = PlayerName.MAX_LETTER_COUNT;
             }
 
             public override void Activate()
             {
                 base.Activate();
                 //InitialisePanels();
+                modifiedPlayerName = StaticData.playerName.name;
+                playerNameInputField.text = modifiedPlayerName;
+
                 cameraController.SetIsControllable(true);
 
             }
@@ -38,6 +46,12 @@ namespace HashtagChampion
             {
                 base.Deactivate();
                 cameraController.SetIsControllable(false);
+            }
+
+            public void ModifyPlayerName()
+            {
+                modifiedPlayerName = PlayerName.LegaliseName(playerNameInputField.text);
+                playerNameInputField.text = modifiedPlayerName;
             }
 
             private void InitialiseCharacter(PlayerSkinDataHolder skinDataHolder = null)
@@ -79,15 +93,19 @@ namespace HashtagChampion
                 InitialisePanels();
             }
 
-            public void SaveCharacter()
+            public void SaveChanges()
             {
                 PlayerSkinDataHolder playerSkinDataHolder = PlayerSkinDataHolder.CreatePlayerSkinData
                     (characterPreFab, character.equippedMeshesByMeshCategory, character.equippedMeshModifiersByMeshModifierCategory);
 
                 SaveAndLoadManager.Save<PlayerSkinDataHolder>(playerSkinDataHolder);
+
+                StaticData.playerName.name = modifiedPlayerName;
+                SaveAndLoadManager.Save<PlayerName>(StaticData.playerName);
+
             }
 
-            public void RevertCharacter()
+            public void RevertChanges()
             {
                 //TODO: This is identical to what happens on Start();
                 PlayerSkinDataHolder playerSkinData = SaveAndLoadManager.TryLoad<PlayerSkinDataHolder>();

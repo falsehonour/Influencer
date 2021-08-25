@@ -22,7 +22,7 @@ namespace HashtagChampion
             public const float TAGGER_HEALTH_LOSS_INTERVAL = TAGGER_FULL_LIFETIME / (float)MAX_HEALTH;
             //private const float NEARBY_PLAYERS_DETECTION_INTERVAL = 0.05f;
             public const float TAGGER_FREEZE_DURATION = 3.5f;
-            public const float TAG_DURATION = 0.22f;
+            public const float TAG_DURATION = 0.32f;
             //TODO: Is this the proper place for things like power up properties??
             public const float SPRINT_DURATION = 2f;
             public const sbyte HEALTH_PICK_UP_BONUS = 16;
@@ -65,7 +65,7 @@ namespace HashtagChampion
             Frozen, Injured, Normal, Sprinting
         }
         private readonly static float MIN_MOVEMENT_SPEED = UnitConvertor.KilometresPerHourToMetresPerSecond(1f);
-        private readonly static float MIN_RUN_SPEED = UnitConvertor.KilometresPerHourToMetresPerSecond(7.65f);
+        private readonly static float MIN_RUN_SPEED = UnitConvertor.KilometresPerHourToMetresPerSecond(7.8f);
         private readonly static float MIN_SPRINT_SPEED = UnitConvertor.KilometresPerHourToMetresPerSecond(22f);
         public enum GaitTypes : byte
         {
@@ -94,6 +94,7 @@ namespace HashtagChampion
         private Animator animator;
         private NetworkAnimator networkAnimator;
         [SerializeField] private BoxCollider tagBoundsCollider;
+        [SerializeField] private BoxCollider extendedTagBoundsCollider;
         //private bool isWalking;
         #region Tagging
         [SyncVar(hook = nameof(OnTaggerChange))] private bool tagger;
@@ -101,7 +102,8 @@ namespace HashtagChampion
         {
             get { return tagger; }
         }
-        private List<Player> playersInRange = new List<Player>();
+        private List<Player> playersInTagBounds = new List<Player>();
+        private List<Player> playersInExtendedTagBounds = new List<Player>();
         private SingleCycleTimer tagCooldownTimer;
         private const float TAG_COOLDOWN_INTERVAL = 0.6f;
         //[SyncVar(hook = nameof(OnCanTagChange))] private bool canTag;
@@ -134,10 +136,6 @@ namespace HashtagChampion
         public static Player localPlayerController;
         public static List<Player> allPlayers;
         private static GameManager gameManager;
-
-        #region Testing:
-        [SerializeField] private bool handlingMovement;
-        #endregion
 
         public static void Initialise(GameManager gameManager)
         {
@@ -181,7 +179,7 @@ namespace HashtagChampion
                 characterCamera = FindObjectOfType<CharacterCamera>();
                 characterCamera.Initialise(myTransform/*, cameraAnchor*/);
 
-                Cmd_SetName(PlayerName.name);
+                Cmd_SetName(StaticData.playerName.name);
             }
 
             if (skin != null)
@@ -333,8 +331,17 @@ namespace HashtagChampion
         [Server]
         private void Push(Player pushed, Vector3 pushForce, float freezeDuration)
         {
+            TargetRpc_OnPush();
             pushed.Freeze(freezeDuration);
             pushed.TargetRpc_OnPushed(pushForce);
+            pushed.Rpc_OnPushed();
+        }
+
+
+        [TargetRpc]
+        private void TargetRpc_OnPush()
+        {
+            Audience.React(Audience.ReactionTypes.MinorApplause);
         }
 
         [TargetRpc]
@@ -355,7 +362,17 @@ namespace HashtagChampion
             Quaternion rotation = Quaternion.LookRotation(pushedFromBehind ? pushDirection : -pushDirection);
             //StartCoroutine(RotateRoutine(rotation, 0.5f));//HARDCODED
             desiredRotation = rotation;
+
+            Audience.React(Audience.ReactionTypes.MinorDisappointment);
         }
+
+        [ClientRpc]
+        private void Rpc_OnPushed()
+        {
+            //TODO: summon an explosion particle effect that will handle the sound as well
+            SoundManager.PlayOneShotSound(SoundNames.PushHit, myTransform.position);
+        }
+
 
         #region Tagging:
 
@@ -376,6 +393,12 @@ namespace HashtagChampion
                 //serverData.healthReductionTimer.Reset();
                 serverData.healthReductionTimer.SetCurrentIteration(healthReductionFirstIteration);
             }
+        }
+
+        [ClientRpc]
+        private void Rpc_OnTagged()
+        {
+            SoundManager.PlayOneShotSound(SoundNames.Tagged);
         }
 
         [Client]
@@ -425,29 +448,37 @@ namespace HashtagChampion
             }
         }
 
+
+
         private IEnumerator TagCoroutine()
         {
             float endTime = Time.time + PlayerServerData.TAG_DURATION;
+
+            playersInTagBounds.Clear();
+            playersInExtendedTagBounds.Clear();
+
+            bool taggedSomeone = false;
+           //playerUI.SetPlayerName("Tagging");
             while (Time.time < endTime)
             {
                 DetectPlayersInTagBounds();
-                int playersInRangeCount = playersInRange.Count;
+                int playersInTagBoundsCount = playersInTagBounds.Count;
 
-                if (playersInRangeCount > 0)
+                if (playersInTagBoundsCount > 0)
                 {
                     Player nextTagger = null; // = serverData.playersInRange[0];
 
-                    if (playersInRangeCount == 1)
+                    if (playersInTagBoundsCount == 1)
                     {
-                        nextTagger = playersInRange[0];
+                        nextTagger = playersInTagBounds[0];
                     }
                     else
                     {
                         Vector3 myPosition = this.myTransform.position;
                         float smallestSquaredDistance = float.MaxValue;
-                        for (int i = 0; i < playersInRangeCount; i++)
+                        for (int i = 0; i < playersInTagBoundsCount; i++)
                         {
-                            Player player = playersInRange[i];
+                            Player player = playersInTagBounds[i];
                             float squaredDistance = Vector3.SqrMagnitude(myPosition - player.myTransform.position);
                             if (squaredDistance < smallestSquaredDistance)
                             {
@@ -455,11 +486,19 @@ namespace HashtagChampion
                             }
                         }
                     }
+
+                    if (playersInExtendedTagBounds.Contains(nextTagger))
+                    {
+                        playersInExtendedTagBounds.Remove(nextTagger);
+                    }
+
+                    //TODO: Croud shocked for untagged players
+                    Rpc_OnTagged();
                     nextTagger.SetTagger(true, PlayerServerData.TAGGER_FREEZE_DURATION);
                     Vector3 pushForce = myTransform.forward * PUSH_FORCE;
                     Push(nextTagger, pushForce, PlayerServerData.TAGGER_FREEZE_DURATION);
                     SetTagger(false);
-
+                    taggedSomeone = true;
                     break;
                 }
                 else
@@ -467,24 +506,77 @@ namespace HashtagChampion
                     yield return new WaitForFixedUpdate();
                 }
             }
+           // playerUI.SetPlayerName("");
+
+            int playersInExtendedTagBoundsCount = playersInExtendedTagBounds.Count;
+            if (playersInExtendedTagBoundsCount > 0)
+            {
+                if (!taggedSomeone)
+                {
+                    TargetRpc_OnOtherAlmostTagged();
+                }
+
+                for (int i = 0; i < playersInExtendedTagBoundsCount; i++)
+                {
+                    playersInExtendedTagBounds[i].TargetRpc_OnSelfAlmostTagged();
+                }
+            }
         }
+
+        [TargetRpc]
+        private void TargetRpc_OnSelfAlmostTagged()
+        {
+            int randomiser = Random.Range(0, 2);
+            Audience.ReactionTypes audienceReaction = randomiser == 0 ? Audience.ReactionTypes.NeutralSurprise : Audience.ReactionTypes.PositiveSurprise;
+            Audience.React(audienceReaction);
+        }
+
+        [TargetRpc]
+        private void TargetRpc_OnOtherAlmostTagged()
+        {
+            int randomiser = Random.Range(0, 2);
+            Audience.ReactionTypes audienceReaction = randomiser == 0 ? Audience.ReactionTypes.NeutralSurprise : Audience.ReactionTypes.NegativeSurprise;
+            Audience.React(audienceReaction);
+        }
+        /*private void OnDrawGizmos()
+        {
+            Bounds tagBounds = tagBoundsCollider.bounds;
+            Bounds extendedTagBounds = extendedTagBoundsCollider.bounds;//; tagBounds;
+            Gizmos.color = Color.green;
+            Gizmos.DrawWireCube(tagBounds.center, tagBounds.size);
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireCube(extendedTagBounds.center, extendedTagBounds.size);
+        }*/
 
         private void DetectPlayersInTagBounds()
         {
             //TODO: Do these things in a unified method, cache all players locations
-            //TODO: No need for this clear, we could use an array instead
-            playersInRange.Clear();
-            Bounds tagBounds = tagBoundsCollider.bounds;
+           /*Bounds tagBounds = tagBoundsCollider.bounds;
+            Bounds extendedTagBounds = extendedTagBoundsCollider.bounds;//; tagBounds;
+
+            tagBoundsCollider.po*/
+          //  extendedTagBounds.Expand(new Vector3(0, 0, 1));//HARDCODED
             //bool playerFound = false;
             for (int i = 0; i < allPlayers.Count; i++)
             {
                 Player otherPlayer = allPlayers[i];
                 if (otherPlayer != null && otherPlayer != this && otherPlayer.IsAlive())
                 {
-                    bool otherPlayerIsInBounds = tagBounds.Contains(otherPlayer.myTransform.position);
-                    if (otherPlayerIsInBounds)
+                    Vector3 otherPlayerPosition = otherPlayer.myTransform.position;
+                    bool otherPlayerIsInExtendedBounds =
+                       extendedTagBoundsCollider.ClosestPoint(otherPlayerPosition) == otherPlayerPosition;
+                    if (otherPlayerIsInExtendedBounds)
                     {
-                        playersInRange.Add(otherPlayer);
+                        bool otherPlayerIsInBounds =
+                            tagBoundsCollider.ClosestPoint(otherPlayerPosition) == otherPlayerPosition;
+                        if (otherPlayerIsInBounds)
+                        {
+                            playersInTagBounds.Add(otherPlayer);
+                        }
+                        else if (!playersInExtendedTagBounds.Contains(otherPlayer))
+                        {
+                            playersInExtendedTagBounds.Add(otherPlayer);
+                        }
                     }
                 }
             }
@@ -553,7 +645,7 @@ namespace HashtagChampion
             if (localPlayerController == this)
             {
                 #region Testing:
-                // Debug.Log("canTag: " + canTag);
+                // TODO: Remove these cheats
                 if (Input.GetKeyDown(KeyCode.Space))
                 {
                     powerUpButton.SimulatePressFor(0.3f);
@@ -564,10 +656,15 @@ namespace HashtagChampion
                     tagButton.SimulatePressFor(0.4f);
                     TryTag();
                 }
+                if (Input.GetKeyDown(KeyCode.H))
+                {
+                    Cmd_HealMe();
+                }
+
                 #endregion
             }
             else if (isServer)
-            {
+            {//TODO: Remove
                 Vector2 currentForcedMovementInput = forcedMovementInput;
 
                 if (Input.GetKeyDown(KeyCode.A))
@@ -601,54 +698,60 @@ namespace HashtagChampion
 
         }
 
+
         private void FixedUpdate()
         {
             float deltaTime = Time.fixedDeltaTime;
             GameStates gameState = gameManager.State;
-            if (IsAlive() && (gameState == GameStates.Waiting || gameState == GameStates.TagGame))
+            if (localPlayerController == this)
             {
-                if (powerUpCooldownTimer.IsActive())
+                HandleMovement(ref deltaTime, ref gameState);
+            }
+            if (/*IsAlive() && */(gameState == GameStates.Waiting || gameState == GameStates.TagGame))
+            {
+
+                if (localPlayerController == this || isServer)
                 {
-                    powerUpCooldownTimer.Update(deltaTime);
-                }
-                if (tagCooldownTimer.IsActive())
-                {
-                    tagCooldownTimer.Update(deltaTime);
-                }
-                if (localPlayerController == this)
-                {
-                    HandleMovement(ref deltaTime);
-                    handlingMovement = true;
-                }
-                else
-                {
-                    handlingMovement = false;
-                }
-                if (isServer) //Lots of network activity
-                {
-                    if (tagger)//TODO: these conditions don't seem to belong here
+                    if (IsAlive())
                     {
-                        /*if(MovementState != MovementStates.Frozen)//TODO: Are we sure we don't wanna let anyone tag whilst on the floor..?
+                        if (powerUpCooldownTimer.IsActive())
                         {
-                            HandleNearbyPlayersDetection(deltaTime);
-                        }*/
-                        HandleTaggerHealthReduction(deltaTime);
+                            powerUpCooldownTimer.Update(deltaTime);
+                        }
+                        if (tagCooldownTimer.IsActive())
+                        {
+                            tagCooldownTimer.Update(deltaTime);
+                        }
                     }
-                    //TODO: Find a more elegant way to control all those timers...
-                    if (serverData.movementStateTimer.IsActive())
+
+
+                    if (isServer) //Lots of network activity
                     {
-                        //Debug.Log(" sprint time left: " + serverData.sprintTimer.TimeLeft.ToString("f2"));
-                        if (serverData.movementStateTimer.Update(deltaTime))
+                        if (tagger)//TODO: these conditions don't seem to belong here
                         {
-                            SetMovementState(serverData.nextMovementState);
+                            /*if(MovementState != MovementStates.Frozen)//TODO: Are we sure we don't wanna let anyone tag whilst on the floor..?
+                            {
+                                HandleNearbyPlayersDetection(deltaTime);
+                            }*/
+                            HandleTaggerHealthReduction(deltaTime);
+                        }
+                        //TODO: Find a more elegant way to control all those timers...
+                        if (serverData.movementStateTimer.IsActive())
+                        {
+                            //Debug.Log(" sprint time left: " + serverData.sprintTimer.TimeLeft.ToString("f2"));
+                            if (serverData.movementStateTimer.Update(deltaTime))
+                            {
+                                SetMovementState(serverData.nextMovementState);
+                            }
                         }
                     }
                 }
+                
             }
 
         }
 
-        private void HandleMovement(ref float deltaTime)
+        private void HandleMovement(ref float deltaTime, ref GameStates gameState)
         {
             if (externalForces != ZERO_VECTOR3)
             {
@@ -657,16 +760,22 @@ namespace HashtagChampion
             }
             controlledVelocity = ZERO_VECTOR3;
             //TODO: This area of th code must be revisited, it is probably outdated 
-            float verticalInput = joystick.Vertical + forcedMovementInput.y;
-            float horizontalInput = joystick.Horizontal + forcedMovementInput.x;
-
-            if ((MovementState != MovementStates.Frozen) && (verticalInput != 0 || horizontalInput != 0))
+            bool isControllable = ((gameState != GameStates.ChoosingTagger) && (gameState != GameStates.PostGame) 
+                && IsAlive() && (MovementState != MovementStates.Frozen));
+            if (isControllable)
             {
-                Vector3 inputVector3 = new Vector3(horizontalInput, 0, verticalInput);
-                desiredRotation = Quaternion.LookRotation(inputVector3);
-                controlledVelocity = inputVector3 * currentMaxMovementSpeed;// * deltaTime;
-                                                                            //Debug.Log($"movement magnitude: {movement.magnitude}"); Magnitude seems good!
+                float verticalInput = joystick.Vertical + forcedMovementInput.y;
+                float horizontalInput = joystick.Horizontal + forcedMovementInput.x;
+
+                if ((verticalInput != 0 || horizontalInput != 0))
+                {
+                    Vector3 inputVector3 = new Vector3(horizontalInput, 0, verticalInput);
+                    desiredRotation = Quaternion.LookRotation(inputVector3);
+                    controlledVelocity = inputVector3 * currentMaxMovementSpeed;// * deltaTime;
+                                                                                //Debug.Log($"movement magnitude: {movement.magnitude}"); Magnitude seems good!
+                }
             }
+
 
             #region Gravity
             bool isGrounded = characterController.isGrounded; //navMeshAgent.isGrounded;
@@ -790,7 +899,31 @@ namespace HashtagChampion
                 PowerUpPickUp powerUpPickUp = (PowerUpPickUp)pickUp;
                 powerUp = powerUpPickUp.GetPowerUp();
             }
+
+            TargetRpc_OnCollect(pickUp.netId);
         }
+
+        [TargetRpc]
+        private void TargetRpc_OnCollect(uint pickUpNetID)
+        {
+            NetworkIdentity pickUpNetworkIdentity = NetworkIdentity.spawned[pickUpNetID];
+            PickUp pickUp = pickUpNetworkIdentity.GetComponent< PickUp >();
+            SoundNames additionalSound = SoundNames.None;
+            if (pickUp is HealthPickUp)
+            {
+                additionalSound = SoundNames.HealthCollect;
+                SoundManager.PlayOneShotSound(SoundNames.HealthCollect, null);
+            }
+            else if (pickUp is PowerUpPickUp)
+            {
+                PowerUp.Type powerUpType = ((PowerUpPickUp)pickUp).GetPowerUp().type;
+                additionalSound = PowerUpsProperties.GetCollectionSound(powerUpType);
+            }
+            SoundManager.PlayOneShotSound(SoundNames.Collect, null);
+            SoundManager.PlayOneShotSound(additionalSound, null);
+
+        }
+
 
         [Server]
         private void GetInjured(float duration)
@@ -798,6 +931,13 @@ namespace HashtagChampion
             SetMovementState(MovementStates.Injured);
             serverData.movementStateTimer.Start(duration);
             serverData.nextMovementState = MovementStates.Normal;
+            Rpc_GetInjured();
+        }
+
+        [ClientRpc]
+        private void Rpc_GetInjured()
+        {
+            SoundManager.PlayOneShotSound(SoundNames.SlowedDown,myTransform.position);
         }
 
         #region PowerUps:
@@ -864,6 +1004,7 @@ namespace HashtagChampion
             Vector3 force = myTransform.forward * SLIP_FORCE;
             Freeze(PlayerServerData.SLIP_FREEZE_DURATION);//HARDCODED
             TargetRpc_OnSlip(force);
+            Rpc_OnSlip();
             Kevin.TryLaughAt(myTransform);
         }
 
@@ -881,6 +1022,14 @@ namespace HashtagChampion
             //TODO: merge with freeze perhaps?
             networkAnimator.SetTrigger(AnimatorParameters.FlipForward);
             externalForces += force;
+            Audience.React(Audience.ReactionTypes.Laughter);
+        }
+
+        [ClientRpc]
+        private void Rpc_OnSlip()
+        {
+            //TODO: Should be connected to an animation...
+            SoundManager.PlayOneShotSound(SoundNames.BananaSlip, myTransform.position);
         }
 
         #endregion
@@ -1085,6 +1234,7 @@ namespace HashtagChampion
             playerUI.SetCharacter(character);*/
             if (hasAuthority)
             {
+                desiredRotation = Quaternion.Euler(0, 180, 0);
                 networkAnimator.SetTrigger(AnimatorParameters.Dance);
                 characterCamera.distanceMultiplier = 0.8f;
             }
@@ -1111,6 +1261,7 @@ namespace HashtagChampion
             if (hasAuthority)
             {
                 //HARDCODED
+                desiredRotation = Quaternion.Euler(0, 180, 0);
                 networkAnimator.SetTrigger(AnimatorParameters.Lose);
                 characterCamera.distanceMultiplier = 0.8f;
             }
@@ -1142,6 +1293,12 @@ namespace HashtagChampion
         public static void RemovePlayer(Player player)
         {
             allPlayers.Remove(player);
+        }
+
+        [Command]
+        private void Cmd_HealMe()
+        {
+            ModifyHealth(PlayerServerData.HEALTH_PICK_UP_BONUS);
         }
     }
 }

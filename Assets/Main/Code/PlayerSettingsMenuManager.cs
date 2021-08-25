@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
 using UnityEngine;
 
 public class PlayerSettingsMenuManager : MenuManager
@@ -22,13 +21,13 @@ public class PlayerSettingsMenuManager : MenuManager
     public override void Activate()
     {
         base.Activate();
-        PlayerSettings currentSettings = StaticData.playerSettings;
-        modifiedSettings = new PlayerSettings(currentSettings);
+        PlayerSettings.Copy(StaticData.playerSettings, modifiedSettings);
         SetSettingsControllersValues();
     }
 
     private void Initialise()
     {
+        modifiedSettings = new PlayerSettings();
         //TODO: There should be a wat to automate this
 
         fixedJoystickController.Initialise(
@@ -81,13 +80,18 @@ public class PlayerSettingsMenuManager : MenuManager
 
     public void ApplyAndSaveSettings()
     {
-        StaticData.playerSettings = modifiedSettings;
+        //TODO: Apply
+        PlayerSettings.Copy(modifiedSettings, StaticData.playerSettings);
+        //TODO: Should we let StaticData do the saving?
         SaveAndLoadManager.Save<PlayerSettings>(modifiedSettings);
+
+        //TODO: Move this away. also, u might wanna apply setting every time something is changed on the menu
+        SoundManager.ConformToPlayerSettings();
     }
 
     public void ResetToDefault()
     {
-        modifiedSettings = new PlayerSettings();
+        modifiedSettings.SetDefaultValues();
         SetSettingsControllersValues();
     }
 }

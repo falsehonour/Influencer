@@ -34,6 +34,7 @@ namespace HashtagChampion
                     return;
                 }
                 initialised = true;
+                myTransform = transform;
                 materialPropertyBlock = new MaterialPropertyBlock();
                 bones = root.GetComponentsInChildren<Transform>();
                 InitialiseEquippedPieces();
@@ -694,6 +695,11 @@ namespace HashtagChampion
             public Animator GetAnimator()
             {
                 return animator;
+            }
+
+            public void PlaySoundEffect(SoundNames soundName)
+            {
+                SoundManager.PlayOneShotSound(soundName, myTransform.position);
             }
             /*private static bool IsCompatible(CharacterMeshModifier modifier,CharacterMesh mesh)
             {

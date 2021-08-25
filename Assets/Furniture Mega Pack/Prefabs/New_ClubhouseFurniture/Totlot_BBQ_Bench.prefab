@@ -12,8 +12,6 @@ GameObject:
   - component: {fileID: 33000012252242170}
   - component: {fileID: 23000011517797940}
   - component: {fileID: 65000013019162868}
-  - component: {fileID: 65000011962871198}
-  - component: {fileID: 65000010165911774}
   m_Layer: 0
   m_Name: Totlot_BBQ_Bench
   m_TagString: Untagged
@@ -95,31 +93,5 @@ BoxCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 0.8969809, y: 0.0738855, z: 2.2032135}
-  m_Center: {x: -0.03597641, y: 0.9338653, z: 0}
---- !u!65 &65000011962871198
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1000010968463122}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 0.46171212, y: 0.5597089, z: 2.2032135}
-  m_Center: {x: 0.6164856, y: 0.27635917, z: 0}
---- !u!65 &65000010165911774
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1000010968463122}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 0.45450366, y: 0.55970865, z: 2.2032135}
-  m_Center: {x: -0.6200905, y: 0.27635905, z: 0}
+  m_Size: {x: 1.6946827, y: 0.9743033, z: 2.2032135}
+  m_Center: {x: 0.000000059604645, y: 0.48365638, z: -0.00000035762787}

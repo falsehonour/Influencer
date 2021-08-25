@@ -67,8 +67,8 @@ MonoBehaviour:
   playerSpawnMethod: 0
   spawnPrefabs: []
   spawner: {fileID: 7466874956527139156}
-  discoveryHUD: {fileID: 2085866643348463442}
   roomManager: {fileID: 3712436616810740594}
+  discoveryHUD: {fileID: 2085866643348463442}
 --- !u!114 &6622942107474586945
 MonoBehaviour:
   m_ObjectHideFlags: 0

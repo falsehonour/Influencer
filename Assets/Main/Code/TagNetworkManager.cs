@@ -19,7 +19,8 @@ namespace HashtagChampion
         public override void Start()
         {
             base.Start();
-            RegisterPrefabs();  
+            RegisterPrefabs();
+            Debug.Log("Network Address: " + networkAddress);
         }
 
         /*public override void OnStartServer()
@@ -27,7 +28,7 @@ namespace HashtagChampion
             base.OnStartServer();
             //Debug.Log("Scene: " + UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
         }*/
-         
+
         public override void OnServerChangeScene(string newSceneName)
         {
             base.OnServerChangeScene(newSceneName);

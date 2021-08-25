@@ -184,8 +184,7 @@ namespace HashtagChampion
             {
                 if (isLocalPlayer)
                 {
-                    PlayerSkinDataHolder localSkinDataHolder =
-                         SaveAndLoadManager.Load<PlayerSkinDataHolder>(new PlayerSkinDataHolder());
+                    PlayerSkinDataHolder localSkinDataHolder = SaveAndLoadManager.TryLoad<PlayerSkinDataHolder>();
                     if (localSkinDataHolder == null)
                     {
                         //TODO: Getting a default skin should not be here

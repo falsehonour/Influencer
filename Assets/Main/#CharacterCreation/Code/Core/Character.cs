@@ -34,6 +34,7 @@ namespace HashtagChampion
                     return;
                 }
                 initialised = true;
+                myTransform = transform;
                 materialPropertyBlock = new MaterialPropertyBlock();
                 bones = root.GetComponentsInChildren<Transform>();
                 InitialiseEquippedPieces();
@@ -572,7 +573,7 @@ namespace HashtagChampion
                 CharacterMesh[] modifierCompatibleMeshes = modifier.CompatibleMeshes;
                 if (modifierCompatibleMeshes == null || modifierCompatibleMeshes.Length == 0)
                 {
-                    Debug.LogWarning("compatibleRenderers is empty or nonexistent. Resorting to check compatability by categories.");
+                    //Debug.LogWarning("compatibleRenderers is empty or nonexistent. Resorting to check compatability by categories.");
                     MeshCategories compatibleMeshCategories = CategoriesCompatability.GetCompatableMeshCategories(modifier.Categories);
                     for (int i = 0; i < equippedMeshesByMeshCategory.Length; i++)
                     {
@@ -694,6 +695,11 @@ namespace HashtagChampion
             public Animator GetAnimator()
             {
                 return animator;
+            }
+
+            public void PlaySoundEffect(SoundNames soundName)
+            {
+                SoundManager.PlayOneShotSound(soundName, myTransform.position);
             }
             /*private static bool IsCompatible(CharacterMeshModifier modifier,CharacterMesh mesh)
             {

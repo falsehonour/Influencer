@@ -59,6 +59,17 @@ namespace HashtagChampion
                     if (currentTimeLeftUInt16 != previousTimeLeftUInt16)
                     {
                         UpdateDigits(currentTimeLeftUInt16);
+                        if(currentTimeLeftUInt16 <= 10)
+                        {
+                            SoundNames sound = SoundNames.CountdownCritical;
+
+                            if (currentTimeLeftUInt16 == 0)
+                            {
+                                sound = SoundNames.CountdownTimeIsUp;
+                            }
+
+                            SoundManager.PlayOneShotSound(sound, null);
+                        }
                     }
                     previousTimeLeftUInt16 = currentTimeLeftUInt16;
                 }
@@ -69,7 +80,15 @@ namespace HashtagChampion
 
             if (isServer)
             {
-                GameManager.OnCountdownStopped();
+                GameManager gameManager = FindObjectOfType<GameManager>();
+                if (gameManager)
+                {
+                    gameManager.OnCountdownStopped();
+                }
+                else
+                {
+                    Debug.LogError("Cannot find a game manager, Cannot stop time.");
+                }
             }
 
         }

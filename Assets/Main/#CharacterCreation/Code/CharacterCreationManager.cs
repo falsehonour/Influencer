@@ -6,7 +6,7 @@ namespace HashtagChampion
 {
     namespace CharacterCreation
     {
-        public class CharacterCreationManager : MonoBehaviour
+        public class CharacterCreationManager : MenuManager
         {
             private static Character characterPreFab;
             private static Character character;
@@ -14,18 +14,44 @@ namespace HashtagChampion
             [SerializeField] private ButtonBehaviour backButtonBehaviour;
             [SerializeField] private CharacterCreationPanel leftPanel;
             [SerializeField] private CharacterCreationPanel rightPanel;
-            private static CharacterCreationManager instance;
+            [SerializeField] private MenusCameraController cameraController;
 
+            private string modifiedPlayerName;
+            [SerializeField] private TMPro.TMP_InputField playerNameInputField;
+            
             void Start()
             {
-                instance = this;
                 CharacterCreationButton.InitialiseBackButton(backButtonBehaviour);
                 // LocalPlayerData.Initialise();
 
-                PlayerSkinDataHolder playerSkinData =
-                    SaveAndLoadManager.Load<PlayerSkinDataHolder>(new PlayerSkinDataHolder());
+                PlayerSkinDataHolder playerSkinData = SaveAndLoadManager.TryLoad<PlayerSkinDataHolder>();
 
                 InitialiseCharacter(playerSkinData);
+
+                playerNameInputField.characterLimit = PlayerName.MAX_LETTER_COUNT;
+            }
+
+            public override void Activate()
+            {
+                base.Activate();
+                //InitialisePanels();
+                modifiedPlayerName = StaticData.playerName.name;
+                playerNameInputField.text = modifiedPlayerName;
+
+                cameraController.SetIsControllable(true);
+
+            }
+
+            public override void Deactivate()
+            {
+                base.Deactivate();
+                cameraController.SetIsControllable(false);
+            }
+
+            public void ModifyPlayerName()
+            {
+                modifiedPlayerName = PlayerName.LegaliseName(playerNameInputField.text);
+                playerNameInputField.text = modifiedPlayerName;
             }
 
             private void InitialiseCharacter(PlayerSkinDataHolder skinDataHolder = null)
@@ -63,15 +89,28 @@ namespace HashtagChampion
                     }
                 }
                 character.TryEquipFallbackPieces();
+
                 InitialisePanels();
             }
 
-            public void SaveCharacter()
+            public void SaveChanges()
             {
                 PlayerSkinDataHolder playerSkinDataHolder = PlayerSkinDataHolder.CreatePlayerSkinData
                     (characterPreFab, character.equippedMeshesByMeshCategory, character.equippedMeshModifiersByMeshModifierCategory);
 
                 SaveAndLoadManager.Save<PlayerSkinDataHolder>(playerSkinDataHolder);
+
+                StaticData.playerName.name = modifiedPlayerName;
+                SaveAndLoadManager.Save<PlayerName>(StaticData.playerName);
+
+            }
+
+            public void RevertChanges()
+            {
+                //TODO: This is identical to what happens on Start();
+                PlayerSkinDataHolder playerSkinData = SaveAndLoadManager.TryLoad<PlayerSkinDataHolder>();
+
+                InitialiseCharacter(playerSkinData);
             }
 
             #region GUI:

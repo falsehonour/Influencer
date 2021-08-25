@@ -13,9 +13,9 @@ namespace HashtagChampion
     public class GameManager : NetworkBehaviour
     {
         [SyncVar] private GameStates state;
-        public static GameStates State
+        public  GameStates State
         {
-            get { return instance.state; }
+            get { return state; }
         }
 
         //private RoomSettings roomSettings;
@@ -23,46 +23,31 @@ namespace HashtagChampion
 
         [SerializeField] private Kevin kevin;
         [SerializeField] private MatchCountdown countdown;
-        [SerializeField] private RoomManager roomManager;
         [SerializeField] private PlayerSettingsManager playerSettingsManager;
-        [SerializeField] private GameObject roomManagementCanvas;
-        [SerializeField] private GameObject playerSettingsCanvas;
 
         [SerializeField] private float playerCircleRadius = 2f;
-        private static List<Player> relevantPlayersCache = new List<Player>();
+        private List<Player> relevantPlayersCache = new List<Player>();
 
-        private static GameManager instance;
 
-        private void Awake()
+        private RoomManager GetRoomManager()
         {
-            instance = this;
-            //roomSettings = 
-        }
-
-        [Server]
-        public void OnServerStarted()
-        {
-            Rpc_OnServerStarted();
-            StartCoroutine(WaitForPlayers());
+            return TagNetworkManager.RoomManager;
         }
 
         private void Start()
         {
-            //TODO: not the most fitting place for this
-            if (roomManagementCanvas)
-            {
-                roomManagementCanvas.SetActive(false);
-            }
-            playerSettingsManager.ApplySettings();
-            playerSettingsCanvas.gameObject.SetActive(false);
-        }
+            SoundManager.PlayMusicTrack(SoundNames.LobbyMusic);
 
-        [ClientRpc]
-        private void Rpc_OnServerStarted()
-        {
-            if (isClientOnly)
+            playerSettingsManager.SetActiveJoystick(StaticData.playerSettings.joystickType == JoystickTypes.Fixed);
+            Player.Initialise(this);
+
+            if (isServer)
             {
-                roomManagementCanvas.SetActive(false);
+                StartCoroutine(WaitForPlayers());
+                RoomManager roomManager = GetRoomManager();
+                Player.PlayerServerData.UpdateTaggerSpeed(roomManager.settings.taggerSpeedBoostInKilometresPerHour);
+                Player.PlayerServerData.UpdateRotationSpeed(roomManager.settings.playerRotationSpeed);
+                kevin.Initialise();
             }
         }
 
@@ -71,10 +56,8 @@ namespace HashtagChampion
         private IEnumerator WaitForPlayers()
         {
             //HARDCODED values, can we store these in a file seperate to the game so that we don't have to rebuild the game every time we change these
-            Debug.Log("WaitForPlayers()");
-
             state = GameStates.Waiting;
-
+            RoomManager roomManager = GetRoomManager();
             while (Player.allPlayers.Count < roomManager.settings.playerCount)
             {
                 yield return new WaitForSeconds(0.25f);
@@ -83,9 +66,12 @@ namespace HashtagChampion
 
         }
 
+
+
         [Server]
         private IEnumerator ChooseTagger()
         {
+            Rpc_ChooseTagger();
             Debug.Log("ChooseTagger()");
 
             state = GameStates.ChoosingTagger;
@@ -119,13 +105,11 @@ namespace HashtagChampion
                 Player player = Player.allPlayers[i];
                 player.TargetRpc_Teleport(circleSpawnPoints[i].position, circleSpawnPoints[i].rotation);
             }
+            kevin.SpawnInitialPickups();
 
             yield return new WaitForSeconds(2f);//Hardcoded
 
             //Spinning sequence
-            /*kevin.Spin(circleSpawnSpots[taggerIndex].transform.position);
-            IEnumerator spinCoroutine = kevin.SpinCoroutine(circleSpawnSpots[taggerIndex].transform.position);
-            yield return new wait(spinCoroutine != null);*/
             yield return kevin.SpinCoroutine(circleSpawnPoints[taggerIndex].position);
             yield return new WaitForSeconds(0.2f);//Hardcoded
 
@@ -141,15 +125,29 @@ namespace HashtagChampion
 
         }
 
+        [ClientRpc]
+        private void Rpc_ChooseTagger()
+        {
+            SoundManager.FadeOutMusic();
+        }
+
         [Server]
         private void StartMatch()
         {
             state = GameStates.TagGame;
             kevin.StartDropRoutine();
-            countdown.Server_StartCounting(roomManager.settings.countdown);
+            countdown.Server_StartCounting(GetRoomManager().settings.countdown);
+            Rpc_StartMatch();
         }
 
-        private static List<Player> GetRelevantPlayers()
+
+        [ClientRpc]
+        private void Rpc_StartMatch()
+        {
+            SoundManager.PlayMusicTrack(SoundNames.GameMusic);
+        }
+
+        private List<Player> GetRelevantPlayers()
         {
             relevantPlayersCache.Clear();
             int playerCount = Player.allPlayers.Count;
@@ -165,7 +163,7 @@ namespace HashtagChampion
         }
 
         [Server]
-        public static void UpdatePlayersState()
+        public void UpdatePlayersState()
         {
             if (State == GameStates.TagGame)
             {
@@ -178,8 +176,8 @@ namespace HashtagChampion
                 }
                 else if (relevantPlayersCount == 1)
                 {
-                    instance.countdown.Server_StopCounting();
-                    instance.EndGame(relevantPlayers[0]);
+                    countdown.Server_StopCounting();
+                    EndGame(relevantPlayers[0]);
                 }
                 else
                 {
@@ -206,7 +204,7 @@ namespace HashtagChampion
         }
 
         [Server]
-        public static void OnCountdownStopped()
+        public void OnCountdownStopped()
         {
             List<Player> relevantPlayers = GetRelevantPlayers();
             int relevantPlayersCount = relevantPlayers.Count;
@@ -228,7 +226,7 @@ namespace HashtagChampion
                         winner = player;
                     }
                 }
-                instance.EndGame(winner);
+                EndGame(winner);
             }
         }
 
@@ -250,6 +248,36 @@ namespace HashtagChampion
             }
 
             state = GameStates.PostGame;
+            Invoke(nameof(StopServer),4f);
+            Rpc_EndGame();
+        }
+
+        [ClientRpc]
+        private void Rpc_EndGame()
+        {
+            SoundManager.FadeOutMusic();
+        }
+
+
+        private void StopServer()
+        {
+            if (NetworkServer.active)
+            {
+                if (NetworkClient.isConnected)
+                {
+                    NetworkManager.singleton.StopHost();
+                }
+                // stop server if server-only
+                else
+                {
+                    NetworkManager.singleton.StopServer();
+                }
+            }
+            else
+            {
+                Debug.LogError("StopServer: !NetworkServer.active");
+            }
+
         }
     }
 }

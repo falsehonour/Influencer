@@ -11,6 +11,7 @@ public class PowerUpsProperties : MonoBehaviour
     {
         public PowerUp.Type type;
         public Sprite icon;
+        public SoundNames collectionSound;
     }
 
     [SerializeField] private PowerUpPropertiesBlock[] powerUpPropertiesBlocks;
@@ -38,5 +39,10 @@ public class PowerUpsProperties : MonoBehaviour
     public static Sprite GetIcon(PowerUp.Type powerUpType)
     {
         return instance.powerUpPropertiesBlocks[(int)powerUpType].icon;
+    }
+
+    public static SoundNames GetCollectionSound(PowerUp.Type powerUpType)
+    {
+        return instance.powerUpPropertiesBlocks[(int)powerUpType].collectionSound;
     }
 }

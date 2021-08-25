@@ -11,7 +11,8 @@ GameObject:
   - component: {fileID: 913017437360308859}
   - component: {fileID: 913017437361603163}
   - component: {fileID: 913017437362602139}
-  - component: {fileID: 1159464157718339353}
+  - component: {fileID: 3151766174211856142}
+  - component: {fileID: 3766153865242196810}
   m_Layer: 0
   m_Name: Shower_02
   m_TagString: Untagged
@@ -56,6 +57,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -80,8 +82,9 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!64 &1159464157718339353
-MeshCollider:
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!65 &3151766174211856142
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -90,7 +93,19 @@ MeshCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_Mesh: {fileID: 4300000, guid: a6b794dbd75939d4c996b22c87d82f43, type: 3}
+  serializedVersion: 2
+  m_Size: {x: 1.8247812, y: 0.21069737, z: 2.2578819}
+  m_Center: {x: 0.021747768, y: 0.105348684, z: 0.010017276}
+--- !u!65 &3766153865242196810
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 913017437360676443}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 0.34061086, y: 3.993155, z: 0.9119886}
+  m_Center: {x: 0.7638329, y: 1.9965775, z: 0.6184347}

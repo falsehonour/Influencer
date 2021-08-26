@@ -150,6 +150,7 @@ namespace HashtagChampion
                     DropItem(dropPoint);
                     //NOTE: This wait is here mainly to ensure that OverlapSphere performed in ChangeDestination 
                     //detects the thing we just dropped...
+                    //TODO: cache WaitForSeconds
                     yield return new WaitForSeconds(0.1f);
                     while (!ChangeDestination())
                     {
@@ -321,10 +322,11 @@ namespace HashtagChampion
             state = KevinStates.Idle;
             navAgent.enabled = false;
             animator.SetInteger(AnimatorParameters.State, (int)KevinAnimationStates.Idle);
+            WaitForSeconds waitForSeconds = new WaitForSeconds(2f);
             while (state == KevinStates.Idle)
             {
                 //Debug.Log("Kevin is Idle");
-                yield return new WaitForSeconds(2f);
+                yield return waitForSeconds;
             }
         }
 

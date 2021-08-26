@@ -89,6 +89,6 @@ public abstract class Spawnable : NetworkBehaviour
             yield return null;
         }
         myTransform.localScale = Vector3.zero;
-    StopCoroutine: { }
+        StopCoroutine: { }
     }
 }

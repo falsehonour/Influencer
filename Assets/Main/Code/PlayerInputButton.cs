@@ -86,12 +86,12 @@ namespace HashtagChampion
         //TODO: Make sure these are not clickable before the player is created..
         public void TryTag()
         {
-            Player.localPlayerController.TryTag();
+            PlayerController.localPlayerController.TryTag();
         }
 
         public void TryUsePowerUp()
         {
-            Player.localPlayerController.TryUsePowerUp();
+            PlayerController.localPlayerController.TryUsePowerUp();
         }
 
 

@@ -173,3 +173,27 @@ velocity.x = movement.x;
             }
         }
     }
+
+
+	
+        #region Interactables:
+        private Interactable FindInteractable()
+        {
+            Interactable interactable = null;
+            Vector2 mousePosition = Input.mousePosition;
+            //NOTE: this is destroyed
+            Ray ray = new Ray();// camera.ScreenPointToRay(mousePosition);
+            RaycastHit raycastHit;
+
+            if (Physics.Raycast(ray, out raycastHit))
+            {
+                interactable = raycastHit.collider.GetComponentInParent<Interactable>();
+                if (interactable != null)
+                {
+                    Debug.Log("Interactable found!");
+                }
+            }
+
+            return interactable;
+        }
+        #endregion

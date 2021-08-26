@@ -81,7 +81,7 @@ namespace HashtagChampion
                     //TODO: These invokes mess up everythin, put some death timer instead
                     CancelInvoke("Die");
                     Invoke("Die", 2f);//HARDCODED
-                    Player player = collision.gameObject.GetComponent<Player>();
+                    PlayerController player = collision.gameObject.GetComponent<PlayerController>();
                     if (player != null /*&& player != originator*/)
                     {
                         Debug.Log("Player HIT");
@@ -115,7 +115,7 @@ namespace HashtagChampion
          }*/
 
 
-        protected virtual void HitPlayer(Player player) { }
+        protected virtual void HitPlayer(PlayerController player) { }
 
         protected virtual void Stop()
         {

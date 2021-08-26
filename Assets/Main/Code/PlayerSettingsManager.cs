@@ -15,7 +15,7 @@ public class PlayerSettingsManager : MonoBehaviour
 
         activeJoystick.gameObject.SetActive(true);
         nonactiveJoystick.gameObject.SetActive(false);
-        HashtagChampion.Player.SetActiveJoystick(activeJoystick);
+        HashtagChampion.PlayerController.SetActiveJoystick(activeJoystick);
 
     }
 }

@@ -16,7 +16,6 @@ public class CharacterCamera : MonoBehaviour
 
     private bool initialised = false;
 
-
     private void FixedUpdate()
     {
         if (!initialised)
@@ -40,11 +39,12 @@ public class CharacterCamera : MonoBehaviour
        // myTransform.rotation = targetOffset.localRotation;
     }
 
-    internal void Initialise(Transform target/*, Transform targetOffset*/)
+    public void Initialise(Transform target/*, Transform targetOffset*/)
     {
         myTransform = transform;
         this.target = target;
         //ears.parent = null;
+        ears.gameObject.AddComponent<AudioListener>();
         ears.localPosition = (distanceFromTarget * Vector3.forward);
         //this.targetOffset = targetOffset;
         myTransform.parent = null;

@@ -133,8 +133,9 @@ public class Spawner : MonoBehaviour
         Spawnable[] spawnableArray = new Spawnable[arrayLength];
         for (int i = 0; i < arrayLength; i++)
         {
+            //TODO: Destroy when match is over
             Spawnable spawnable = spawnableArray[i] = Instantiate(preFab, allSpawnablesParent);
-            NetworkServer.Spawn(spawnable.gameObject);       
+            NetworkServer.Spawn(spawnable.gameObject);
             spawnable.Die();
         }
         return spawnableArray;

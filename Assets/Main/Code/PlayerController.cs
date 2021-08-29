@@ -158,6 +158,8 @@ namespace HashtagChampion
                 yield return waitForSeconds;
                 Debug.Log("Waiting for scene...");
             }
+            //TODO: Remove this uncertain nonsense
+            yield return waitForSeconds;
 
             myTransform = transform;
             #region UI Initialisation:
@@ -171,8 +173,7 @@ namespace HashtagChampion
             {
                 Server_Initialise();
             }
-
-            if (isLocalPlayer)
+            if (hasAuthority)
             {
                 localPlayerController = this;
 
@@ -249,7 +250,7 @@ namespace HashtagChampion
             PowerUp initialPowerUp = new PowerUp { count = 0, type = PowerUp.Type.None };
             this.powerUp = initialPowerUp;
             SetMovementState(MovementStates.Normal);
-            TargetRpc_SetRotationSpeed(ServerData.rotationSpeed);
+           // TargetRpc_SetRotationSpeed(ServerData.rotationSpeed);
         }
 
         [TargetRpc] 
@@ -1251,7 +1252,10 @@ namespace HashtagChampion
             {
                 Server_OnDestroy();
             }
-            Destroy(playerUI.gameObject);
+            if (playerUI)
+            {
+                Destroy(playerUI.gameObject);
+            }
         }
 
         [Server]
@@ -1264,12 +1268,14 @@ namespace HashtagChampion
         [Server]
         public static void AddPlayer(PlayerController player)
         {
+            return;
             allPlayers.Add(player);
         }
 
         [Server]
         public static void RemovePlayer(PlayerController player)
         {
+            return;
             allPlayers.Remove(player);
         }
 

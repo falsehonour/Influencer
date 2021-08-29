@@ -8,7 +8,12 @@ public class PlayerSettingsManager : MonoBehaviour
     [SerializeField] private Joystick fixedJoystick;
     [SerializeField] private Joystick dynamicJoystick;
 
-    public void SetActiveJoystick(bool fixedJoystick)
+    private void Start()
+    {
+        SetActiveJoystick(StaticData.playerSettings.joystickType == JoystickTypes.Fixed);
+    }
+
+    private void SetActiveJoystick(bool fixedJoystick)
     {
         Joystick activeJoystick = fixedJoystick ? this.fixedJoystick : dynamicJoystick;
         Joystick nonactiveJoystick = fixedJoystick ? dynamicJoystick : this.fixedJoystick;

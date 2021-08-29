@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
 using UnityEngine.SceneManagement;
+using System;
 
 namespace HashtagChampion
 {
@@ -16,13 +17,62 @@ namespace HashtagChampion
         public static RoomManager RoomManager => Instance.roomManager;
         [Scene]
         public string gameScene = "";
+        [Scene]
+        [Tooltip("Add all sub-scenes to this list")]
+        public string[] subScenes;
+
+        [SerializeField] private PlayerController playerControllerPrefab;
+
         public override void Start()
         {
             base.Start();
             RegisterPrefabs();
-            Debug.Log("Network Address: " + networkAddress);
         }
 
+        /*public override void OnStartServer()
+        {
+            base.OnStartServer();
+
+            // load all subscenes on the server only
+            StartCoroutine(LoadSubScenes());
+            //GameObject.FindWithTag("")
+        }*/
+
+        IEnumerator LoadSubScenes()
+        {
+            Debug.Log("Loading Scenes");
+
+            foreach (string sceneName in subScenes)
+            {
+                yield return SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
+                
+                 Debug.Log($"Loaded {sceneName}");
+            }
+        }
+
+        public override void OnStopServer()
+        {
+            StartCoroutine(UnloadScenes());
+        }
+
+        public override void OnStopClient()
+        {
+            StartCoroutine(UnloadScenes());
+        }
+
+        IEnumerator UnloadScenes()
+        {
+            Debug.Log("Unloading Subscenes");
+
+            foreach (string sceneName in subScenes)
+                if (SceneManager.GetSceneByName(sceneName).IsValid() || SceneManager.GetSceneByPath(sceneName).IsValid())
+                {
+                    yield return SceneManager.UnloadSceneAsync(sceneName);
+                    // Debug.Log($"Unloaded {sceneName}");
+                }
+
+            yield return Resources.UnloadUnusedAssets();
+        }
 
         /*public override void OnStartServer()
         {
@@ -47,7 +97,9 @@ namespace HashtagChampion
             base.OnServerSceneChanged(sceneName);
             if(sceneName == onlineScene)
             {
-                SceneManager.LoadScene(gameScene, LoadSceneMode.Additive);
+                 StartCoroutine(LoadSubScenes());
+
+               // SceneManager.LoadScene(gameScene, LoadSceneMode.Additive);
             }
         }
 
@@ -85,5 +137,14 @@ namespace HashtagChampion
                 //ClientScene.RegisterPrefab(prefab);
             }
         }
+
+        public PlayerController CreatePlayerController(GameObject authority)
+        {
+            PlayerController playerController = Instantiate(playerControllerPrefab);
+            NetworkServer.Spawn(playerController.gameObject, authority);
+            //SceneManager.MoveGameObjectToScene(playerController.gameObject, SceneManager.GetSceneByPath( gameScene));
+            return playerController;
+        }
+
     }
 }

@@ -12,7 +12,6 @@ namespace HashtagChampion
         //[SyncVar] public string matchID;
         private NetworkMatch networkMatch;
         private MatchData currentMatchData = null;
-        [SerializeField] private PlayerController playerControllerPrefab;//TODO: Move to some singleton
         private PlayerController playerController;
 
         private void Start()
@@ -166,9 +165,16 @@ namespace HashtagChampion
             networkMatch.matchId = match.id.ToGuid();
             TargetRpc_GoToMatch();
 
-            playerController = Instantiate(playerControllerPrefab);
+            //NetworkIdentity networkIdentity = other.gameObject.GetComponent<NetworkIdentity>();
+            //TODO: Add unload on disconnect
+            SceneMessage message = new SceneMessage 
+               { sceneName = TagNetworkManager.Instance.gameScene, sceneOperation = SceneOperation.LoadAdditive };
+            netIdentity.connectionToClient.Send(message);
+
+            playerController = (TagNetworkManager.Instance.CreatePlayerController(gameObject));
             playerController.GetComponent<NetworkMatch>().matchId = this.networkMatch.matchId;
-            NetworkServer.Spawn(playerController.gameObject,this.gameObject);
+            //NetworkServer.Spawn(playerController.gameObject,this.gameObject);
+            
         }
 
         [TargetRpc]

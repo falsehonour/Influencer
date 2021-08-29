@@ -36,7 +36,7 @@ namespace HashtagChampion
         {
             SoundManager.PlayMusicTrack(SoundNames.LobbyMusic);
 
-            playerSettingsManager.SetActiveJoystick(StaticData.playerSettings.joystickType == JoystickTypes.Fixed);
+            //playerSettingsManager.SetActiveJoystick(StaticData.playerSettings.joystickType == JoystickTypes.Fixed);
             PlayerController.Initialise();//TODO: Should not be here any longer!
 
             if (isServer)

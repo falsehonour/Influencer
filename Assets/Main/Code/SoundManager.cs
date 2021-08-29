@@ -186,7 +186,6 @@ public class SoundManager : MonoBehaviour
         
     }
 
-
     public static void ConformToPlayerSettings()
     {
         PlayerSettings playerSettings = StaticData.playerSettings;

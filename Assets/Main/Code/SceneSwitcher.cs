@@ -41,7 +41,7 @@ namespace HashtagChampion
             Debug.Log("GoToGame()");
             if (!NetworkServer.active)
             {
-                SceneManager.LoadScene(TagNetworkManager.Instance.gameScene, LoadSceneMode.Additive);
+                //SceneManager.LoadScene(TagNetworkManager.Instance.gameScene, LoadSceneMode.Additive);
             }
             mainMenuParent.SetActive(false);
         }

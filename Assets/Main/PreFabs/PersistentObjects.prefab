@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 3919903870751352471}
   - component: {fileID: 7096786344587257009}
   - component: {fileID: 6725937349077859992}
-  - component: {fileID: 9133976052381614234}
+  - component: {fileID: 4050966499188180534}
   m_Layer: 0
   m_Name: NetworkManagement
   m_TagString: Untagged
@@ -60,13 +60,19 @@ MonoBehaviour:
   disconnectInactiveConnections: 0
   disconnectInactiveTimeout: 60
   authenticator: {fileID: 0}
-  playerPrefab: {fileID: 1843534166062373018, guid: 17081affce466424894939440e222678,
+  playerPrefab: {fileID: 389694412264019619, guid: 0fc4b7532356e9149a600e2a46472fbb,
     type: 3}
   autoCreatePlayer: 1
   playerSpawnMethod: 0
-  spawnPrefabs: []
+  spawnPrefabs:
+  - {fileID: 1843534166062373018, guid: 17081affce466424894939440e222678, type: 3}
   spawner: {fileID: 3919903870751352471}
   roomManager: {fileID: 7096786344587257009}
+  gameScene: Assets/Main/Scenes/Game.unity
+  subScenes:
+  - Assets/Main/Scenes/Game.unity
+  playerControllerPrefab: {fileID: 9005568660542501622, guid: 17081affce466424894939440e222678,
+    type: 3}
 --- !u!114 &3919903870751352471
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -158,7 +164,7 @@ MonoBehaviour:
   debugLog: 0
   statisticsGUI: 0
   statisticsLog: 0
---- !u!114 &9133976052381614234
+--- !u!114 &4050966499188180534
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -167,7 +173,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 725231524875645571}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d09f5c8bf2f4747b7a9284ef5d9ce2a7, type: 3}
+  m_Script: {fileID: 11500000, guid: b979f26c95d34324ba005bfacfa9c4fc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &1911711194674256940
@@ -354,6 +360,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6622942107474586951}
+  - component: {fileID: 2665753932408422708}
   m_Layer: 0
   m_Name: PersistentObjects
   m_TagString: Untagged
@@ -377,3 +384,15 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2665753932408422708
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6622942107474586944}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15e9cc08141c96a4b994ea4083a2b565, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

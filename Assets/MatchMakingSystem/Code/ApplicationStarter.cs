@@ -11,8 +11,9 @@ public class ApplicationStarter : MonoBehaviour
    {
        Server = 1, Client = 2, Host = 3
    }
-    [SerializeField] private NetworkManager networkManager;
+    [SerializeField] private bool autoConnection;
     [SerializeField] private ApplicationStartModes startMode;
+    [SerializeField] private NetworkManager networkManager;
 
     private void Awake()
     {
@@ -26,7 +27,7 @@ public class ApplicationStarter : MonoBehaviour
         { //Headless build
             Debug.Log("=== Server Build ===");
         }
-        else 
+        else if (autoConnection)
         {
             switch (startMode)
             {

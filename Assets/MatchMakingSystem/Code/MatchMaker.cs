@@ -203,6 +203,4 @@ namespace HashtagChampion
             return match;
         }
     }
-
-
 }

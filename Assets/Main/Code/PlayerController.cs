@@ -108,7 +108,6 @@ namespace HashtagChampion
 
         private SingleCycleTimer tagCooldownTimer;
         private const float TAG_COOLDOWN_INTERVAL = 0.6f;
-        //[SyncVar(hook = nameof(OnCanTagChange))] private bool canTag;
         private PlayerInputButton tagButton;
         #endregion
         #region Health:
@@ -138,10 +137,16 @@ namespace HashtagChampion
         public static PlayerController localPlayerController;
         public static List<PlayerController> allPlayers;
         private MatchGameManager matchGameManager;
+        private Player player;
 
         public static void Initialise()
         {
             allPlayers = new List<PlayerController>();
+        }
+
+        public void SetPlayer(Player player)
+        {
+            this.player = player;
         }
 
         private void Start()
@@ -152,14 +157,12 @@ namespace HashtagChampion
         private IEnumerator InitialisationRoutine()
         {
             //Wait for GameScene
-            WaitForSeconds waitForSeconds = new WaitForSeconds(0.12f);
-            while(!SceneSwitcher.instance.IsGameSceneLoaded())
+            WaitForSeconds waitForSeconds = new WaitForSeconds(0.15f);
+            while(!GameSceneManager.initialised)
             {
                 yield return waitForSeconds;
-                Debug.Log("Waiting for scene...");
+                Debug.Log("Waiting for game scene...");
             }
-            //TODO: Remove this uncertain nonsense
-            yield return waitForSeconds;
 
             myTransform = transform;
             #region UI Initialisation:
@@ -190,21 +193,41 @@ namespace HashtagChampion
                 Cmd_SetName(StaticData.playerName.name);
             }
 
-            if (skin != null)
-            {
-                Destroy(placeholderGraphics);
-                skin.Initialise();
-                //skinCharacter = skin.character;
-            }
+
 
             //playerUI.SetPlayerName(displayName);
             playerUI.SetPowerUp(powerUp);
             football.SetActive(false);
+
             initialised = true;
+            //Note: the reason we set it here is in order to perform sync var hook functions. Does this leave us open for bugs??
+            if (!isServer)
+            {
+                PerformSyncVarHookFunctions();
+                if (skin != null)
+                {
+                    Destroy(placeholderGraphics);
+                    skin.Initialise();
+                    //skinCharacter = skin.character;
+                }
+            }
+
             /* if(characterController.attachedRigidbody != null)
              {
                  characterController.attachedRigidbody.interpolation = RigidbodyInterpolation.Interpolate;
              }*/
+
+        }
+
+        private void PerformSyncVarHookFunctions()
+        {
+            /* TODO: We are calling these manually to ensure things had been initialised. 
+            Note that these functions also have initialistaion checks because they are called when the object is created.
+            Find a more fitting solution  */
+            OnHealthChanged(0, DT_health);
+            OnNameChanged(null, displayName);
+            OnPowerUpChanged(powerUp, powerUp);
+            OnTaggerChange(false, tagger);
         }
 
         public static void SetActiveJoystick(Joystick activeJoystick)
@@ -228,6 +251,10 @@ namespace HashtagChampion
         [Client]
         private void OnNameChanged(string oldValue, string newValue)
         {
+            if (!initialised)
+            {
+                return;
+            }
             playerUI.SetPlayerName(newValue);
         }
 
@@ -291,39 +318,41 @@ namespace HashtagChampion
         [Client]
         private void OnMovementStateChange(MovementStates oldValue, MovementStates newValue)
         {
-            if (initialised)
+            if (!initialised)
             {
-                if (hasAuthority)
-                {
-                    animator.SetBool(AnimatorParameters.Hurting, (newValue == MovementStates.Injured));
+                return;
+            }
+            if (hasAuthority)
+            {
+                animator.SetBool(AnimatorParameters.Hurting, (newValue == MovementStates.Injured));
 
-                    if (oldValue == MovementStates.Frozen || newValue == MovementStates.Frozen)
+                if (oldValue == MovementStates.Frozen || newValue == MovementStates.Frozen)
+                {
+                    if (newValue != MovementStates.Frozen)
                     {
-                        if (newValue != MovementStates.Frozen)
+                        networkAnimator.SetTrigger(AnimatorParameters.Recover);
+                        if (tagger)
                         {
-                            networkAnimator.SetTrigger(AnimatorParameters.Recover);
-                            if (tagger)
-                            {
-                                tagButton.SetIsEnabled(true);
-                            }
+                            tagButton.SetIsEnabled(true);
                         }
-                        else
-                        {
-                            if (tagger)
-                            {
-                                tagButton.SetIsEnabled(false);
-                            }
-                        }
-                        UpdatePowerUpButton();
-                        characterCamera.distanceMultiplier = newValue == MovementStates.Frozen ? 0.7f : 1;//HARDCODEDDD
                     }
-                }
-
-                if (oldValue == MovementStates.Sprinting && powerUp.type != PowerUp.Type.Sprint)
-                {
-                    skin.character.ShowWings(false);
+                    else
+                    {
+                        if (tagger)
+                        {
+                            tagButton.SetIsEnabled(false);
+                        }
+                    }
+                    UpdatePowerUpButton();
+                    characterCamera.distanceMultiplier = newValue == MovementStates.Frozen ? 0.7f : 1;//HARDCODEDDD
                 }
             }
+
+            if (oldValue == MovementStates.Sprinting && powerUp.type != PowerUp.Type.Sprint)
+            {
+                skin.character.ShowWings(false);
+            }
+           
         }
 
         [Server]
@@ -410,6 +439,10 @@ namespace HashtagChampion
         [Client]
         private void OnTaggerChange(bool oldValue, bool newValue)
         {
+            if (!initialised)
+            {
+                return;
+            }
             char character = newValue ? '#' : ' ';
             playerUI.SetProceedingCharacter(character);
             if (localPlayerController == this)
@@ -614,16 +647,12 @@ namespace HashtagChampion
         [Client]
         private void OnHealthChanged(sbyte oldHealth, sbyte newHealth)
         {
+            if (!initialised)
+            {
+                return;
+            }
             //TODO: maybe MAX_HEALTH should not reside in PlayerServerData,.,.
-            if (playerUI)
-            {
-                playerUI.SetHealthBarFill(newHealth);
-            }
-            else
-            {
-                //NOTE: Remember the pain...
-                Debug.LogError("Can't do OnHealthChanged cause playerUI is null");
-            }
+            playerUI.SetHealthBarFill(newHealth);
         }
 
         public bool IsAlive()
@@ -637,7 +666,10 @@ namespace HashtagChampion
 
         private void Update()
         {
-            //float deltaTime = Time.deltaTime;
+            if (!initialised)
+            {
+                return;
+            }
             if (localPlayerController == this)
             {
                 #region Testing:
@@ -656,7 +688,10 @@ namespace HashtagChampion
                 {
                     Cmd_HealMe();
                 }
-
+                if (Input.GetKeyDown(KeyCode.Escape))
+                {
+                    Cmd_LeaveMatch();
+                }
                 #endregion
             }
             else if (isServer)
@@ -1032,7 +1067,10 @@ namespace HashtagChampion
         [Client]
         private void OnPowerUpChanged(PowerUp oldValue, PowerUp newValue)
         {
-
+            if (!initialised)
+            {
+                return;
+            }
             if (oldValue.type != newValue.type)
             {
                 switch (oldValue.type)
@@ -1236,7 +1274,6 @@ namespace HashtagChampion
         [ClientRpc]
         private void Rpc_OnLose()
         {
-
             if (hasAuthority)
             {
                 //HARDCODED
@@ -1248,7 +1285,7 @@ namespace HashtagChampion
 
         private void OnDestroy()
         {
-            //if (isServer)
+            if (isServer)
             {
                 Server_OnDestroy();
             }
@@ -1261,8 +1298,15 @@ namespace HashtagChampion
         [Server]
         private void Server_OnDestroy()
         {
+            return; //TODO: Bring back
             RemovePlayer(this);
             matchGameManager.UpdatePlayersState();
+        }
+
+        [Command]
+        private void Cmd_LeaveMatch()
+        {
+            player.Server_LeaveMatch();
         }
 
         [Server]

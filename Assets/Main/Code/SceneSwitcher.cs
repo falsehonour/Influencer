@@ -17,7 +17,6 @@ namespace HashtagChampion
 
         private void Update()
         {
-
           /*  SceneManager.GetSceneAt()
             bool sceneIsHere = SceneManager.GetSceneByName(TagNetworkManager.Instance.gameScene) != null;
             Debug.Log("sceneIsHere: " + sceneIsHere);*/
@@ -39,22 +38,22 @@ namespace HashtagChampion
         public void GoToGame()
         {
             Debug.Log("GoToGame()");
-            if (!NetworkServer.active)
+           /* if (!NetworkServer.active)
             {
                 //SceneManager.LoadScene(TagNetworkManager.Instance.gameScene, LoadSceneMode.Additive);
-            }
+            }*/
             mainMenuParent.SetActive(false);
         }
 
         public void GoToMainMenu()
         {
-            if (!NetworkServer.active)
+            Debug.Log("GoToMainMenu()");
+
+            /*if (!NetworkServer.active)
             {
                 //TODO: Maybe put the main menu in a seperate scene and load it?
                 SceneManager.UnloadSceneAsync(TagNetworkManager.Instance.gameScene);
-                /*MatchMakingUI.instance.ShowUI(true);
-                HostUI.instance.ShowUI(false);*/
-            }
+            }*/
             mainMenuParent.SetActive(true);
 
         }

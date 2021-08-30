@@ -173,6 +173,7 @@ namespace HashtagChampion
 
             playerController = (TagNetworkManager.Instance.CreatePlayerController(gameObject));
             playerController.GetComponent<NetworkMatch>().matchId = this.networkMatch.matchId;
+            playerController.SetPlayer(this);
             //NetworkServer.Spawn(playerController.gameObject,this.gameObject);
             
         }
@@ -226,32 +227,57 @@ namespace HashtagChampion
         public void LeaveMatch()
         {
             Cmd_LeaveMatch();
-            SceneSwitcher.instance.GoToMainMenu();
         }
 
         [Command]
         private void Cmd_LeaveMatch()
         {
+            Server_LeaveMatch();
+        }
+
+        [Server]
+        public void Server_LeaveMatch()
+        {
             if (currentMatchData != null)
             {
                 MatchMaker.instance.OnPlayerLeftMatch(this, currentMatchData.id);
             }
-            Rpc_LeaveMatch();
+
             currentMatchData = null;
             networkMatch.matchId = NO_MATCH_ID.ToGuid();
-            NetworkServer.Destroy(playerController.gameObject);
-        }
 
+            SceneMessage message = new SceneMessage 
+               { sceneName = TagNetworkManager.Instance.gameScene, sceneOperation = SceneOperation.UnloadAdditive };
+            netIdentity.connectionToClient.Send(message);
+
+            Rpc_OnLeaveMatch();
+            TargetRpc_OnLeaveMatch();
+
+            //NOTE: Mirror seems to delete our player controller automattically..
+            if(playerController != null)
+            {
+                NetworkServer.Destroy(playerController.gameObject);
+            }
+        }
 
         [ClientRpc]
-        private void Rpc_LeaveMatch()
+        private void Rpc_OnLeaveMatch()
         {
-            ClientLeaveMatch();
+            //ClientLeaveMatch();
         }
 
-        private void ClientLeaveMatch()
+        [TargetRpc]
+        private void TargetRpc_OnLeaveMatch()
         {
+            SceneSwitcher.instance.GoToMainMenu();
+        }
 
+        private void OnDestroy()
+        {
+            if (isServer)
+            {
+                Server_LeaveMatch();
+            }
         }
         #endregion
     }

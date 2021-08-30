@@ -154,21 +154,19 @@ namespace HashtagChampion
             [Server]
             private IEnumerator WaitForSkin(NetworkConnectionToClient conn)
             {
-                WaitForSeconds waitForSeconds = new WaitForSeconds(0.25f);
+                WaitForSeconds waitForSeconds = new WaitForSeconds(0.2f);
                 while (!ServerCachedSkinDataInitialised())
                 {
                     Debug.Log("Waiting for skin to be uploaded...");
                     yield return waitForSeconds;
                 }
-                TargetRpc_EquipSkin(conn, serverCachedSkinData/*, new byte[16]*/);
+                TargetRpc_EquipSkin(conn, serverCachedSkinData);
 
             }
 
             [TargetRpc]
             private void TargetRpc_EquipSkin(NetworkConnection target, SkinDataHolder.Data skinData)
             {
-                // Debug.LogError("testArray length: " + testArray.Length);
-
                 if (skinData.meshIndexes == null || skinData.meshModifierIndexes == null)
                 {
                     Debug.LogError("skinData.meshIndexes == null || skinData.meshModifierIndexes == null");
@@ -179,7 +177,7 @@ namespace HashtagChampion
             [Client]
             public void Initialise()
             {
-                if (isLocalPlayer)
+                if (hasAuthority)
                 {
                     SkinDataHolder localSkinDataHolder = SaveAndLoadManager.TryLoad<SkinDataHolder>();
                     if (localSkinDataHolder == null)

@@ -12,9 +12,8 @@ namespace HashtagChampion
         {
             public static readonly float INJURED_SPEED = UnitConvertor.KilometresPerHourToMetresPerSecond(10.5f);
             public static readonly float NONTAGGER_SPEED = UnitConvertor.KilometresPerHourToMetresPerSecond(19.8f);
-            public static float taggerSpeed;
             public static readonly float SPRINT_SPEED = UnitConvertor.KilometresPerHourToMetresPerSecond(28.8f);
-            public static float rotationSpeed;
+            //public const float ROTATION_SPEED = 1080f;
 
             public const float PUSH_FORCE = 7.5f;
             public const float SLIP_FORCE = 6f;
@@ -22,7 +21,6 @@ namespace HashtagChampion
             public const sbyte MAX_HEALTH = 100;
             private const float TAGGER_FULL_LIFETIME = 40f;
             public const float TAGGER_HEALTH_LOSS_INTERVAL = TAGGER_FULL_LIFETIME / (float)MAX_HEALTH;
-            //private const float NEARBY_PLAYERS_DETECTION_INTERVAL = 0.05f;
             public const float TAGGER_FREEZE_DURATION = 3.5f;
             public const float TAG_DURATION = 0.32f;
             //TODO: Is this the proper place for things like power up properties??
@@ -30,6 +28,8 @@ namespace HashtagChampion
             public const sbyte HEALTH_PICK_UP_BONUS = 16;
             public const float FOOTBALL_INJURY_DURATION = 4f;
             public const float SLIP_FREEZE_DURATION = 2.25f;
+
+            public float taggerSpeed;
 
             public RepeatingTimer healthReductionTimer;
             public RepeatingTimer nearbyPlayersDetectionTimer;
@@ -45,25 +45,14 @@ namespace HashtagChampion
                 movementStateTimer = new SingleCycleTimer();
             }
 
-            public static void UpdateTaggerSpeed(float taggerSpeedBoostInKilometresPerHour)
+            public void UpdateTaggerSpeed(float taggerSpeedBoostInKilometresPerHour)
             {
-                taggerSpeed = (NONTAGGER_SPEED + UnitConvertor.KilometresPerHourToMetresPerSecond(taggerSpeedBoostInKilometresPerHour));
+                taggerSpeed = (NONTAGGER_SPEED + 
+                    UnitConvertor.KilometresPerHourToMetresPerSecond(taggerSpeedBoostInKilometresPerHour));
             }
 
-            public static void UpdateRotationSpeed(float rotationSpeed)
-            {
-                ServerData.rotationSpeed = rotationSpeed;
-                if(allPlayers != null && allPlayers.Count > 0)
-                {
-                    for (int i = 0; i < allPlayers.Count; i++)
-                    {
-                        allPlayers[i].TargetRpc_SetRotationSpeed(ServerData.rotationSpeed);
-                    }
-                }
-                //Debug.Log("PlayerServerData:UpdateRotationSpeed: " + PlayerServerData.rotationSpeed);
-            }
         }
-        //This object should exist only on the server.
+        //NOTE: This object should exist only on the server.
         private ServerData serverData;
         public enum MovementStates : byte
         {
@@ -81,10 +70,10 @@ namespace HashtagChampion
         private Transform myTransform;
         private static Joystick joystick;
         [SyncVar] private Vector2 forcedMovementInput = Vector3.zero;//TODO: Remove this once testing is over
-        [SyncVar(hook = nameof(OnMovementStateChange))] private MovementStates DT_movementState;
-        private MovementStates MovementState => DT_movementState;
+        [SyncVar(hook = nameof(OnMovementStateChange))] private MovementStates X_movementState;
+        private MovementStates MovementState => X_movementState;
         [SyncVar] private float currentMaxMovementSpeed;
-        [SerializeField] private float maxRotationSpeed;
+        public const float MAX_ROTATION_SPEED = 1080f;
         private Quaternion desiredRotation;
         private Vector3 controlledVelocity;
         private Vector3 externalForces;
@@ -98,7 +87,6 @@ namespace HashtagChampion
         private NetworkAnimator networkAnimator;
         [SerializeField] private BoxCollider tagBoundsCollider;
         [SerializeField] private BoxCollider extendedTagBoundsCollider;
-        //private bool isWalking;
         #region Tagging
         [SyncVar(hook = nameof(OnTaggerChange))] private bool tagger;
         public bool Tagger
@@ -111,10 +99,10 @@ namespace HashtagChampion
         private PlayerInputButton tagButton;
         #endregion
         #region Health:
-        [SyncVar(hook = nameof(OnHealthChanged))] private sbyte DT_health;
+        [SyncVar(hook = nameof(OnHealthChanged))] private sbyte X_health = ServerData.MAX_HEALTH;
         public sbyte Health
         {
-            get { return DT_health; }
+            get { return X_health; }
         }
         //[SyncVar] private bool isAlive;//TODO: Is this noit overkill??
         #endregion
@@ -135,14 +123,9 @@ namespace HashtagChampion
         #endregion
         private bool initialised = false;
         public static PlayerController localPlayerController;
-        public static List<PlayerController> allPlayers;
+        //public static List<PlayerController> allPlayers;
         private MatchGameManager matchGameManager;
         private Player player;
-
-        public static void Initialise()
-        {
-            allPlayers = new List<PlayerController>();
-        }
 
         public void SetPlayer(Player player)
         {
@@ -165,6 +148,7 @@ namespace HashtagChampion
             }
 
             myTransform = transform;
+
             #region UI Initialisation:
             //NOTE: We (used to do)  doing this in Awake in order to avoid hook shinanigans
             playerUI = PlayerUIManager.CreatePlayerUI(playerUIAnchor);
@@ -191,32 +175,38 @@ namespace HashtagChampion
                 characterCamera.Initialise(myTransform/*, cameraAnchor*/);
 
                 Cmd_SetName(StaticData.playerName.name);
+
+                Transform spawnPoint = GameSceneManager.GetReferences().playerSpawnPoint;
+                Teleport(spawnPoint.position, spawnPoint.rotation);
             }
 
-
-
-            //playerUI.SetPlayerName(displayName);
-            playerUI.SetPowerUp(powerUp);
             football.SetActive(false);
-
-            initialised = true;
-            //Note: the reason we set it here is in order to perform sync var hook functions. Does this leave us open for bugs??
-            if (!isServer)
+            if (skin != null)
             {
-                PerformSyncVarHookFunctions();
-                if (skin != null)
-                {
-                    Destroy(placeholderGraphics);
-                    skin.Initialise();
-                    //skinCharacter = skin.character;
-                }
+                Destroy(placeholderGraphics);
+                skin.Initialise();
+                //skinCharacter = skin.character;
             }
+            initialised = true;
+            PerformPostInitialisation();
+            //Note: the reason we set it here is in order to perform sync var hook functions. Does this leave us open for bugs??
 
             /* if(characterController.attachedRigidbody != null)
              {
                  characterController.attachedRigidbody.interpolation = RigidbodyInterpolation.Interpolate;
              }*/
+        }
 
+        private void PerformPostInitialisation()
+        {
+            if (!isServer)
+            {
+                PerformSyncVarHookFunctions();
+            }
+            else
+            {
+                matchGameManager.UpdatePlayersState();
+            }
         }
 
         private void PerformSyncVarHookFunctions()
@@ -224,7 +214,7 @@ namespace HashtagChampion
             /* TODO: We are calling these manually to ensure things had been initialised. 
             Note that these functions also have initialistaion checks because they are called when the object is created.
             Find a more fitting solution  */
-            OnHealthChanged(0, DT_health);
+            OnHealthChanged(0, X_health);
             OnNameChanged(null, displayName);
             OnPowerUpChanged(powerUp, powerUp);
             OnTaggerChange(false, tagger);
@@ -272,24 +262,18 @@ namespace HashtagChampion
         private void Server_Initialise()
         {
             serverData = new ServerData();
-            AddPlayer(this);
-            DT_health = ServerData.MAX_HEALTH;
+            matchGameManager = player.CurrentMatchData.manager;
+            serverData.UpdateTaggerSpeed(matchGameManager.Match.settings.taggerSpeedBoostInKilometresPerHour);
+            X_health = ServerData.MAX_HEALTH;
             PowerUp initialPowerUp = new PowerUp { count = 0, type = PowerUp.Type.None };
             this.powerUp = initialPowerUp;
             SetMovementState(MovementStates.Normal);
-           // TargetRpc_SetRotationSpeed(ServerData.rotationSpeed);
-        }
-
-        [TargetRpc] 
-        private void TargetRpc_SetRotationSpeed(float rotationSpeed)
-        {
-            maxRotationSpeed = rotationSpeed;
         }
 
         [Server]
         private void SetMovementState(MovementStates newState)
         {
-            DT_movementState = newState;
+            X_movementState = newState;
             switch (newState)
             {
                 case MovementStates.Frozen:
@@ -304,7 +288,7 @@ namespace HashtagChampion
                     }
                 case MovementStates.Normal:
                     {
-                        currentMaxMovementSpeed = tagger ? ServerData.taggerSpeed : ServerData.NONTAGGER_SPEED;
+                        currentMaxMovementSpeed = tagger ? serverData.taggerSpeed : ServerData.NONTAGGER_SPEED;
                         break;
                     }
                 case MovementStates.Sprinting:
@@ -371,7 +355,6 @@ namespace HashtagChampion
             pushed.TargetRpc_OnPushed(pushForce);
             pushed.Rpc_OnPushed();
         }
-
 
         [TargetRpc]
         private void TargetRpc_OnPush()
@@ -580,15 +563,16 @@ namespace HashtagChampion
         private void DetectPlayersInTagBounds()
         {
             //TODO: Do these things in a unified method, cache all players locations
-           /*Bounds tagBounds = tagBoundsCollider.bounds;
-            Bounds extendedTagBounds = extendedTagBoundsCollider.bounds;//; tagBounds;
+            /*Bounds tagBounds = tagBoundsCollider.bounds;
+             Bounds extendedTagBounds = extendedTagBoundsCollider.bounds;//; tagBounds;
 
-            tagBoundsCollider.po*/
-          //  extendedTagBounds.Expand(new Vector3(0, 0, 1));//HARDCODED
+             tagBoundsCollider.po*/
+            //  extendedTagBounds.Expand(new Vector3(0, 0, 1));//HARDCODED
             //bool playerFound = false;
-            for (int i = 0; i < allPlayers.Count; i++)
+            PlayerController[] players = matchGameManager.relevantPlayerControllers;
+            for (int i = 0; i < players.Length; i++)
             {
-                PlayerController otherPlayer = allPlayers[i];
+                PlayerController otherPlayer = players[i];
                 if (otherPlayer != null && otherPlayer != this && otherPlayer.IsAlive())
                 {
                     Vector3 otherPlayerPosition = otherPlayer.myTransform.position;
@@ -615,7 +599,7 @@ namespace HashtagChampion
         [Server]
         private void ModifyHealth(sbyte by)
         {
-            sbyte health = DT_health;
+            sbyte health = X_health;
             health += by;
             if (health < 0)
             {
@@ -626,7 +610,7 @@ namespace HashtagChampion
                 health = ServerData.MAX_HEALTH;
             }
 
-            DT_health = health;
+            X_health = health;
 
             if (!IsAlive())
             {
@@ -876,7 +860,7 @@ namespace HashtagChampion
             myTransform.position += velocity * deltaTime;*/
             //NOTE: Might interfere with RotateRoutine
             myTransform.rotation = Quaternion.RotateTowards
-                (myTransform.rotation, desiredRotation, maxRotationSpeed * deltaTime);
+                (myTransform.rotation, desiredRotation, MAX_ROTATION_SPEED * deltaTime);
         }
 
         [Command]
@@ -1024,7 +1008,7 @@ namespace HashtagChampion
             Freeze(ServerData.SLIP_FREEZE_DURATION);//HARDCODED
             TargetRpc_OnSlip(force);
             Rpc_OnSlip();
-            Kevin.TryLaughAt(myTransform);
+            matchGameManager.kevin.TryLaughAt(myTransform);
         }
 
         [Server]
@@ -1237,6 +1221,12 @@ namespace HashtagChampion
         [TargetRpc]
         public void TargetRpc_Teleport(Vector3 position, Quaternion rotation)
         {
+            Teleport(position, rotation);
+        }
+
+        [Client]
+        public void Teleport(Vector3 position, Quaternion rotation)
+        {
             characterController.enabled = false;
             myTransform.position = position;
             myTransform.rotation = rotation;
@@ -1267,7 +1257,7 @@ namespace HashtagChampion
             {
                 SetTagger(false);
             }
-            Kevin.TryLaughAt(myTransform);
+            matchGameManager.kevin.TryLaughAt(myTransform);
             Rpc_OnLose();
         }
 
@@ -1298,8 +1288,6 @@ namespace HashtagChampion
         [Server]
         private void Server_OnDestroy()
         {
-            return; //TODO: Bring back
-            RemovePlayer(this);
             matchGameManager.UpdatePlayersState();
         }
 
@@ -1307,20 +1295,6 @@ namespace HashtagChampion
         private void Cmd_LeaveMatch()
         {
             player.Server_LeaveMatch();
-        }
-
-        [Server]
-        public static void AddPlayer(PlayerController player)
-        {
-            return;
-            allPlayers.Add(player);
-        }
-
-        [Server]
-        public static void RemovePlayer(PlayerController player)
-        {
-            return;
-            allPlayers.Remove(player);
         }
 
         [Command]

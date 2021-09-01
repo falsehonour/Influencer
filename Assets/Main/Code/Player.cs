@@ -12,7 +12,8 @@ namespace HashtagChampion
         //[SyncVar] public string matchID;
         private NetworkMatch networkMatch;
         private MatchData currentMatchData = null;
-        private PlayerController playerController;
+        public MatchData CurrentMatchData => currentMatchData;
+        public PlayerController playerController;
 
         private void Start()
         {
@@ -37,7 +38,7 @@ namespace HashtagChampion
         [Command]
         private void Cmd_HostMatch()
         {
-            MatchData match = MatchMaker.instance.HostMatch(this, false);
+            MatchData match = MatchMaker.instance.HostMatch(this, false,MatchMaker.GetDefaultMatchSettings);
             if (match != null)
             {
                 GoToMatch(match);
@@ -256,6 +257,7 @@ namespace HashtagChampion
             //NOTE: Mirror seems to delete our player controller automattically..
             if(playerController != null)
             {
+                //TODO: Mirror gives an error whenm we do it once the app is closed. 
                 NetworkServer.Destroy(playerController.gameObject);
             }
         }

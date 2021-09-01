@@ -48,15 +48,11 @@ public class CharacterCamera : MonoBehaviour
         ears.localPosition = (distanceFromTarget * Vector3.forward);
         //this.targetOffset = targetOffset;
         myTransform.parent = null;
+        Vector3 startPosition =
+            target.position - (myTransform.forward * distanceFromTarget * distanceMultiplier);
+        myTransform.position = startPosition;
+
         initialised = true;
     }
 
-   /* internal void Initialise(Transform target, Vector3 offset, Quaternion rotation)
-    {
-        myTransform = transform;
-        this.target = target;
-        desiredOffset = offset;
-        myTransform.parent = null;
-        myTransform.rotation = rotation;
-    }*/
 }

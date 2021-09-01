@@ -20,14 +20,18 @@ namespace HashtagChampion
         public List<Player> players;
         public Player host;
         public StateFlags states;
+        public MatchGameManager manager;
+        public MatchSettings settings;
 
-        public MatchData(string id, Player host)
+        public MatchData(string id, Player host, MatchGameManager manager, MatchSettings settings)
         {
             this.id = id;
             players = new List<Player>();
             players.Add(host);
             this.host = host;
             states = StateFlags.Waiting;
+            this.manager = manager;
+            this.settings = settings;
         }
 
         public MatchData() { }

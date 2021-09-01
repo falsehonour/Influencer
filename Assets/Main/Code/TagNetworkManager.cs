@@ -13,8 +13,6 @@ namespace HashtagChampion
         public static TagNetworkManager Instance => (TagNetworkManager)singleton;
         [SerializeField] private Spawner spawner;
         public static Spawner Spawner => Instance.spawner;
-        [SerializeField] private RoomManager roomManager;
-        public static RoomManager RoomManager => Instance.roomManager;
         [Scene]
         public string gameScene = "";
         [Scene]

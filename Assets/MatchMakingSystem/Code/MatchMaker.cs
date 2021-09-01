@@ -1,3 +1,4 @@
+using Mirror;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,7 +10,9 @@ namespace HashtagChampion
         private const int MATCH_ID_DIGIT_COUNT = 6;
         public List<MatchData> matches = new List<MatchData>();
         public static MatchMaker instance;
-
+        [SerializeField] private MatchGameManager matchGameManagerPrefab;
+        [SerializeField] private MatchSettings defaultMatchSettings;
+        public static MatchSettings GetDefaultMatchSettings => instance.defaultMatchSettings;
 
         private void Start()
         {
@@ -17,18 +20,21 @@ namespace HashtagChampion
             instance = this;
         }
 
-        public MatchData HostMatch(Player host, bool publicMatch)
+        public MatchData HostMatch(Player host, bool publicMatch, MatchSettings settings)
         {
             string matchID = GenerateNewMatchID();
             if (matchID == null || host == null)
             {
                 return null;
             }
-            MatchData match = new MatchData(matchID, host);
+            MatchGameManager matchGameManager = Instantiate(matchGameManagerPrefab);
+            NetworkServer.Spawn(matchGameManager.gameObject);
+            MatchData match = new MatchData(matchID, host, matchGameManager, settings);
             if (publicMatch)
             {
                 match.states |= MatchData.StateFlags.Public;
             }
+            matchGameManager.SetMatch(match);
             host.TargetRpc_OnBecomeHost(match.states);
             instance.matches.Add(match);
             return match;
@@ -81,7 +87,7 @@ namespace HashtagChampion
             }
             else
             {
-                validMatch = HostMatch(player, true);
+                validMatch = HostMatch(player, true, defaultMatchSettings);
             }
             return validMatch;
         }
@@ -100,9 +106,8 @@ namespace HashtagChampion
 
                     if (match.players.Count == 0)
                     {
-                        Debug.Log($"No more players in Match. Terminating {_matchID}");
-                        matches.RemoveAt(i);
-                        Debug.Log("Rooms remaining: " + matches.Count);
+                        Debug.Log($"<color=yellow>No players in Match: {_matchID}. Terminating.</color>");
+                        TerminateMatch(i);
                     }
                     else
                     {
@@ -118,6 +123,11 @@ namespace HashtagChampion
             }
         }
 
+        private void TerminateMatch(int matchIndex)
+        {
+            matches[matchIndex].manager.Terminate();
+            matches.RemoveAt(matchIndex);
+        }
         /* public static void StartMatch(string matchID)
          {
              GameManager gameManager = Instantiate(instance.gameManagerPrefab);

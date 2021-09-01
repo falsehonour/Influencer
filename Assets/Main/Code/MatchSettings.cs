@@ -1,5 +1,5 @@
 ﻿[System.Serializable]
-public struct RoomSettings 
+public struct MatchSettings 
 {
     ///<summary>The number of players that compel the server to start a match</summary>
     public byte playerCount;
@@ -7,5 +7,5 @@ public struct RoomSettings
     public float countdown;
     public byte initialPickups;
     public float taggerSpeedBoostInKilometresPerHour;
-    public float playerRotationSpeed;
+
 }

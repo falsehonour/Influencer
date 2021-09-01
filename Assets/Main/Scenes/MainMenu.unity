@@ -8470,6 +8470,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   matches: []
+  matchGameManagerPrefab: {fileID: 1811028983083577918, guid: 18f2d5d8d21dafa478ed34b1295a58ac,
+    type: 3}
+  defaultMatchSettings:
+    playerCount: 2
+    countdown: 120
+    initialPickups: 6
+    taggerSpeedBoostInKilometresPerHour: 0
+    playerRotationSpeed: 1080
 --- !u!4 &1104626479
 Transform:
   m_ObjectHideFlags: 0

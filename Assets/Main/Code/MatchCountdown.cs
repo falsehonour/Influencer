@@ -17,10 +17,21 @@ namespace HashtagChampion
 
         private void Start()
         {
-            //TODO: Optimise Find
-            display = FindObjectOfType<MatchCountdownDisplay>();
+            StartCoroutine(InitialisationRoutine());
+        }
+
+        private IEnumerator InitialisationRoutine()
+        {
+            WaitForSeconds waitForSeconds = new WaitForSeconds(0.15f);
+            while (!GameSceneManager.initialised)
+            {
+                yield return waitForSeconds;
+                Debug.Log("Waiting for game scene...");
+            }
+            display = GameSceneManager.GetReferences().countdownDisplay;
             display.Show(false);
         }
+
 
         [Server]
         public void Server_StartCounting(float time)

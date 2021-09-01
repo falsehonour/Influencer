@@ -87,13 +87,17 @@ namespace HashtagChampion
 
                             networkAnimator.animator = animator;
                             Destroy(placeHolderAnimator);
-
+                            //TODO: Try going further and disable the skinned meshes completely
+                            if (isServer)
+                            {
+                                animator.cullingMode = AnimatorCullingMode.CullCompletely;
+                            }
                         }
 
-                        PlayerController player = GetComponent<PlayerController>();
-                        if (player != null)
+                        PlayerController playerController = GetComponent<PlayerController>();
+                        if (playerController != null)
                         {
-                            player.SetAnimator(character.GetAnimator(), networkAnimator);
+                            playerController.SetAnimator(character.GetAnimator(), networkAnimator);
                         }
                         else
                         {

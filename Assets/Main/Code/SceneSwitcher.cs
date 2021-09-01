@@ -8,7 +8,7 @@ namespace HashtagChampion
     public class SceneSwitcher : MonoBehaviour
     {
         public static SceneSwitcher instance;
-        [SerializeField] GameObject mainMenuParent;
+        [SerializeField] private GameObject mainMenuParent;
 
         private void Start()
         {

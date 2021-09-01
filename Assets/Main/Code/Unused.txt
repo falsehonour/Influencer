@@ -196,4 +196,36 @@ velocity.x = movement.x;
 
             return interactable;
         }
+
+
+
         #endregion
+
+
+
+                    public static void UpdateRotationSpeed(float rotationSpeed)
+            {
+                ServerData.rotationSpeed = rotationSpeed;
+                if(allPlayers != null && allPlayers.Count > 0)
+                {
+                    for (int i = 0; i < allPlayers.Count; i++)
+                    {
+                        allPlayers[i].TargetRpc_SetRotationSpeed(ServerData.rotationSpeed);
+                    }
+                }
+                //Debug.Log("PlayerServerData:UpdateRotationSpeed: " + PlayerServerData.rotationSpeed);
+            }
+
+
+
+                            /*if (instance == null)
+                {
+                    instance = this;
+
+                    // allowedDroppedItems = new Spawnables[] { Spawnables.HealthPickup, Spawnables.FootballPickup/*, Spawnables.Trap };
+                }
+                else
+                {
+                    Destroy(this);
+                    Debug.LogError("There can only be ONE Kevin Rubin!");
+                }*/

@@ -204,7 +204,7 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.08
   clientAuthority: 1
-  sendInterval: 0.05
+  sendInterval: 0.04
   syncPosition: 1
   syncRotation: 1
   syncScale: 0

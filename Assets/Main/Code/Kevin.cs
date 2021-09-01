@@ -23,7 +23,7 @@ namespace HashtagChampion
         [SerializeField] private AnimationCurve rotationCurve;
         [SerializeField] private int extraCompleteRotations;
         #endregion
-        [SerializeField] private Transform dropPointsParent;
+        //[SerializeField] private Transform dropPointsParent;
         private Transform[] dropPoints;
         private List<int> availableDropPointIndexes = new List<int>();
         private float availableDropPointCheckRadius = 1.5f;
@@ -36,7 +36,6 @@ namespace HashtagChampion
         private int droppableItemsOverallChancePoints;
         [SerializeField] private Animator animator;
         //[SerializeField] private NetworkAnimator networkAnimator;
-        private static Kevin instance;
 
         [System.Serializable]
         private struct DroppableItem
@@ -50,22 +49,9 @@ namespace HashtagChampion
         {
             //Removing unnesssry components from Kevin
             //TODO: Find a way to remove these things from the build, they shouldn't be there in the first place
-            if (NetworkServer.active)
+            if (!NetworkServer.active)
             {
-                if (instance == null)
-                {
-                    instance = this;
-
-                    // allowedDroppedItems = new Spawnables[] { Spawnables.HealthPickup, Spawnables.FootballPickup/*, Spawnables.Trap*/ };
-                }
-                else
-                {
-                    Destroy(this);
-                    Debug.LogError("There can only be ONE Kevin Rubin!");
-                }
-            }
-            else
-            {
+                //TODO: don't create these in the first place
                 Destroy(navAgent);
                 Destroy(this);
             }
@@ -73,7 +59,9 @@ namespace HashtagChampion
 
         public void Initialise()
         {
+
             myTransform = transform;
+            Transform dropPointsParent = GameSceneManager.GetReferences().kevinDropPointsParent;
             dropPoints = new Transform[dropPointsParent.childCount];
             for (int i = 0; i < dropPoints.Length; i++)
             {
@@ -102,16 +90,16 @@ namespace HashtagChampion
             }
         }
 
-        public void SpawnInitialPickups()
+        public void SpawnInitialPickups(int initialPickupsCount)
         {
-            int initialPickups = TagNetworkManager.RoomManager.settings.initialPickups;
-            if (initialPickups > 0)
+            return;
+            if (initialPickupsCount > 0)
             {
                 int dropPointsCount = dropPoints.Length;
-                if (initialPickups > dropPointsCount)
+                if (initialPickupsCount > dropPointsCount)
                 {
                     Debug.LogWarning("initialPickups > dropPointsCount, it will be reduced to dropPointsCount since we do not allow things to be spawn on top of each other");
-                    initialPickups = dropPointsCount;
+                    initialPickupsCount = dropPointsCount;
                 }
                 //NOTE: This may not be a very efficient way of doing this but we do it once a game.
                 List<int> availableDropPointIndexes = new List<int>(dropPointsCount);
@@ -119,7 +107,7 @@ namespace HashtagChampion
                 {
                     availableDropPointIndexes.Add(i);
                 }
-                for (int i = 0; i < initialPickups; i++)
+                for (int i = 0; i < initialPickupsCount; i++)
                 {
                     int randomIndex = Random.Range(0, availableDropPointIndexes.Count);
                     Vector3 dropPoint = dropPoints[availableDropPointIndexes[randomIndex]].position;
@@ -162,19 +150,19 @@ namespace HashtagChampion
 
         }
 
-        public static void TryLaughAt(Transform embarrassmentTransform)
+        public void TryLaughAt(Transform embarrassmentTransform)
         {
             //HARDCODING AHEAD:
             //TODO: Maybe do a raycast to make sure Kevin can actually see the event?
 
             float distanceFromEmbarrassment =
-                Vector3.Distance(instance.myTransform.position, embarrassmentTransform.position);
+                Vector3.Distance(myTransform.position, embarrassmentTransform.position);
             float maxDistance = 4f;
             if (distanceFromEmbarrassment < maxDistance)
             {
-                instance.StopAllCoroutines();
+                StopAllCoroutines();
                 // instance.StopCoroutine(nameof(LaughAtRoutine));
-                instance.StartCoroutine(instance.LaughAtRoutine(embarrassmentTransform, Random.Range(2.5f, 4f)));
+                StartCoroutine(LaughAtRoutine(embarrassmentTransform, Random.Range(2.5f, 4f)));
             }
         }
 
@@ -213,14 +201,13 @@ namespace HashtagChampion
             }
         }
 
-        [Server]
         public void StartDropRoutine()
         {
-
+            //TODO:Bring back
+            return;
             StartCoroutine(ItemDropRoutine());
         }
 
-        [Server]
         private void DropItem(Vector3 dropPosition)
         {
             //TODO: דיויד, וודא שההגרלה יוצאת כמו שמצופה והחלף את המודל אם יש צורך

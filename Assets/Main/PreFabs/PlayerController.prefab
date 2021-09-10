@@ -146,7 +146,6 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.06
   characterController: {fileID: 1843534166062372999}
-  maxRotationSpeed: 600
   gravity: -9.8
   tagBoundsCollider: {fileID: 3162348097146747745}
   extendedTagBoundsCollider: {fileID: 4133061814409644015}
@@ -204,7 +203,7 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.08
   clientAuthority: 1
-  sendInterval: 0.04
+  sendInterval: 0
   syncPosition: 1
   syncRotation: 1
   syncScale: 0
@@ -260,7 +259,7 @@ Animator:
   m_Enabled: 1
   m_Avatar: {fileID: 0}
   m_Controller: {fileID: 9100000, guid: 2ff6a5421ec454347aaca95ef192b718, type: 2}
-  m_CullingMode: 1
+  m_CullingMode: 2
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0

@@ -13,8 +13,18 @@ namespace HashtagChampion
         [Flags]
         public enum StateFlags
         {
-            Public = 1, Waiting = 2
+            Public = 1, Lobby = 2
         }
+
+        public struct Description
+        {
+            public byte playerCount;
+            public byte maxPlayerCount;
+            public string id;
+            public MatchData.StateFlags states;
+            public uint hostNetId;
+        }
+
         //TODO: Add settings
         public string id;
         public List<Player> players;
@@ -29,16 +39,29 @@ namespace HashtagChampion
             players = new List<Player>();
             players.Add(host);
             this.host = host;
-            states = StateFlags.Waiting;
+            states = StateFlags.Lobby;
             this.manager = manager;
             this.settings = settings;
         }
 
         public MatchData() { }
+
+        public Description GetDescription()
+        {
+            return new Description
+            {
+                playerCount = (byte)players.Count,
+                maxPlayerCount = this.settings.maxPlayerCount,
+                id = this.id,
+                states = this.states,
+                hostNetId = host.netId
+            };
+        }
     }
+
+
 }
-
-
+//
 public static class StringExtensions
 {
     public static Guid ToGuid(this string id)

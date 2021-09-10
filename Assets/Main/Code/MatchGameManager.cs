@@ -1,19 +1,19 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
-using Mirror;
+﻿using Mirror;
 using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace HashtagChampion
 {
     public enum GameStates
     {
-        Waiting, ChoosingTagger, TagGame, PostGame
+        Lobby, ChoosingTagger, TagGame, PostGame
     }
 
     public class MatchGameManager : NetworkBehaviour
     {
         [SyncVar] private GameStates state;
-        public  GameStates State
+        public GameStates State
         {
             get { return state; }
         }
@@ -21,6 +21,7 @@ namespace HashtagChampion
         [SerializeField] private Kevin kevinPrefab;//TODO: Move refference to some singletom
         public Kevin kevin;
         [SerializeField] private MatchCountdown countdown;
+        [SerializeField] private LobbyUI lobbyUI;
 
         [SerializeField] private float playerCircleRadius = 2f;
        // private List<PlayerController> relevantPlayersCache = new List<PlayerController>();
@@ -28,6 +29,7 @@ namespace HashtagChampion
         public MatchData Match => match;
 
         public PlayerController[] relevantPlayerControllers;
+        private bool initialised;
 
         private void Start()
         {
@@ -44,8 +46,6 @@ namespace HashtagChampion
                 Debug.Log("Waiting for game scene...");
             }
 
-           // PlayerController.Initialise();//TODO: Should not be here any longer!
-
             if (isServer)
             {
                 //TODO: Apply room settings
@@ -60,13 +60,16 @@ namespace HashtagChampion
                 NetworkServer.Spawn(kevin.gameObject);
                 kevin.Initialise();
 
-                StartCoroutine(WaitForPlayers());
-
+                Server_StartLobby();
             }
             else
             {
-                SoundManager.PlayMusicTrack(SoundNames.LobbyMusic);
+                countdown.Client_Initialise();
+                lobbyUI = GameSceneManager.GetReferences().lobbyUI;
+                Client_StartLobby();
             }
+
+            initialised = true;
         }
 
         public void SetMatch(MatchData match)
@@ -75,20 +78,108 @@ namespace HashtagChampion
             GetComponent<NetworkMatch>().matchId = match.id.ToGuid();
         }
 
-        [Server]
-        private IEnumerator WaitForPlayers()
+
+        public void SwitchMatchAccessibility(Player player)
         {
-            //HARDCODED values, can we store these in a file seperate to the game so that we don't have to rebuild the game every time we change these
-            state = GameStates.Waiting;
-            WaitForSeconds waitForSeconds = new WaitForSeconds(0.2f);
-            while (relevantPlayerControllers.Length < match.settings.playerCount)
+            if (match.host == player)
             {
-                yield return new WaitForSeconds(1f) ;
+                //NOTE: there must be a way to do this without conditions;
+                if ((match.states & MatchData.StateFlags.Public) != 0)
+                {
+                    match.states &= ~MatchData.StateFlags.Public;
+                }
+                else
+                {
+                    match.states |= MatchData.StateFlags.Public;
+                }
+
+                BroadcastMatchDescription();
             }
-            yield return waitForSeconds;
+        }
 
-            StartCoroutine(ChooseTagger());
+        public void BroadcastMatchDescription()
+        {
+            MatchData.Description description = match.GetDescription();
+            Rpc_UpdateMatchDescription(description);
+           /* int playerCount = match.players.Count;
+            for (int i = 0; i < playerCount; i++)
+            {
+                Player player = match.players[i];
+                //player.TargetRpc_UpdateMatchDescription(description, (player == match.host));
+            }*/
+        }
 
+        [ClientRpc]
+        public void Rpc_UpdateMatchDescription(MatchData.Description description)
+        {
+            lobbyUI.UpdateMatchDescription(description);
+        }
+
+        [Server]
+        private void Server_StartLobby()
+        {
+            state = GameStates.Lobby;
+            match.states |= MatchData.StateFlags.Lobby;
+
+            for (int i = 0; i < match.players.Count; i++)
+            {
+                PlayerController playerController = match.players[i].playerController;
+                if (playerController == null)
+                {
+                    Debug.LogWarning("playerController == null");
+                }
+                else
+                {
+                    playerController.Server_ConformToInitialState();
+                }
+            }
+
+            Rpc_StartLobby();
+        }
+
+        [ClientRpc]
+        private void Rpc_StartLobby()
+        {
+            if (initialised)
+            {
+                Client_StartLobby();
+            }
+        }
+
+        [Client]
+        private void Client_StartLobby()
+        {
+            SoundManager.PlayMusicTrack(SoundNames.LobbyMusic);
+            countdown.Client_ConformToInitialState();
+            lobbyUI.ShowUI(true);
+        }
+        /* [Server]
+         private IEnumerator WaitForPlayers()
+         {
+             //HARDCODED values, can we store these in a file seperate to the game so that we don't have to rebuild the game every time we change these
+
+             WaitForSeconds waitForSeconds = new WaitForSeconds(0.2f);
+             while (relevantPlayerControllers.Length < match.settings.playerCount)
+             {
+                 yield return waitForSeconds;
+             }
+             yield return new WaitForSeconds(2f);
+
+             StartCoroutine(ChooseTagger());
+
+         }*/
+
+        [Server]
+        public void StartGame(Player caller)
+        {
+            if(caller == match.host && state == GameStates.Lobby)
+            {
+                StartCoroutine(ChooseTagger());
+            }
+            else
+            {
+                Debug.Log("Could not start game!");
+            }
         }
 
         [Server]
@@ -97,6 +188,7 @@ namespace HashtagChampion
             Rpc_ChooseTagger();
 
             state = GameStates.ChoosingTagger;
+            match.states &= ~MatchData.StateFlags.Lobby;
 
             int playerCount = relevantPlayerControllers.Length;
             int taggerIndex = Random.Range(0, playerCount);
@@ -147,7 +239,7 @@ namespace HashtagChampion
 
             yield return new WaitForSeconds(0.2f);//Hardcoded
 
-            StartMatch();
+            StartTagGame();
 
         }
 
@@ -155,10 +247,12 @@ namespace HashtagChampion
         private void Rpc_ChooseTagger()
         {
             SoundManager.FadeOutMusic();
+            lobbyUI.ShowUI(false);
+
         }
 
         [Server]
-        private void StartMatch()
+        private void StartTagGame()
         {
             state = GameStates.TagGame;
             kevin.StartDropRoutine();
@@ -222,7 +316,7 @@ namespace HashtagChampion
                 PlayerController playerController = match.players[i].playerController;
                 if(playerController == null)
                 {
-                    Debug.LogError("layerController == null");
+                    Debug.LogError("playerController == null");
                 }
                 else if (/*playerController.Initialised && */playerController.IsAlive())
                 {
@@ -277,7 +371,7 @@ namespace HashtagChampion
             }
 
             state = GameStates.PostGame;
-            Invoke(nameof(StopServer),4f);
+            Invoke(nameof(Server_StartLobby),4f);
             Rpc_EndGame();
         }
 
@@ -287,27 +381,6 @@ namespace HashtagChampion
             SoundManager.FadeOutMusic();
         }
 
-        private void StopServer()
-        {
-            Debug.Log("<color=yellow>StopServer</color>");
-            if (NetworkServer.active)
-            {
-                if (NetworkClient.isConnected)
-                {
-                    NetworkManager.singleton.StopHost();
-                }
-                // stop server if server-only
-                else
-                {
-                    NetworkManager.singleton.StopServer();
-                }
-            }
-            else
-            {
-                Debug.LogError("StopServer: !NetworkServer.active");
-            }
-
-        }
 
         [Server]
         public void Terminate()

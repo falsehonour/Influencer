@@ -18,7 +18,7 @@ public class RoomSettingsUI : MonoBehaviour
         //roomManager = HashtagChampion.TagNetworkManager.RoomManager;
         //TODO: Looks like repeating buisness to me
         //TODO: This class should not dictate min and max values for room settings.  
-        playerCountSlider.Initialise(SetPlayerCount, matchSettings.playerCount, 1, 8, 1);
+        playerCountSlider.Initialise(SetPlayerCount, matchSettings.maxPlayerCount, 1, 8, 1);
         initialPickupsSlider.Initialise(SetInitialPickups, matchSettings.initialPickups, 0, 32, 1);
         //(delegate { roomManager.settings.playerCount = (byte)playerCountSlider.slider.value; });
         countdownSlider.Initialise(SetCountdown, matchSettings.countdown, 30, 420, 1);
@@ -30,7 +30,7 @@ public class RoomSettingsUI : MonoBehaviour
     //TODO: Check for value legitimacy (maybe in RoomManager instead of here)
     private void SetPlayerCount(float value)
     {
-        matchSettings.playerCount = (byte)value;
+        matchSettings.maxPlayerCount = (byte)value;
     }
 
     private void SetCountdown(float value)

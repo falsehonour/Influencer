@@ -158,7 +158,7 @@ namespace HashtagChampion
             [Server]
             private IEnumerator WaitForSkin(NetworkConnectionToClient conn)
             {
-                WaitForSeconds waitForSeconds = new WaitForSeconds(0.2f);
+                WaitForSeconds waitForSeconds = new WaitForSeconds(0.25f);
                 while (!ServerCachedSkinDataInitialised())
                 {
                     Debug.Log("Waiting for skin to be uploaded...");

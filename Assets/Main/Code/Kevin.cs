@@ -59,7 +59,6 @@ namespace HashtagChampion
 
         public void Initialise()
         {
-
             myTransform = transform;
             Transform dropPointsParent = GameSceneManager.GetReferences().kevinDropPointsParent;
             dropPoints = new Transform[dropPointsParent.childCount];

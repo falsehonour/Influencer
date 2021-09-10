@@ -35,7 +35,7 @@ namespace HashtagChampion
                 match.states |= MatchData.StateFlags.Public;
             }
             matchGameManager.SetMatch(match);
-            host.TargetRpc_OnBecomeHost(match.states);
+            //host.TargetRpc_OnBecomeHost(match.states);
             instance.matches.Add(match);
             return match;
         }
@@ -44,14 +44,15 @@ namespace HashtagChampion
         public MatchData JoinSpecificMatch(string matchID, Player player)
         {
             //bool joined = false;
-            MatchData match = FindMatch(matchID); ;
+            MatchData match = FindMatch(matchID); 
 
             if (match != null)
             {
                 //TODO: Add capacity condition
-                if ((match.states & MatchData.StateFlags.Waiting) != 0)
+                if ((match.states & MatchData.StateFlags.Lobby) != 0)
                 {
                     match.players.Add(player);
+                    match.manager.BroadcastMatchDescription();
                     //joined = true;
                 }
                 else
@@ -74,7 +75,7 @@ namespace HashtagChampion
             {
                 MatchData match = matches[i];
                 //TODO: Add capacity condition
-                if ((match.states & MatchData.StateFlags.Waiting) != 0 && (match.states & MatchData.StateFlags.Public) != 0)
+                if ((match.states & MatchData.StateFlags.Lobby) != 0 && (match.states & MatchData.StateFlags.Public) != 0)
                 {
                     validMatch = match;
                     break;
@@ -111,12 +112,14 @@ namespace HashtagChampion
                     }
                     else
                     {
+
                         if (match.host == player)
                         {
                             Player newHost = match.players[0];
                             match.host = newHost;
-                            newHost.TargetRpc_OnBecomeHost(match.states);
+                           // newHost.TargetRpc_OnBecomeHost(match.states);
                         }
+                        match.manager.BroadcastMatchDescription();
                     }
                     break;
                 }
@@ -179,23 +182,6 @@ namespace HashtagChampion
 
             return null;
 
-        }
-
-        public MatchData.StateFlags SwitchMatchAccessibility(MatchData match, Player player)
-        {
-            if (match.host == player)
-            {
-                //NOTE: there must be a way to do this without conditions;
-                if ((match.states & MatchData.StateFlags.Public) != 0)
-                {
-                    match.states &= ~MatchData.StateFlags.Public;
-                }
-                else
-                {
-                    match.states |= MatchData.StateFlags.Public;
-                }
-            }
-            return match.states;
         }
 
         private MatchData FindMatch(string matchID)

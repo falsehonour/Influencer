@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
+using System;
 
 namespace HashtagChampion
 {
@@ -34,6 +35,7 @@ namespace HashtagChampion
         {
             Cmd_HostMatch();
         }
+
 
         [Command]
         private void Cmd_HostMatch()
@@ -189,7 +191,8 @@ namespace HashtagChampion
 
         #region Host Privilige:
 
-        public void SwitchMatchAccessibility()
+        [Client]
+        public void Client_SwitchMatchAccessibility()
         {
             Cmd_SwitchMatchAccessibility();
         }
@@ -199,29 +202,33 @@ namespace HashtagChampion
         {
             if (currentMatchData != null)
             {
-                TargetRpc_OnMatchAccessibilitySet(MatchMaker.instance.SwitchMatchAccessibility(currentMatchData, this));
+                currentMatchData.manager.SwitchMatchAccessibility(this);
             }
             else
             {
-                Debug.LogError("Failed to create match!");
-                //  TargetRpc_HostMatch(false, null);
-
+                Debug.LogError("Failed at Cmd_SwitchMatchAccessibility!");
             }
         }
 
-        [TargetRpc]
-        private void TargetRpc_OnMatchAccessibilitySet(MatchData.StateFlags matchStateFlags)
+        [Client]
+        public void Client_StartGame()
         {
-            HostUI.instance.UpdateMatchAccessibilityText(matchStateFlags);
+            Cmd_StartGame();
         }
 
-        [TargetRpc]
-        public void TargetRpc_OnBecomeHost(MatchData.StateFlags matchStateFlags)
+        [Command]
+        private void Cmd_StartGame()
         {
-            return;
-            HostUI.instance.ShowUI(true);
-            HostUI.instance.UpdateMatchAccessibilityText(matchStateFlags);
+            if (currentMatchData != null)
+            {
+                currentMatchData.manager.StartGame(this);
+            }
+            else
+            {
+                Debug.LogError("Failed at Cmd_SwitchMatchAccessibility!");
+            }
         }
+
         #endregion
 
         #region Disconnect:

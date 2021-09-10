@@ -10,9 +10,9 @@ namespace HashtagChampion
     {
         public class ServerData
         {
-            public static readonly float INJURED_SPEED = UnitConvertor.KilometresPerHourToMetresPerSecond(10.5f);
+            public static readonly float INJURED_SPEED   = UnitConvertor.KilometresPerHourToMetresPerSecond(10.5f);
             public static readonly float NONTAGGER_SPEED = UnitConvertor.KilometresPerHourToMetresPerSecond(19.8f);
-            public static readonly float SPRINT_SPEED = UnitConvertor.KilometresPerHourToMetresPerSecond(28.8f);
+            public static readonly float SPRINT_SPEED    = UnitConvertor.KilometresPerHourToMetresPerSecond(28.8f);
             //public const float ROTATION_SPEED = 1080f;
 
             public const float PUSH_FORCE = 7.5f;
@@ -82,7 +82,7 @@ namespace HashtagChampion
         private float EXTERNAL_FORCES_REDUCTION_SPEED = 6f;
         [SerializeField] private float gravity = -9.8f;
         private static readonly Vector3 ZERO_VECTOR3 = Vector3.zero;
-        private CharacterCamera characterCamera;
+        private PlayerCamera camera;
         private Animator animator;
         private NetworkAnimator networkAnimator;
         [SerializeField] private BoxCollider tagBoundsCollider;
@@ -121,9 +121,12 @@ namespace HashtagChampion
         private PowerUpButton powerUpButton;
         [SerializeField] private GameObject football;
         #endregion
-        private bool initialised = false;
+        private enum InitialisationFlags : byte
+        {
+            None = 0, Server = 1, OwnerClient = 2, This = 4
+        }
+        private InitialisationFlags initialisation = InitialisationFlags.None;
         public static PlayerController localPlayerController;
-        //public static List<PlayerController> allPlayers;
         private MatchGameManager matchGameManager;
         private Player player;
 
@@ -149,47 +152,38 @@ namespace HashtagChampion
 
             myTransform = transform;
 
-            #region UI Initialisation:
-            //NOTE: We (used to do)  doing this in Awake in order to avoid hook shinanigans
-            playerUI = PlayerUIManager.CreatePlayerUI(playerUIAnchor);
-            char character = ' ';
-            playerUI.SetProceedingCharacter(character);
-            #endregion
-
-            if (isServer)
-            {
-                Server_Initialise();
-            }
-            if (hasAuthority)
-            {
-                localPlayerController = this;
-
-                //TODO: Remove path finding stuff if it's not gonna be used after all
-                tagButton = GameObject.Find("TagButton").GetComponent<PlayerInputButton>();
-                tagButton.SetIsEnabled(false);
-
-                powerUpButton = GameObject.Find("PowerUpButton").GetComponent<PowerUpButton>();
-                UpdatePowerUpButton();
-
-                characterCamera = FindObjectOfType<CharacterCamera>();
-                characterCamera.Initialise(myTransform/*, cameraAnchor*/);
-
-                Cmd_SetName(StaticData.playerName.name);
-
-                Transform spawnPoint = GameSceneManager.GetReferences().playerSpawnPoint;
-                Teleport(spawnPoint.position, spawnPoint.rotation);
-            }
-
             football.SetActive(false);
             if (skin != null)
             {
                 Destroy(placeholderGraphics);
                 skin.Initialise();
-                //skinCharacter = skin.character;
             }
-            initialised = true;
-            PerformPostInitialisation();
-            //Note: the reason we set it here is in order to perform sync var hook functions. Does this leave us open for bugs??
+
+            initialisation |= InitialisationFlags.This;
+
+            if (isServer)
+            {
+                ServerInitialise();
+            }
+            else
+            {
+                #region UI Initialisation:
+                //NOTE: We (used to do)  doing this in Awake in order to avoid hook shinanigans
+                playerUI = PlayerUIManager.CreatePlayerUI(playerUIAnchor);
+                char character = ' ';
+                playerUI.SetProceedingCharacter(character);
+                #endregion
+                if (hasAuthority)
+                {
+                    OwnerInitialise();
+                }
+            }
+
+            if (!isServer)
+            {
+                //Note: the reason we set it here is in order to perform sync var hook functions. Does this leave us open for bugs??
+                PerformSyncVarHookFunctions();
+            }
 
             /* if(characterController.attachedRigidbody != null)
              {
@@ -197,16 +191,90 @@ namespace HashtagChampion
              }*/
         }
 
-        private void PerformPostInitialisation()
+        //Should be called once per player controller
+        [Server]
+        private void ServerInitialise()
         {
-            if (!isServer)
+            serverData = new ServerData();
+            matchGameManager = player.CurrentMatchData.manager;
+            initialisation |= InitialisationFlags.Server;
+            TargetRpc_OnServerInitialised(matchGameManager.netId);
+          
+        }
+
+        [Server]
+        public void Server_ConformToInitialState()
+        {
+            if((initialisation & InitialisationFlags.Server) == 0 || 
+               (initialisation & InitialisationFlags.OwnerClient) == 0)
             {
-                PerformSyncVarHookFunctions();
+                Debug.LogWarning("Will not ConformToInitialState if not already initialised");
+                return;
+            }
+            Debug.Log("<color=yellow>ConformToInitialState</color>");
+            serverData.UpdateTaggerSpeed(matchGameManager.Match.settings.taggerSpeedBoostInKilometresPerHour);
+            X_health = ServerData.MAX_HEALTH;
+            PowerUp initialPowerUp = new PowerUp { count = 0, type = PowerUp.Type.None };
+            this.powerUp = initialPowerUp;
+            SetTagger(false);
+           // SetMovementState(MovementStates.Normal);
+            TargetRpc_ConformToInitialState();
+        }
+
+        [TargetRpc]
+        private void TargetRpc_ConformToInitialState()
+        {
+            networkAnimator.SetTrigger(AnimatorParameters.Reset);
+        }
+
+        [Client]
+        private void OwnerInitialise()
+        {
+            localPlayerController = this;
+
+            GameSceneManager.References sceneReferences = GameSceneManager.GetReferences();
+
+            //TODO: Remove path finding stuff if it's not gonna be used after all
+            tagButton = GameObject.Find("TagButton").GetComponent<PlayerInputButton>();
+            tagButton.SetIsEnabled(false);
+
+            powerUpButton = GameObject.Find("PowerUpButton").GetComponent<PowerUpButton>();
+            UpdatePowerUpButton();
+
+            camera = sceneReferences.playerCamera;
+            camera.Initialise(myTransform);
+
+            Cmd_SetName(StaticData.playerName.name);
+
+            Transform spawnPoint = sceneReferences.playerSpawnPoint;
+            Teleport(spawnPoint.position, spawnPoint.rotation);
+
+            initialisation |= InitialisationFlags.OwnerClient;
+            Cmd_OnOwnerInitialised();
+
+        }
+
+        [Command]
+        private void Cmd_OnOwnerInitialised()
+        {
+            initialisation |= InitialisationFlags.OwnerClient;
+            if((initialisation & InitialisationFlags.Server) != 0)
+            {
+                Server_ConformToInitialState();
+                matchGameManager.UpdatePlayersState();
             }
             else
             {
-                matchGameManager.UpdatePlayersState();
+                Debug.LogError("Owner client finished initialisation before server for some reason");
             }
+        }
+
+        [TargetRpc]
+        private void TargetRpc_OnServerInitialised(uint matchGameManagerNetID)
+        {
+            initialisation |= InitialisationFlags.Server;
+            NetworkIdentity matchGameManagerNetworkIdentity = NetworkIdentity.spawned[matchGameManagerNetID];
+            matchGameManager = matchGameManagerNetworkIdentity.GetComponent<MatchGameManager>();
         }
 
         private void PerformSyncVarHookFunctions()
@@ -241,11 +309,12 @@ namespace HashtagChampion
         [Client]
         private void OnNameChanged(string oldValue, string newValue)
         {
-            if (!initialised)
+            if ((initialisation & InitialisationFlags.This) == 0)
             {
                 return;
             }
             playerUI.SetPlayerName(newValue);
+
         }
 
         #endregion
@@ -256,19 +325,7 @@ namespace HashtagChampion
             this.networkAnimator = networkAnimator;
             //TODO: This is a placeholder. Dance animation should be predetermined by the player
             animator.SetInteger(AnimatorParameters.DanceIndex, Random.Range(0, 4));
-        }
-
-        [Server]
-        private void Server_Initialise()
-        {
-            serverData = new ServerData();
-            matchGameManager = player.CurrentMatchData.manager;
-            serverData.UpdateTaggerSpeed(matchGameManager.Match.settings.taggerSpeedBoostInKilometresPerHour);
-            X_health = ServerData.MAX_HEALTH;
-            PowerUp initialPowerUp = new PowerUp { count = 0, type = PowerUp.Type.None };
-            this.powerUp = initialPowerUp;
-            SetMovementState(MovementStates.Normal);
-        }
+        }     
 
         [Server]
         private void SetMovementState(MovementStates newState)
@@ -302,7 +359,7 @@ namespace HashtagChampion
         [Client]
         private void OnMovementStateChange(MovementStates oldValue, MovementStates newValue)
         {
-            if (!initialised)
+            if (((initialisation & InitialisationFlags.This) == 0))
             {
                 return;
             }
@@ -328,7 +385,7 @@ namespace HashtagChampion
                         }
                     }
                     UpdatePowerUpButton();
-                    characterCamera.distanceMultiplier = newValue == MovementStates.Frozen ? 0.7f : 1;//HARDCODEDDD
+                    camera.distanceMultiplier = newValue == MovementStates.Frozen ? 0.7f : 1;//HARDCODEDDD
                 }
             }
 
@@ -391,7 +448,6 @@ namespace HashtagChampion
             SoundManager.PlayOneShotSound(SoundNames.PushHit, myTransform.position);
         }
 
-
         #region Tagging:
 
         [Server]
@@ -422,7 +478,7 @@ namespace HashtagChampion
         [Client]
         private void OnTaggerChange(bool oldValue, bool newValue)
         {
-            if (!initialised)
+            if (((initialisation & InitialisationFlags.This) == 0))
             {
                 return;
             }
@@ -631,7 +687,7 @@ namespace HashtagChampion
         [Client]
         private void OnHealthChanged(sbyte oldHealth, sbyte newHealth)
         {
-            if (!initialised)
+            if ((initialisation & InitialisationFlags.This) == 0)
             {
                 return;
             }
@@ -650,7 +706,7 @@ namespace HashtagChampion
 
         private void Update()
         {
-            if (!initialised)
+            if ((initialisation & InitialisationFlags.This) == 0)
             {
                 return;
             }
@@ -714,27 +770,25 @@ namespace HashtagChampion
                 }
                 
             }
-
         }
-
 
         private void FixedUpdate()
         {
-            if (!initialised)
+            if ((initialisation & InitialisationFlags.This) == 0)
             {
                 return;
             }
-            float deltaTime = Time.fixedDeltaTime;
-            //TODO: Remove the check once it's made sure that there is always a matchGameManager
-            GameStates gameState = matchGameManager ? matchGameManager.State : GameStates.Waiting;
-            if (localPlayerController == this)
-            {
-                HandleMovement(ref deltaTime, ref gameState);
-            }
-            if (/*IsAlive() && */(gameState == GameStates.Waiting || gameState == GameStates.TagGame))
-            {
 
-                if (localPlayerController == this || isServer)
+            if (localPlayerController == this || isServer)
+            {
+                float deltaTime = Time.fixedDeltaTime;
+                //TODO: Remove the check once it's made sure that there is always a matchGameManager
+                GameStates gameState = matchGameManager.State;
+                if (localPlayerController == this)
+                {
+                    HandleMovement(ref deltaTime, ref gameState);
+                }
+                if ((gameState == GameStates.Lobby || gameState == GameStates.TagGame))
                 {
                     if (IsAlive())
                     {
@@ -747,7 +801,6 @@ namespace HashtagChampion
                             tagCooldownTimer.Update(deltaTime);
                         }
                     }
-
 
                     if (isServer) //Lots of network activity
                     {
@@ -770,9 +823,7 @@ namespace HashtagChampion
                         }
                     }
                 }
-                
             }
-
         }
 
         private void HandleMovement(ref float deltaTime, ref GameStates gameState)
@@ -870,7 +921,6 @@ namespace HashtagChampion
             this.gait = newGait;
         }
 
-
         private void OnTriggerEnter(Collider other)
         {
             if (isServer)
@@ -926,7 +976,6 @@ namespace HashtagChampion
             SoundManager.PlayOneShotSound(additionalSound, null);
 
         }
-
 
         [Server]
         private void GetInjured(float duration)
@@ -1051,7 +1100,7 @@ namespace HashtagChampion
         [Client]
         private void OnPowerUpChanged(PowerUp oldValue, PowerUp newValue)
         {
-            if (!initialised)
+            if ((initialisation & InitialisationFlags.This) == 0)
             {
                 return;
             }
@@ -1242,11 +1291,12 @@ namespace HashtagChampion
         [ClientRpc]
         private void Rpc_Win()
         {
+            //HARDCODED, VERY
             if (hasAuthority)
             {
                 desiredRotation = Quaternion.Euler(0, 180, 0);
                 networkAnimator.SetTrigger(AnimatorParameters.Dance);
-                characterCamera.distanceMultiplier = 0.8f;
+                camera.distanceMultiplier = 0.8f;
             }
         }
 
@@ -1263,13 +1313,13 @@ namespace HashtagChampion
 
         [ClientRpc]
         private void Rpc_OnLose()
-        {
+        { //HARDCODED, VERY
             if (hasAuthority)
             {
                 //HARDCODED
                 desiredRotation = Quaternion.Euler(0, 180, 0);
                 networkAnimator.SetTrigger(AnimatorParameters.Lose);
-                characterCamera.distanceMultiplier = 0.8f;
+                camera.distanceMultiplier = 0.8f;
             }
         }
 

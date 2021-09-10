@@ -15,23 +15,16 @@ namespace HashtagChampion
         //[SerializeField] private GameObject UIObject;
         private MatchCountdownDisplay display;
 
-        private void Start()
+        [Client]
+        public void Client_Initialise()
         {
-            StartCoroutine(InitialisationRoutine());
+            display = GameSceneManager.GetReferences().countdownDisplay;
         }
 
-        private IEnumerator InitialisationRoutine()
+        public void Client_ConformToInitialState()
         {
-            WaitForSeconds waitForSeconds = new WaitForSeconds(0.15f);
-            while (!GameSceneManager.initialised)
-            {
-                yield return waitForSeconds;
-                Debug.Log("Waiting for game scene...");
-            }
-            display = GameSceneManager.GetReferences().countdownDisplay;
             display.Show(false);
         }
-
 
         [Server]
         public void Server_StartCounting(float time)
@@ -54,16 +47,19 @@ namespace HashtagChampion
 
         private IEnumerator CountdownRoutine(float time)
         {
-            display.Show(true);
+            bool isServer = this.isServer;
+            if (!isServer)
+            {
+                display.Show(true);
+            }
 
             UInt16 previousTimeLeftUInt16 = 0;
             timeLeft = time;
-            bool dedicatedServer = isServerOnly;
             do //while (timeLeft > 0)
             {
                 //TODO: will it be more efficient to wait for seconds..?
                 timeLeft -= Time.deltaTime;
-                if (!dedicatedServer)
+                if (!isServer)
                 {
                     UInt16 currentTimeLeftUInt16 = (UInt16)Mathf.CeilToInt(timeLeft);
                     if (currentTimeLeftUInt16 != previousTimeLeftUInt16)

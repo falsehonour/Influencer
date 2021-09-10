@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CharacterCamera : MonoBehaviour
+public class PlayerCamera : MonoBehaviour
 {
     private Transform myTransform;
     private Transform target;

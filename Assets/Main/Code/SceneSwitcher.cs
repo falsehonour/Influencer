@@ -8,18 +8,21 @@ namespace HashtagChampion
     public class SceneSwitcher : MonoBehaviour
     {
         public static SceneSwitcher instance;
-        [SerializeField] private GameObject mainMenuParent;
+        [SerializeField]private GameObject mainMenuPrefab;
+        private GameObject mainMenu;
 
         private void Start()
         {
+            //TODO: Very lazy.. We are adding this audio listener just so we don't get no debug.logs..
+            if (Mirror.NetworkServer.active)
+            {
+                gameObject.AddComponent<AudioListener>();
+            }
+            else
+            {
+                mainMenu = Instantiate(mainMenuPrefab);
+            }
             instance = this;
-        }
-
-        private void Update()
-        {
-          /*  SceneManager.GetSceneAt()
-            bool sceneIsHere = SceneManager.GetSceneByName(TagNetworkManager.Instance.gameScene) != null;
-            Debug.Log("sceneIsHere: " + sceneIsHere);*/
         }
 
         public bool IsGameSceneLoaded()
@@ -38,11 +41,11 @@ namespace HashtagChampion
         public void GoToGame()
         {
             Debug.Log("GoToGame()");
-           /* if (!NetworkServer.active)
-            {
-                //SceneManager.LoadScene(TagNetworkManager.Instance.gameScene, LoadSceneMode.Additive);
-            }*/
-            mainMenuParent.SetActive(false);
+            /* if (!NetworkServer.active)
+             {
+                 //SceneManager.LoadScene(TagNetworkManager.Instance.gameScene, LoadSceneMode.Additive);
+             }*/
+            mainMenu.SetActive(false);
         }
 
         public void GoToMainMenu()
@@ -54,7 +57,7 @@ namespace HashtagChampion
                 //TODO: Maybe put the main menu in a seperate scene and load it?
                 SceneManager.UnloadSceneAsync(TagNetworkManager.Instance.gameScene);
             }*/
-            mainMenuParent.SetActive(true);
+            mainMenu.SetActive(true);
 
         }
     }

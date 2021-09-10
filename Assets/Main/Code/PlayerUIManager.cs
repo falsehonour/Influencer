@@ -14,14 +14,20 @@ namespace HashtagChampion
         private Transform[] children;
         private static PlayerUIManager instance;
 
-        private void Awake()
+        private void Start()
         {
-            instance = this;
-            Debug.Log("PlayerUIManager AWOKE");
-            myTransform = transform;
-            int childCount = myTransform.childCount;
-            children = new Transform[childCount];
-            StartCoroutine(SortChildrenRoutine());
+            if (Mirror.NetworkServer.active)
+            {
+                Destroy(gameObject);
+            }
+            else
+            {
+                instance = this;
+                myTransform = transform;
+                int childCount = myTransform.childCount;
+                children = new Transform[childCount];
+                StartCoroutine(SortChildrenRoutine());
+            }
         }
 
         public static PlayerUI CreatePlayerUI(Transform anchor)
@@ -67,10 +73,6 @@ namespace HashtagChampion
                         children[i].SetSiblingIndex(i);
                     }
                 }
-                /* for (int i = 0; i < childCount; i++)
-                 {
-                     children[i].SetSiblingIndex(i);
-                 }*/
 
                 yield return waitInterval;
             }

@@ -10,6 +10,7 @@ namespace HashtagChampion
     {
         [SerializeField] private GameObject UIElements;
         [SerializeField] private Button matchAccessibilityButton;
+        [SerializeField] private Button startGameButton;
         [SerializeField] private TMPro.TextMeshProUGUI matchAccessibilityButtonText;
         [SerializeField] private TMPro.TextMeshProUGUI playerCountText;
         [SerializeField] private TMPro.TextMeshProUGUI matchAccessCodeText;
@@ -33,10 +34,11 @@ namespace HashtagChampion
         public void UpdateMatchDescription(MatchData.Description description)
         {
             bool isHost = description.hostNetId == Player.localPlayer.netId;
+            startGameButton.interactable = isHost && description.playerCount >= MatchSettings.MIN_PLAYER_COUNT;
             matchAccessibilityButton.interactable = isHost;
             matchAccessibilityButtonText.text =
                ((description.states & MatchData.StateFlags.Public) != 0) ? "Public" : "Private";
-            playerCountText.text = "#" + description.playerCount.ToString();
+            playerCountText.text = description.playerCount.ToString() + "/" + description.maxPlayerCount.ToString();
             matchAccessCodeText.text = "Code: " + description.id;
         }
     }

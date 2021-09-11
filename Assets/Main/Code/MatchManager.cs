@@ -10,7 +10,7 @@ namespace HashtagChampion
         Lobby, ChoosingTagger, TagGame, PostGame
     }
 
-    public class MatchGameManager : NetworkBehaviour
+    public class MatchManager : NetworkBehaviour
     {
         [SyncVar] private GameStates state;
         public GameStates State
@@ -64,9 +64,11 @@ namespace HashtagChampion
             }
             else
             {
+                //NOTE: We assume that players can only join during lobby phase
                 countdown.Client_Initialise();
                 lobbyUI = GameSceneManager.GetReferences().lobbyUI;
                 Client_StartLobby();
+                Cmd_SendMatchDescription();
             }
 
             initialised = true;
@@ -77,7 +79,6 @@ namespace HashtagChampion
             this.match = match;
             GetComponent<NetworkMatch>().matchId = match.id.ToGuid();
         }
-
 
         public void SwitchMatchAccessibility(Player player)
         {
@@ -93,12 +94,16 @@ namespace HashtagChampion
                     match.states |= MatchData.StateFlags.Public;
                 }
 
-                BroadcastMatchDescription();
+                BroadcastMatchDescriptionToAllPlayers();
             }
         }
 
-        public void BroadcastMatchDescription()
+        public void BroadcastMatchDescriptionToAllPlayers()
         {
+            if(state != GameStates.Lobby)
+            {
+                return;
+            }
             MatchData.Description description = match.GetDescription();
             Rpc_UpdateMatchDescription(description);
            /* int playerCount = match.players.Count;
@@ -109,8 +114,24 @@ namespace HashtagChampion
             }*/
         }
 
+        [Command(requiresAuthority = false)]
+        private void Cmd_SendMatchDescription(NetworkConnectionToClient conn = null)
+        {
+            MatchData.Description description = match.GetDescription();
+            TargetRpc_UpdateMatchDescription(conn,description);
+        }
+
         [ClientRpc]
         public void Rpc_UpdateMatchDescription(MatchData.Description description)
+        {
+            if (initialised) 
+            {
+                lobbyUI.UpdateMatchDescription(description);
+            }
+        }
+
+        [TargetRpc]
+        public void TargetRpc_UpdateMatchDescription(NetworkConnection target, MatchData.Description description)
         {
             lobbyUI.UpdateMatchDescription(description);
         }
@@ -133,7 +154,7 @@ namespace HashtagChampion
                     playerController.Server_ConformToInitialState();
                 }
             }
-
+            BroadcastMatchDescriptionToAllPlayers();
             Rpc_StartLobby();
         }
 
@@ -172,7 +193,9 @@ namespace HashtagChampion
         [Server]
         public void StartGame(Player caller)
         {
-            if(caller == match.host && state == GameStates.Lobby)
+            bool canStart =
+                (caller == match.host && state == GameStates.Lobby && match.players.Count >= MatchSettings.MIN_PLAYER_COUNT);
+            if (canStart)
             {
                 StartCoroutine(ChooseTagger());
             }

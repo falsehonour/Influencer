@@ -127,7 +127,7 @@ namespace HashtagChampion
         }
         private InitialisationFlags initialisation = InitialisationFlags.None;
         public static PlayerController localPlayerController;
-        private MatchGameManager matchGameManager;
+        private MatchManager matchManager;
         private Player player;
 
         public void SetPlayer(Player player)
@@ -196,9 +196,9 @@ namespace HashtagChampion
         private void ServerInitialise()
         {
             serverData = new ServerData();
-            matchGameManager = player.CurrentMatchData.manager;
+            matchManager = player.CurrentMatchData.manager;
             initialisation |= InitialisationFlags.Server;
-            TargetRpc_OnServerInitialised(matchGameManager.netId);
+            TargetRpc_OnServerInitialised(matchManager.netId);
           
         }
 
@@ -212,7 +212,7 @@ namespace HashtagChampion
                 return;
             }
             Debug.Log("<color=yellow>ConformToInitialState</color>");
-            serverData.UpdateTaggerSpeed(matchGameManager.Match.settings.taggerSpeedBoostInKilometresPerHour);
+            serverData.UpdateTaggerSpeed(matchManager.Match.settings.taggerSpeedBoostInKilometresPerHour);
             X_health = ServerData.MAX_HEALTH;
             PowerUp initialPowerUp = new PowerUp { count = 0, type = PowerUp.Type.None };
             this.powerUp = initialPowerUp;
@@ -261,7 +261,7 @@ namespace HashtagChampion
             if((initialisation & InitialisationFlags.Server) != 0)
             {
                 Server_ConformToInitialState();
-                matchGameManager.UpdatePlayersState();
+                matchManager.UpdatePlayersState();
             }
             else
             {
@@ -274,7 +274,7 @@ namespace HashtagChampion
         {
             initialisation |= InitialisationFlags.Server;
             NetworkIdentity matchGameManagerNetworkIdentity = NetworkIdentity.spawned[matchGameManagerNetID];
-            matchGameManager = matchGameManagerNetworkIdentity.GetComponent<MatchGameManager>();
+            matchManager = matchGameManagerNetworkIdentity.GetComponent<MatchManager>();
         }
 
         private void PerformSyncVarHookFunctions()
@@ -625,7 +625,7 @@ namespace HashtagChampion
              tagBoundsCollider.po*/
             //  extendedTagBounds.Expand(new Vector3(0, 0, 1));//HARDCODED
             //bool playerFound = false;
-            PlayerController[] players = matchGameManager.relevantPlayerControllers;
+            PlayerController[] players = matchManager.relevantPlayerControllers;
             for (int i = 0; i < players.Length; i++)
             {
                 PlayerController otherPlayer = players[i];
@@ -671,7 +671,7 @@ namespace HashtagChampion
             if (!IsAlive())
             {
                 Lose();
-                matchGameManager.UpdatePlayersState();
+                matchManager.UpdatePlayersState();
             }
         }
 
@@ -783,7 +783,7 @@ namespace HashtagChampion
             {
                 float deltaTime = Time.fixedDeltaTime;
                 //TODO: Remove the check once it's made sure that there is always a matchGameManager
-                GameStates gameState = matchGameManager.State;
+                GameStates gameState = matchManager.State;
                 if (localPlayerController == this)
                 {
                     HandleMovement(ref deltaTime, ref gameState);
@@ -1057,7 +1057,7 @@ namespace HashtagChampion
             Freeze(ServerData.SLIP_FREEZE_DURATION);//HARDCODED
             TargetRpc_OnSlip(force);
             Rpc_OnSlip();
-            matchGameManager.kevin.TryLaughAt(myTransform);
+            matchManager.kevin.TryLaughAt(myTransform);
         }
 
         [Server]
@@ -1307,7 +1307,7 @@ namespace HashtagChampion
             {
                 SetTagger(false);
             }
-            matchGameManager.kevin.TryLaughAt(myTransform);
+            matchManager.kevin.TryLaughAt(myTransform);
             Rpc_OnLose();
         }
 
@@ -1338,7 +1338,7 @@ namespace HashtagChampion
         [Server]
         private void Server_OnDestroy()
         {
-            matchGameManager.UpdatePlayersState();
+            matchManager.UpdatePlayersState();
         }
 
         [Command]

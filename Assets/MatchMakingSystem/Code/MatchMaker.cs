@@ -10,7 +10,7 @@ namespace HashtagChampion
         private const int MATCH_ID_DIGIT_COUNT = 6;
         public List<MatchData> matches = new List<MatchData>();
         public static MatchMaker instance;
-        [SerializeField] private MatchGameManager matchGameManagerPrefab;
+        [SerializeField] private MatchManager matchGameManagerPrefab;
         [SerializeField] private MatchSettings defaultMatchSettings;
         public static MatchSettings GetDefaultMatchSettings => instance.defaultMatchSettings;
 
@@ -27,7 +27,7 @@ namespace HashtagChampion
             {
                 return null;
             }
-            MatchGameManager matchGameManager = Instantiate(matchGameManagerPrefab);
+            MatchManager matchGameManager = Instantiate(matchGameManagerPrefab);
             NetworkServer.Spawn(matchGameManager.gameObject);
             MatchData match = new MatchData(matchID, host, matchGameManager, settings);
             if (publicMatch)
@@ -44,27 +44,38 @@ namespace HashtagChampion
         public MatchData JoinSpecificMatch(string matchID, Player player)
         {
             //bool joined = false;
-            MatchData match = FindMatch(matchID); 
+            MatchData match = FindMatch(matchID);
+            bool joined = false;
+            JoinGameMessage message = new JoinGameMessage();
 
             if (match != null)
             {
-                //TODO: Add capacity condition
-                if ((match.states & MatchData.StateFlags.Lobby) != 0)
+                if ((match.states & MatchData.StateFlags.Lobby) == 0)
                 {
-                    match.players.Add(player);
-                    match.manager.BroadcastMatchDescription();
-                    //joined = true;
+                    message.messageType = JoinGameMessageTypes.GameTakingPlace;
+                }
+                else if (match.players.Count >= match.settings.maxPlayerCount)
+                {
+                    //Debug.Log("The match is not open for new players.");
+                    message.messageType = JoinGameMessageTypes.MatchIsFull;
                 }
                 else
                 {
-                    Debug.Log("The match was found but was not open for new players.");
+                    message.messageType = JoinGameMessageTypes.Joining;
+                    match.players.Add(player);
+                    match.manager.BroadcastMatchDescriptionToAllPlayers();
+                    joined = true;
                 }
             }
             else
             {
-                Debug.Log("A match with a corresponding ID was not found on the server.");
+                //Debug.Log("A match with a corresponding ID was not found on the server.");
+                message.messageType = JoinGameMessageTypes.MatchDoesNotExist;
             }
-            return match;
+
+            player.netIdentity.connectionToClient.Send<JoinGameMessage>(message);
+            // obselete NetworkServer.SendToClientOfPlayer<JoinGameMessage>(player.netIdentity, message);
+            return (joined ? match : null);
         }
 
         public MatchData JoinSomeMatch(Player player)
@@ -75,16 +86,39 @@ namespace HashtagChampion
             {
                 MatchData match = matches[i];
                 //TODO: Add capacity condition
-                if ((match.states & MatchData.StateFlags.Lobby) != 0 && (match.states & MatchData.StateFlags.Public) != 0)
+                bool canJoin =
+                    ((match.states & MatchData.StateFlags.Public) != 0) &&
+                    ((match.states & MatchData.StateFlags.Lobby)  != 0) &&
+                    (match.players.Count < match.settings.maxPlayerCount);
+                if (canJoin)
                 {
                     validMatch = match;
                     break;
                 }
+#if UNITY_EDITOR
+                else
+                {
+                    if((match.states & MatchData.StateFlags.Public) == 0)
+                    {
+                        Debug.Log("Match is private");
+                    }
+                    if ((match.states & MatchData.StateFlags.Lobby) == 0)
+                    {
+                        Debug.Log("Match is not in lobby mode");
+                    }
+                    if (!(match.players.Count < match.settings.maxPlayerCount))
+                    {
+                        Debug.Log("Match is full");
+                    }
+                }
+#endif
             }
 
             if (validMatch != null)
             {
                 validMatch.players.Add(player);
+                validMatch.manager.BroadcastMatchDescriptionToAllPlayers();
+
             }
             else
             {
@@ -119,7 +153,7 @@ namespace HashtagChampion
                             match.host = newHost;
                            // newHost.TargetRpc_OnBecomeHost(match.states);
                         }
-                        match.manager.BroadcastMatchDescription();
+                        match.manager.BroadcastMatchDescriptionToAllPlayers();
                     }
                     break;
                 }

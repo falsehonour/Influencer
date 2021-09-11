@@ -157,7 +157,7 @@ MonoBehaviour:
   matchGameManagerPrefab: {fileID: 1811028983083577918, guid: 18f2d5d8d21dafa478ed34b1295a58ac,
     type: 3}
   defaultMatchSettings:
-    playerCount: 2
+    maxPlayerCount: 2
     countdown: 30
     initialPickups: 6
     taggerSpeedBoostInKilometresPerHour: 0

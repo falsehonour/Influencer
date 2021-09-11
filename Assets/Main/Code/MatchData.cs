@@ -30,10 +30,10 @@ namespace HashtagChampion
         public List<Player> players;
         public Player host;
         public StateFlags states;
-        public MatchGameManager manager;
+        public MatchManager manager;
         public MatchSettings settings;
 
-        public MatchData(string id, Player host, MatchGameManager manager, MatchSettings settings)
+        public MatchData(string id, Player host, MatchManager manager, MatchSettings settings)
         {
             this.id = id;
             players = new List<Player>();

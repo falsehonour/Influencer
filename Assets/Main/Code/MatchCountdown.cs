@@ -86,7 +86,7 @@ namespace HashtagChampion
 
             if (isServer)
             {
-                MatchGameManager gameManager = FindObjectOfType<MatchGameManager>();
+                MatchManager gameManager = FindObjectOfType<MatchManager>();
                 if (gameManager)
                 {
                     gameManager.OnCountdownStopped();

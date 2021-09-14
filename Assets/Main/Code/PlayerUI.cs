@@ -30,7 +30,7 @@ namespace HashtagChampion
 
         public void SetHealthBarFill(sbyte health)
         {
-            float fill = ((float)health / (float)Player.PlayerServerData.MAX_HEALTH);
+            float fill = ((float)health / (float)PlayerController.ServerData.MAX_HEALTH);
             healthBarFill.fillAmount = fill;
             healthText.text = health.ToString();
         }

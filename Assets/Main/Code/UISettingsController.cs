@@ -21,8 +21,10 @@ public class UISettingsController : MonoBehaviour
         this.enumType = enumType;// = typeof(T);
         OnValueChangedEvent += onValueChangedAction;
 
-        minValue = (sbyte)Enum.Parse(enumType, "Min");
-        maxValue = (sbyte)Enum.Parse(enumType, "Max");
+        string[] names = Enum.GetNames(enumType);
+        
+        minValue = (sbyte)(Enum.Parse(enumType, names[0]));
+        maxValue = (sbyte)(Enum.Parse(enumType, names[names.Length-1]));
         /* Debug.Log("minValue: " + minValue);
          Debug.Log("maxValue: " + maxValue);*/
         InitialiseListeners();
@@ -55,7 +57,7 @@ public class UISettingsController : MonoBehaviour
             newValue = minValue;
         }
         value = newValue;
-        text.text = Enum.ToObject(enumType, value).ToString();
+        text.text = ((Enum)(Enum.ToObject(enumType, value))).GetDescription();
         if (invokeAction)
         {
             OnValueChangedEvent?.Invoke(value);

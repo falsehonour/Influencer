@@ -2,25 +2,72 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
+using UnityEngine.SceneManagement;
 
 namespace HashtagChampion
 {
     public class TagNetworkManager : NetworkManager
     {
         //[SerializeField] private GameManager gameManager;
-        private static TagNetworkManager instance => (TagNetworkManager)singleton;
-        [SerializeField] private Spawner spawner;
-        public static Spawner Spawner => instance.spawner;
-        [SerializeField] private RoomManager roomManager;
-        public static RoomManager RoomManager => instance.roomManager;
-        [SerializeField] private Mirror.Discovery.NetworkDiscoveryHUD discoveryHUD;
+        public static TagNetworkManager Instance => (TagNetworkManager)singleton;
+        [SerializeField] private SpawnableObjectDefinitionsHolder spawnableObjectDefinitionsHolder;
 
+        [Scene]
+        public string gameScene = "";
+        [Scene]
+        [Tooltip("Add all sub-scenes to this list")]
+        public string[] subScenes;
+
+        [SerializeField] private PlayerController playerControllerPrefab;
 
         public override void Start()
         {
             base.Start();
             RegisterPrefabs();
-            Debug.Log("Network Address: " + networkAddress);
+        }
+
+        /*public override void OnStartServer()
+        {
+            base.OnStartServer();
+
+            // load all subscenes on the server only
+            StartCoroutine(LoadSubScenes());
+        }*/
+
+        IEnumerator LoadSubScenes()
+        {
+            Debug.Log("Loading Scenes");
+
+            foreach (string sceneName in subScenes)
+            {
+                yield return SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
+                
+                 Debug.Log($"Loaded {sceneName}");
+            }
+        }
+
+        public override void OnStopServer()
+        {
+            StartCoroutine(UnloadScenes());
+        }
+
+        public override void OnStopClient()
+        {
+            StartCoroutine(UnloadScenes());
+        }
+
+        IEnumerator UnloadScenes()
+        {
+            Debug.Log("Unloading Subscenes");
+
+            foreach (string sceneName in subScenes)
+                if (SceneManager.GetSceneByName(sceneName).IsValid() || SceneManager.GetSceneByPath(sceneName).IsValid())
+                {
+                    yield return SceneManager.UnloadSceneAsync(sceneName);
+                    // Debug.Log($"Unloaded {sceneName}");
+                }
+
+            yield return Resources.UnloadUnusedAssets();
         }
 
         /*public override void OnStartServer()
@@ -31,21 +78,30 @@ namespace HashtagChampion
 
         public override void OnServerChangeScene(string newSceneName)
         {
-            base.OnServerChangeScene(newSceneName);
-            OnChangeScene(newSceneName);
+            return;
+           /* base.OnServerChangeScene(newSceneName);
 
             if (newSceneName == onlineScene)
             {
                 //Debug.Log("Active Scene: " + UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
                 StartCoroutine(InitialiseServerGameScene());
+            }*/
+        }
+
+        public override void OnServerSceneChanged(string sceneName)
+        {
+            base.OnServerSceneChanged(sceneName);
+            if(sceneName == onlineScene)
+            {
+                 StartCoroutine(LoadSubScenes());
+
+               // SceneManager.LoadScene(gameScene, LoadSceneMode.Additive);
             }
         }
 
         public override void OnClientChangeScene(string newSceneName, SceneOperation sceneOperation, bool customHandling)
         {
             base.OnClientChangeScene(newSceneName, sceneOperation, customHandling);
-            OnChangeScene(newSceneName);
-
 
             //discoveryHUD.enabled = enableDiscoveryHUD;
 
@@ -56,35 +112,9 @@ namespace HashtagChampion
              }*/
         }
 
-        public static void OnChangeScene(string newSceneName)
-        {
-            bool enableDiscovery = (newSceneName == instance.offlineScene) || (newSceneName == instance.onlineScene);
-            instance.discoveryHUD.enabled = enableDiscovery;
-        }
-
-        private IEnumerator InitialiseServerGameScene()
-        {
-
-            while (UnityEngine.SceneManagement.SceneManager.GetActiveScene().path != onlineScene)
-            {
-                yield return new WaitForSeconds(0.1f);
-                //TODO: Potential threat- what if for some reason someone tries to spawn something between these WaitForSeconds?
-            }
-            spawner.Initialise();
-        }
-
-       /* private IEnumerator InitialiseClientGameScene()
-        {
-            while (UnityEngine.SceneManagement.SceneManager.GetActiveScene().path != onlineScene)
-            {
-                yield return new WaitForSeconds(0.15f);
-            }
-            discoveryHUD.enabled = false;
-        }*/
-
         private void RegisterPrefabs()
         {
-            GameObject[] prefabs = spawner.GetAllSpawnablePrefabs();
+            GameObject[] prefabs = spawnableObjectDefinitionsHolder.GetAllSpawnablePrefabs();
             for (int i = 0; i < prefabs.Length; i++)
             {
                 GameObject prefab = prefabs[i];
@@ -93,9 +123,13 @@ namespace HashtagChampion
             }
         }
 
-        public void SwitchDiscovery()
+        public PlayerController CreatePlayerController(GameObject authority)
         {
-            discoveryHUD.enabled = !discoveryHUD.enabled;
+            PlayerController playerController = Instantiate(playerControllerPrefab);
+            NetworkServer.Spawn(playerController.gameObject, authority);
+            //SceneManager.MoveGameObjectToScene(playerController.gameObject, SceneManager.GetSceneByPath( gameScene));
+            return playerController;
         }
+
     }
 }

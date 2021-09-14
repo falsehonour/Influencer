@@ -3,24 +3,27 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
-using UnityEngine.UI;
+
 
 namespace HashtagChampion
 {
     public class MatchCountdown : NetworkBehaviour
     {
-        //TODO: Perhaps seperate into 2 classed, one for server and one for client graphics??? 
-        [SerializeField] private GameObject UIObject;
-        [SerializeField] private Image[] digits;
-        [SerializeField] private Sprite[] digitsSprites;
-
         private float timeLeft;
         private Coroutine countRoutine;
         //private UInt16 previousTimeLeftUInt16;
+        //[SerializeField] private GameObject UIObject;
+        private MatchCountdownDisplay display;
 
-        private void Start()
+        [Client]
+        public void Client_Initialise()
         {
-            ShowGraphics(false);
+            display = GameSceneManager.GetReferences().countdownDisplay;
+        }
+
+        public void Client_ConformToInitialState()
+        {
+            display.Show(false);
         }
 
         [Server]
@@ -44,21 +47,24 @@ namespace HashtagChampion
 
         private IEnumerator CountdownRoutine(float time)
         {
-            ShowGraphics(true);
+            bool isServer = this.isServer;
+            if (!isServer)
+            {
+                display.Show(true);
+            }
 
             UInt16 previousTimeLeftUInt16 = 0;
             timeLeft = time;
-            bool dedicatedServer = isServerOnly;
             do //while (timeLeft > 0)
             {
                 //TODO: will it be more efficient to wait for seconds..?
                 timeLeft -= Time.deltaTime;
-                if (!dedicatedServer)
+                if (!isServer)
                 {
                     UInt16 currentTimeLeftUInt16 = (UInt16)Mathf.CeilToInt(timeLeft);
                     if (currentTimeLeftUInt16 != previousTimeLeftUInt16)
                     {
-                        UpdateDigits(currentTimeLeftUInt16);
+                        display.UpdateDigits(currentTimeLeftUInt16);
                         if(currentTimeLeftUInt16 <= 10)
                         {
                             SoundNames sound = SoundNames.CountdownCritical;
@@ -80,7 +86,7 @@ namespace HashtagChampion
 
             if (isServer)
             {
-                GameManager gameManager = FindObjectOfType<GameManager>();
+                MatchManager gameManager = FindObjectOfType<MatchManager>();
                 if (gameManager)
                 {
                     gameManager.OnCountdownStopped();
@@ -93,32 +99,6 @@ namespace HashtagChampion
 
         }
 
-        private void ShowGraphics(bool value)
-        {
-            UIObject.SetActive(value);
-        }
-
-        private void UpdateDigits(UInt16 timeLeft)
-        {
-            string timeLeftString = timeLeft.ToString();
-            int digitsDifference = digits.Length - timeLeftString.Length;
-            if (digitsDifference > 0)
-            {
-
-                for (int i = digits.Length - 1; i > digits.Length - 1 - digitsDifference; i--)
-                {
-                    digits[i].sprite = digitsSprites[0];
-                }
-            }
-            //int length = timeLeftString.Length < digits.Length ? timeLeftString.Length : digits.Length;
-            for (int i = 0; i < timeLeftString.Length; i++)
-            {
-                char digitIndexChar = timeLeftString[i];
-                int digitIndex = int.Parse(digitIndexChar.ToString());
-                Sprite sprite = digitsSprites[digitIndex];
-                digits[timeLeftString.Length - 1 - i].sprite = sprite;
-            }
-        }
 
         [Server]
         public void Server_StopCounting()

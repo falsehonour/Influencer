@@ -9,22 +9,29 @@ namespace HashtagChampion
         [SerializeField] private PlayerUI playerUIPreFab;
         [SerializeField] private Transform playerUICanvasTransform;
         [SerializeField] private Camera camera;
+        [SerializeField] private float sortChildrenInterval =0.12f;
         private Transform myTransform;
         private Transform[] children;
         private static PlayerUIManager instance;
 
-        private void Awake()
+        private void Start()
         {
-            instance = this;
-            myTransform = transform;
-            int childCount = myTransform.childCount;
-            children = new Transform[childCount];
-            StartCoroutine(SortChildrenRoutine());
+            if (Mirror.NetworkServer.active)
+            {
+                Destroy(gameObject);
+            }
+            else
+            {
+                instance = this;
+                myTransform = transform;
+                int childCount = myTransform.childCount;
+                children = new Transform[childCount];
+                StartCoroutine(SortChildrenRoutine());
+            }
         }
 
         public static PlayerUI CreatePlayerUI(Transform anchor)
         {
-
             return instance.CreateNewPlayerUI(anchor);
         }
 
@@ -37,6 +44,7 @@ namespace HashtagChampion
 
         private IEnumerator SortChildrenRoutine()
         {
+            WaitForSeconds waitInterval = new WaitForSeconds(sortChildrenInterval); 
             while (true)
             {
                 //TODO: Not efficient..
@@ -65,12 +73,8 @@ namespace HashtagChampion
                         children[i].SetSiblingIndex(i);
                     }
                 }
-                /* for (int i = 0; i < childCount; i++)
-                 {
-                     children[i].SetSiblingIndex(i);
-                 }*/
 
-                yield return new WaitForSeconds(0.1f);
+                yield return waitInterval;
             }
 
         }

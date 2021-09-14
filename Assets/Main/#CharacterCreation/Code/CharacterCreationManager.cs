@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -18,13 +19,14 @@ namespace HashtagChampion
 
             private string modifiedPlayerName;
             [SerializeField] private TMPro.TMP_InputField playerNameInputField;
-            
+            [SerializeField] private Transform characterParent;
+
             void Start()
             {
                 CharacterCreationButton.InitialiseBackButton(backButtonBehaviour);
                 // LocalPlayerData.Initialise();
 
-                PlayerSkinDataHolder playerSkinData = SaveAndLoadManager.TryLoad<PlayerSkinDataHolder>();
+                SkinDataHolder playerSkinData = SaveAndLoadManager.TryLoad<SkinDataHolder>();
 
                 InitialiseCharacter(playerSkinData);
 
@@ -54,7 +56,7 @@ namespace HashtagChampion
                 playerNameInputField.text = modifiedPlayerName;
             }
 
-            private void InitialiseCharacter(PlayerSkinDataHolder skinDataHolder = null)
+            private void InitialiseCharacter(SkinDataHolder skinDataHolder = null)
             {
                 //TODO: This function is kinda gross, should be split.
                 if (character != null)
@@ -71,14 +73,14 @@ namespace HashtagChampion
                     characterPreFab = CharacterCreationReferencer.References.GetCharacterPreFab(0);
                 }
 
-                character = Instantiate(characterPreFab);
+                character = Instantiate(characterPreFab,characterParent);
                 character.transform.position = Vector3.zero;
                 character.transform.rotation = Quaternion.identity;
                 character.Initialise();
 
                 if (skinDataHolder != null)
                 {
-                    PlayerSkinDataHolder.Data skinData = skinDataHolder.data;
+                    SkinDataHolder.Data skinData = skinDataHolder.data;
                     for (int i = 0; i < skinData.meshIndexes.Length; i++)
                     {
                         character.EquipCharacterPiece(CharacterCreationReferencer.References.GetCharacterMesh(skinData.meshIndexes[i]));
@@ -95,10 +97,10 @@ namespace HashtagChampion
 
             public void SaveChanges()
             {
-                PlayerSkinDataHolder playerSkinDataHolder = PlayerSkinDataHolder.CreatePlayerSkinData
+                SkinDataHolder playerSkinDataHolder = SkinDataHolder.CreatePlayerSkinData
                     (characterPreFab, character.equippedMeshesByMeshCategory, character.equippedMeshModifiersByMeshModifierCategory);
 
-                SaveAndLoadManager.Save<PlayerSkinDataHolder>(playerSkinDataHolder);
+                SaveAndLoadManager.Save<SkinDataHolder>(playerSkinDataHolder);
 
                 StaticData.playerName.name = modifiedPlayerName;
                 SaveAndLoadManager.Save<PlayerName>(StaticData.playerName);
@@ -108,7 +110,7 @@ namespace HashtagChampion
             public void RevertChanges()
             {
                 //TODO: This is identical to what happens on Start();
-                PlayerSkinDataHolder playerSkinData = SaveAndLoadManager.TryLoad<PlayerSkinDataHolder>();
+                SkinDataHolder playerSkinData = SaveAndLoadManager.TryLoad<SkinDataHolder>();
 
                 InitialiseCharacter(playerSkinData);
             }

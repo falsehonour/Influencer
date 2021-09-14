@@ -24,7 +24,7 @@ namespace HashtagChampion
             SoundManager.PlayOneShotSound(SoundNames.FootballHit, myTransform.position);
         }
 
-        protected override void HitPlayer(Player player)
+        protected override void HitPlayer(PlayerController player)
         {
             base.HitPlayer(player);
             player.OnFootballHit();

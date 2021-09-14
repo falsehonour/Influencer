@@ -353,7 +353,10 @@ namespace HashtagChampion
                     }
 
                 }
-                Debug.Log(report);
+                if (false)
+                {
+                    Debug.Log(report);
+                }
             }
 
             private void RemoveUnusedModifiers()

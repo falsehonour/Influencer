@@ -53,7 +53,7 @@ namespace HashtagChampion
             {
                 if (isServer)
                 {
-                    Player player = other.gameObject.GetComponentInParent<Player>();
+                    PlayerController player = other.gameObject.GetComponentInParent<PlayerController>();
                     //NOTE: Players who enter a banana while being ammune to slipping will not slip even once they are immune no lomger. should we use OnTriggerStay instead??
                     if (player != null)
                     {

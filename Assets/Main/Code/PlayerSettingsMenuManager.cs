@@ -20,6 +20,8 @@ public class PlayerSettingsMenuManager : MenuManager
 
     public override void Activate()
     {
+        Debug.Log("PlayerSettingsMenuManager Activate");
+
         base.Activate();
         PlayerSettings.Copy(StaticData.playerSettings, modifiedSettings);
         SetSettingsControllersValues();

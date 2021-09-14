@@ -4,40 +4,40 @@ TextureImporter:
   internalIDToNameTable:
   - first:
       213: 7793647117989926026
-    second: DigitaNumba_fo_yo_game2_0
+    second: 0
   - first:
       213: 6528780696964537986
-    second: DigitaNumba_fo_yo_game2_1
+    second: 1
   - first:
       213: 3872787593419695478
-    second: DigitaNumba_fo_yo_game2_2
+    second: 2
   - first:
       213: -3686291622279277250
-    second: DigitaNumba_fo_yo_game2_3
+    second: 3
   - first:
       213: 5089426764111756453
     second: DigitaNumba_fo_yo_game2_4
   - first:
       213: 1741048445266389552
-    second: DigitaNumba_fo_yo_game2_5
+    second: 4
   - first:
       213: 1568471947923669960
-    second: DigitaNumba_fo_yo_game2_6
+    second: 5
   - first:
       213: -8861184396359801530
-    second: DigitaNumba_fo_yo_game2_7
+    second: 6
   - first:
       213: -2726996430702870599
     second: DigitaNumba_fo_yo_game2_8
   - first:
       213: -2281027947650998516
-    second: DigitaNumba_fo_yo_game2_9
+    second: 7
   - first:
       213: -2588923898047793516
-    second: DigitaNumba_fo_yo_game2_10
+    second: 8
   - first:
       213: -1512194987134095456
-    second: DigitaNumba_fo_yo_game2_11
+    second: 9
   - first:
       213: -4718774679141647755
     second: DigitaNumba_fo_yo_game2_12
@@ -13534,9 +13534,9 @@ TextureImporter:
     second: DigitaNumba_fo_yo_game2_4509
   - first:
       213: 3233434296177173834
-    second: DigitaNumba_fo_yo_game2_0
+    second: 0
   externalObjects: {}
-  serializedVersion: 10
+  serializedVersion: 11
   mipmaps:
     mipMapMode: 0
     enableMipMap: 0
@@ -13556,6 +13556,7 @@ TextureImporter:
   isReadable: 0
   streamingMipmaps: 0
   streamingMipmapsPriority: 0
+  vTOnly: 0
   grayScaleToAlpha: 0
   generateCubemap: 6
   cubemapConvolution: 0
@@ -13565,11 +13566,11 @@ TextureImporter:
   textureSettings:
     serializedVersion: 2
     filterMode: 0
-    aniso: -1
-    mipBias: -100
+    aniso: 1
+    mipBias: 0
     wrapU: 1
     wrapV: 1
-    wrapW: -1
+    wrapW: 0
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
@@ -13587,9 +13588,13 @@ TextureImporter:
   textureType: 8
   textureShape: 1
   singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
   maxTextureSizeSet: 0
   compressionQualitySet: 0
   textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 1
   platformSettings:
   - serializedVersion: 3
     buildTarget: DefaultTexturePlatform
@@ -13655,7 +13660,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: DigitaNumba_fo_yo_game2_0
+      name: 0
       rect:
         serializedVersion: 2
         x: 446
@@ -13676,7 +13681,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DigitaNumba_fo_yo_game2_1
+      name: 1
       rect:
         serializedVersion: 2
         x: 816
@@ -13697,7 +13702,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DigitaNumba_fo_yo_game2_2
+      name: 2
       rect:
         serializedVersion: 2
         x: 1186
@@ -13718,7 +13723,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DigitaNumba_fo_yo_game2_3
+      name: 3
       rect:
         serializedVersion: 2
         x: 1556
@@ -13739,7 +13744,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DigitaNumba_fo_yo_game2_5
+      name: 4
       rect:
         serializedVersion: 2
         x: 816
@@ -13760,7 +13765,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DigitaNumba_fo_yo_game2_6
+      name: 5
       rect:
         serializedVersion: 2
         x: 1186
@@ -13781,7 +13786,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DigitaNumba_fo_yo_game2_7
+      name: 6
       rect:
         serializedVersion: 2
         x: 1556
@@ -13802,7 +13807,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DigitaNumba_fo_yo_game2_9
+      name: 7
       rect:
         serializedVersion: 2
         x: 816
@@ -13823,7 +13828,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DigitaNumba_fo_yo_game2_10
+      name: 8
       rect:
         serializedVersion: 2
         x: 1186
@@ -13844,7 +13849,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DigitaNumba_fo_yo_game2_11
+      name: 9
       rect:
         serializedVersion: 2
         x: 1556

@@ -11,7 +11,6 @@ namespace Mirror.Discovery
     {
         readonly Dictionary<long, ServerResponse> discoveredServers = new Dictionary<long, ServerResponse>();
         Vector2 scrollViewPos = Vector2.zero;
-        [SerializeField] private GUISkin overrideGUISkin;
 
         public NetworkDiscovery networkDiscovery;
 
@@ -29,8 +28,6 @@ namespace Mirror.Discovery
 
         void OnGUI()
         {
-            GUI.skin = overrideGUISkin;
-
             if (NetworkManager.singleton == null)
                 return;
 
@@ -43,6 +40,7 @@ namespace Mirror.Discovery
 
         void DrawGUI()
         {
+            GUILayout.BeginArea(new Rect(10, 10, 300, 500));
             GUILayout.BeginHorizontal();
 
             if (GUILayout.Button("Find Servers"))
@@ -64,7 +62,6 @@ namespace Mirror.Discovery
             {
                 discoveredServers.Clear();
                 NetworkManager.singleton.StartServer();
-
                 networkDiscovery.AdvertiseServer();
             }
 
@@ -82,10 +79,12 @@ namespace Mirror.Discovery
                     Connect(info);
 
             GUILayout.EndScrollView();
+            GUILayout.EndArea();
         }
 
         void StopButtons()
         {
+            GUILayout.BeginArea(new Rect(10, 40, 100, 25));
 
             // stop host if host mode
             if (NetworkServer.active && NetworkClient.isConnected)
@@ -93,6 +92,7 @@ namespace Mirror.Discovery
                 if (GUILayout.Button("Stop Host"))
                 {
                     NetworkManager.singleton.StopHost();
+                    networkDiscovery.StopDiscovery();
                 }
             }
             // stop client if client-only
@@ -101,6 +101,7 @@ namespace Mirror.Discovery
                 if (GUILayout.Button("Stop Client"))
                 {
                     NetworkManager.singleton.StopClient();
+                    networkDiscovery.StopDiscovery();
                 }
             }
             // stop server if server-only
@@ -109,13 +110,16 @@ namespace Mirror.Discovery
                 if (GUILayout.Button("Stop Server"))
                 {
                     NetworkManager.singleton.StopServer();
+                    networkDiscovery.StopDiscovery();
                 }
             }
 
+            GUILayout.EndArea();
         }
 
         void Connect(ServerResponse info)
         {
+            networkDiscovery.StopDiscovery();
             NetworkManager.singleton.StartClient(info.uri);
         }
 

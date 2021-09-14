@@ -58,7 +58,7 @@ namespace Mirror
         // IMPORTANT: check if NetworkServer.active when using Update()!
         protected void RebuildAll()
         {
-            foreach (NetworkIdentity identity in NetworkIdentity.spawned.Values)
+            foreach (NetworkIdentity identity in NetworkServer.spawned.Values)
             {
                 NetworkServer.RebuildObservers(identity, false);
             }
@@ -77,5 +77,13 @@ namespace Mirror
             foreach (Renderer rend in identity.GetComponentsInChildren<Renderer>())
                 rend.enabled = visible;
         }
+
+        /// <summary>Called on the server when a new networked object is spawned.</summary>
+        // (useful for 'only rebuild if changed' interest management algorithms)
+        public virtual void OnSpawned(NetworkIdentity identity) {}
+
+        /// <summary>Called on the server when a networked object is destroyed.</summary>
+        // (useful for 'only rebuild if changed' interest management algorithms)
+        public virtual void OnDestroyed(NetworkIdentity identity) {}
     }
 }

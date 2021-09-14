@@ -17,7 +17,7 @@ namespace HashtagChampion
 
         }
 
-        protected override void HitPlayer(Player player)
+        protected override void HitPlayer(PlayerController player)
         {
             base.HitPlayer(player);
             player.OnBulletHit();

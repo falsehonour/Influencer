@@ -11,10 +11,10 @@ namespace HashtagChampion
         {
 
             [SerializeField] public Character character;
-            private PlayerSkinDataHolder.Data serverCachedSkinData;
+            private SkinDataHolder.Data serverCachedSkinData;
 
             [Command]
-            private void Cmd_DownloadSkin(PlayerSkinDataHolder.Data skinData)
+            private void Cmd_DownloadSkin(SkinDataHolder.Data skinData)
             {
                 serverCachedSkinData = skinData;
                 if (serverCachedSkinData.meshIndexes == null || serverCachedSkinData.meshModifierIndexes == null)
@@ -23,7 +23,7 @@ namespace HashtagChampion
                 }
             }
 
-            private void EquipSkin(ref PlayerSkinDataHolder.Data skinData)
+            private void EquipSkin(ref SkinDataHolder.Data skinData)
             {
                 if (character != null)
                 {
@@ -81,21 +81,23 @@ namespace HashtagChampion
                                                 oldParam.type.ToString() + "!=" + newParam.type.ToString());
                                         }
                                     }
-                           
-                                }
-                           
+                                }                        
                             }
 #endif
 
                             networkAnimator.animator = animator;
                             Destroy(placeHolderAnimator);
-
+                            //TODO: Try going further and disable the skinned meshes completely
+                            if (isServer)
+                            {
+                                animator.cullingMode = AnimatorCullingMode.CullCompletely;
+                            }
                         }
 
-                        Player player = GetComponent<Player>();
-                        if (player != null)
+                        PlayerController playerController = GetComponent<PlayerController>();
+                        if (playerController != null)
                         {
-                            player.SetAnimator(character.GetAnimator(), networkAnimator);
+                            playerController.SetAnimator(character.GetAnimator(), networkAnimator);
                         }
                         else
                         {
@@ -119,7 +121,6 @@ namespace HashtagChampion
                              }
                          }*/
 
-
                     }
                     else
                     {
@@ -127,7 +128,6 @@ namespace HashtagChampion
                     }
                 }
             }
-
 
             /*[Command]
             public void AssignNetworkAnimator(NetworkIdentity id)
@@ -158,20 +158,19 @@ namespace HashtagChampion
             [Server]
             private IEnumerator WaitForSkin(NetworkConnectionToClient conn)
             {
+                WaitForSeconds waitForSeconds = new WaitForSeconds(0.25f);
                 while (!ServerCachedSkinDataInitialised())
                 {
                     Debug.Log("Waiting for skin to be uploaded...");
-                    yield return new WaitForSeconds(0.25f);
+                    yield return waitForSeconds;
                 }
-                TargetRpc_EquipSkin(conn, serverCachedSkinData/*, new byte[16]*/);
+                TargetRpc_EquipSkin(conn, serverCachedSkinData);
 
             }
 
             [TargetRpc]
-            private void TargetRpc_EquipSkin(NetworkConnection target, PlayerSkinDataHolder.Data skinData)
+            private void TargetRpc_EquipSkin(NetworkConnection target, SkinDataHolder.Data skinData)
             {
-                // Debug.LogError("testArray length: " + testArray.Length);
-
                 if (skinData.meshIndexes == null || skinData.meshModifierIndexes == null)
                 {
                     Debug.LogError("skinData.meshIndexes == null || skinData.meshModifierIndexes == null");
@@ -182,22 +181,17 @@ namespace HashtagChampion
             [Client]
             public void Initialise()
             {
-                if (isLocalPlayer)
+                if (hasAuthority)
                 {
-                    PlayerSkinDataHolder localSkinDataHolder = SaveAndLoadManager.TryLoad<PlayerSkinDataHolder>();
+                    SkinDataHolder localSkinDataHolder = SaveAndLoadManager.TryLoad<SkinDataHolder>();
                     if (localSkinDataHolder == null)
                     {
                         //TODO: Getting a default skin should not be here
-                        localSkinDataHolder = new PlayerSkinDataHolder(0, new byte[0], new byte[0]);
+                        localSkinDataHolder = new SkinDataHolder(0, new byte[0], new byte[0]);
                         // PlayerSkinDataHolder.CreatePlayerSkinData(characterPreFab, character.equippedMeshesByMeshCategory, character.equippedMeshModifiersByMeshModifierCategory);
                     }
 
-                    /*if (characterPreFab == null)
-                    {
-                        characterPreFab = CharacterCreationReferencer.References.GetCharacterPreFab(0);
-                    }*/
-
-                    PlayerSkinDataHolder.Data localSkinData = localSkinDataHolder.data;
+                    SkinDataHolder.Data localSkinData = localSkinDataHolder.data;
 
                     Cmd_DownloadSkin(localSkinData);
                     EquipSkin(ref localSkinData);

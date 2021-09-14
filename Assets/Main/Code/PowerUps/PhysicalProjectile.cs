@@ -17,9 +17,7 @@ namespace HashtagChampion
         //private Vector3 cachedFixedUpdateMovement;
         private bool isFlying;
 
-
         protected virtual float Speed { get; }
-
 
         protected override void OnSpawn(Vector3 position, Quaternion rotation, uint callerNetId)
         {
@@ -27,9 +25,9 @@ namespace HashtagChampion
             //TODO: Stop invoking.. use our custom timer perhaps;
             if (isServer)
             {
-                CancelInvoke("Die");
+                CancelInvoke(nameof(Die));
             }
-            Invoke("Die", 8f);
+            Invoke(nameof(Die), 8f);
             //cachedFixedUpdateMovement = myTransform.forward * SPEED * Time.fixedDeltaTime;
             myTransform.localScale = Vector3.one;
             //TODO: Go back to the previous system where callerNetId is sent seperately from OnSpawn. 
@@ -51,7 +49,6 @@ namespace HashtagChampion
                     IgnoreCollider(collider);
                 }
             }
-
 
             rigidbody.isKinematic = false;
             rigidbody.useGravity = false;
@@ -79,9 +76,9 @@ namespace HashtagChampion
                 if (isServer)
                 {
                     //TODO: These invokes mess up everythin, put some death timer instead
-                    CancelInvoke("Die");
-                    Invoke("Die", 2f);//HARDCODED
-                    Player player = collision.gameObject.GetComponent<Player>();
+                    CancelInvoke(nameof(Die));
+                    Invoke(nameof(Die), 2f);//HARDCODED
+                    PlayerController player = collision.gameObject.GetComponent<PlayerController>();
                     if (player != null /*&& player != originator*/)
                     {
                         Debug.Log("Player HIT");
@@ -115,7 +112,7 @@ namespace HashtagChampion
          }*/
 
 
-        protected virtual void HitPlayer(Player player) { }
+        protected virtual void HitPlayer(PlayerController player) { }
 
         protected virtual void Stop()
         {
@@ -132,7 +129,6 @@ namespace HashtagChampion
             {
                 Physics.IgnoreCollision(myCollider, ignoredCollider, false);
             }
-
 
             ignoredCollider = collider;
             Physics.IgnoreCollision(myCollider, ignoredCollider, true);

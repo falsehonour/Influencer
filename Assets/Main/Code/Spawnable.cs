@@ -15,6 +15,11 @@ public abstract class Spawnable : NetworkBehaviour
        // networkTransform = GetComponent<NetworkTransform>();
     }
 
+    private void Start()
+    {
+        OnDeath();
+    }
+
     [Server]
     public void Spawn(Vector3 position, Quaternion rotation, uint callerNetID)
     {
@@ -89,6 +94,6 @@ public abstract class Spawnable : NetworkBehaviour
             yield return null;
         }
         myTransform.localScale = Vector3.zero;
-    StopCoroutine: { }
+        StopCoroutine: { }
     }
 }

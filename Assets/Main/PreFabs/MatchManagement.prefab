@@ -48,10 +48,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.15
+  spawnerPrefab: {fileID: 4426002196901826292, guid: 637af44edf57ed249aee3c723fa0c2c1,
+    type: 3}
+  spawner: {fileID: 0}
   kevinPrefab: {fileID: 8332540898342834413, guid: c30cbebde7e1eba49a1f368d0f6b7968,
     type: 3}
+  kevin: {fileID: 0}
   countdown: {fileID: 710644444415347183}
+  lobbyUI: {fileID: 0}
   playerCircleRadius: 2
+  networkMatch: {fileID: 4669139764825417240}
+  playerControllers: []
 --- !u!114 &710644444415347183
 MonoBehaviour:
   m_ObjectHideFlags: 0

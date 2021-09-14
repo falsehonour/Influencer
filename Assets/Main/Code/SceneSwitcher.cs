@@ -20,7 +20,7 @@ namespace HashtagChampion
             }
             else
             {
-                mainMenu = Instantiate(mainMenuPrefab);
+                GoToMainMenu();          
             }
             instance = this;
         }
@@ -45,7 +45,8 @@ namespace HashtagChampion
              {
                  //SceneManager.LoadScene(TagNetworkManager.Instance.gameScene, LoadSceneMode.Additive);
              }*/
-            mainMenu.SetActive(false);
+            Destroy(mainMenu);
+            //mainMenu.SetActive(false);
         }
 
         public void GoToMainMenu()
@@ -57,7 +58,8 @@ namespace HashtagChampion
                 //TODO: Maybe put the main menu in a seperate scene and load it?
                 SceneManager.UnloadSceneAsync(TagNetworkManager.Instance.gameScene);
             }*/
-            mainMenu.SetActive(true);
+            mainMenu = Instantiate(mainMenuPrefab);
+            //mainMenu.SetActive(true);
 
         }
     }

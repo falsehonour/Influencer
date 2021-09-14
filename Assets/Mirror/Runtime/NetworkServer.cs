@@ -26,6 +26,11 @@ namespace Mirror
         internal static Dictionary<ushort, NetworkMessageDelegate> handlers =
             new Dictionary<ushort, NetworkMessageDelegate>();
 
+        /// <summary>All spawned NetworkIdentities by netId.</summary>
+        // server sees ALL spawned ones.
+        public static readonly Dictionary<uint, NetworkIdentity> spawned =
+            new Dictionary<uint, NetworkIdentity>();
+
         /// <summary>Single player mode can use dontListen to not accept incoming connections</summary>
         // see also: https://github.com/vis2k/Mirror/pull/2595
         public static bool dontListen;
@@ -88,7 +93,7 @@ namespace Mirror
         // client doesn't get spawn messages for those, so need to call manually.
         public static void ActivateHostScene()
         {
-            foreach (NetworkIdentity identity in NetworkIdentity.spawned.Values)
+            foreach (NetworkIdentity identity in spawned.Values)
             {
                 if (!identity.isClient)
                 {
@@ -115,7 +120,7 @@ namespace Mirror
             if (!dontListen)
             {
                 Transport.activeTransport.ServerStart();
-                Debug.Log("Server started listening");
+                //Debug.Log("Server started listening");
             }
 
             active = true;
@@ -123,12 +128,12 @@ namespace Mirror
         }
 
         // Note: NetworkClient.DestroyAllClientObjects does the same on client.
-        static void CleanupNetworkIdentities()
+        static void CleanupSpawned()
         {
-            // iterate a COPY of NetworkIdentity.spawned.
+            // iterate a COPY of spawned.
             // DestroyObject removes them from the original collection.
             // removing while iterating is not allowed.
-            foreach (NetworkIdentity identity in NetworkIdentity.spawned.Values.ToList())
+            foreach (NetworkIdentity identity in spawned.Values.ToList())
             {
                 if (identity != null)
                 {
@@ -150,7 +155,7 @@ namespace Mirror
                 }
             }
 
-            NetworkIdentity.spawned.Clear();
+            spawned.Clear();
         }
 
         /// <summary>Shuts down the server and disconnects all clients</summary>
@@ -176,7 +181,7 @@ namespace Mirror
             active = false;
             handlers.Clear();
 
-            CleanupNetworkIdentities();
+            CleanupSpawned();
             NetworkIdentity.ResetNextNetworkId();
 
             // clear events. someone might have hooked into them before, but
@@ -433,14 +438,23 @@ namespace Mirror
                 }
                 else
                 {
-                    // Debug.Log("Unknown message ID " + msgType + " " + this + ". May be due to no existing RegisterHandler for this message.");
+                    // message in a batch are NOT length prefixed to save bandwidth.
+                    // every message needs to be handled and read until the end.
+                    // otherwise it would overlap into the next message.
+                    // => need to warn and disconnect to avoid undefined behaviour.
+                    // => WARNING, not error. can happen if attacker sends random data.
+                    Debug.LogWarning($"Unknown message id: {msgType} for connection: {connection}. This can happen if no handler was registered for this message.");
+                    // simply return false. caller is responsible for disconnecting.
+                    //connection.Disconnect();
                     return false;
                 }
             }
             else
             {
-                Debug.LogError("Closed connection: " + connection + ". Invalid message header.");
-                connection.Disconnect();
+                // => WARNING, not error. can happen if attacker sends random data.
+                Debug.LogWarning($"Invalid message header for connection: {connection}.");
+                // simply return false. caller is responsible for disconnecting.
+                //connection.Disconnect();
                 return false;
             }
         }
@@ -467,7 +481,7 @@ namespace Mirror
                 // processing. otherwise we might apply them to the old scene.
                 // => fixes https://github.com/vis2k/Mirror/issues/2651
                 //
-                // NOTE: is scene starts loading, then the rest of the batch
+                // NOTE: if scene starts loading, then the rest of the batch
                 //       would only be processed when OnTransportData is called
                 //       the next time.
                 //       => consider moving processing to NetworkEarlyUpdate.
@@ -482,15 +496,48 @@ namespace Mirror
 
                         // handle message
                         if (!UnpackAndInvoke(connection, reader, channelId))
-                            break;
+                        {
+                            // warn, disconnect and return if failed
+                            // -> warning because attackers might send random data
+                            // -> messages in a batch aren't length prefixed.
+                            //    failing to read one would cause undefined
+                            //    behaviour for every message afterwards.
+                            //    so we need to disconnect.
+                            // -> return to avoid the below unbatches.count error.
+                            //    we already disconnected and handled it.
+                            Debug.LogWarning($"NetworkServer: failed to unpack and invoke message. Disconnecting {connectionId}.");
+                            connection.Disconnect();
+                            return;
+                        }
                     }
                     // otherwise disconnect
                     else
                     {
-                        Debug.LogError($"NetworkServer: received Message was too short (messages should start with message id). Disconnecting {connectionId}");
+                        // WARNING, not error. can happen if attacker sends random data.
+                        Debug.LogWarning($"NetworkServer: received Message was too short (messages should start with message id). Disconnecting {connectionId}");
                         connection.Disconnect();
                         return;
                     }
+                }
+
+                // if we weren't interrupted by a scene change,
+                // then all batched messages should have been processed now.
+                // otherwise batches would silently grow.
+                // we need to log an error to avoid debugging hell.
+                //
+                // EXAMPLE: https://github.com/vis2k/Mirror/issues/2882
+                // -> UnpackAndInvoke silently returned because no handler for id
+                // -> Reader would never be read past the end
+                // -> Batch would never be retired because end is never reached
+                //
+                // NOTE: prefixing every message in a batch with a length would
+                //       avoid ever not reading to the end. for extra bandwidth.
+                //
+                // IMPORTANT: always keep this check to detect memory leaks.
+                //            this took half a day to debug last time.
+                if (!isLoadingScene && connection.unbatcher.BatchesCount > 0)
+                {
+                    Debug.LogError($"Still had {connection.unbatcher.BatchesCount} batches remaining after processing, even though processing was not interrupted by a scene change. This should never happen, as it would cause ever growing batches.\nPossible reasons:\n* A message didn't deserialize as much as it serialized\n*There was no message handler for a message id, so the reader wasn't read until the end.");
                 }
             }
             else Debug.LogError("HandleData Unknown connectionId:" + connectionId);
@@ -858,7 +905,7 @@ namespace Mirror
         // players on a single client
         static void OnCommandMessage(NetworkConnection conn, CommandMessage msg)
         {
-            if (!NetworkIdentity.spawned.TryGetValue(msg.netId, out NetworkIdentity identity))
+            if (!spawned.TryGetValue(msg.netId, out NetworkIdentity identity))
             {
                 Debug.LogWarning("Spawned object not found when handling Command message [netId=" + msg.netId + "]");
                 return;
@@ -1103,7 +1150,7 @@ namespace Mirror
 
         static void SpawnObserversForConnection(NetworkConnection conn)
         {
-            // Debug.Log("Spawning " + NetworkIdentity.spawned.Count + " objects for conn " + conn);
+            // Debug.Log("Spawning " + spawned.Count + " objects for conn " + conn);
 
             if (!conn.isReady)
             {
@@ -1117,7 +1164,7 @@ namespace Mirror
 
             // add connection to each nearby NetworkIdentity's observers, which
             // internally sends a spawn message for each one to the connection.
-            foreach (NetworkIdentity identity in NetworkIdentity.spawned.Values)
+            foreach (NetworkIdentity identity in spawned.Values)
             {
                 // try with far away ones in ummorpg!
                 if (identity.gameObject.activeSelf) //TODO this is different
@@ -1225,7 +1272,7 @@ namespace Mirror
                 }
             }
             // Debug.Log("DestroyObject instance:" + identity.netId);
-            NetworkIdentity.spawned.Remove(identity.netId);
+            spawned.Remove(identity.netId);
 
             identity.connectionToClient?.RemoveOwnedObject(identity);
 
@@ -1515,7 +1562,7 @@ namespace Mirror
             //   clear dirty bits if it has no observers.
             //   we did this before push->pull broadcasting so let's keep
             //   doing this for now.
-            foreach (NetworkIdentity identity in NetworkIdentity.spawned.Values)
+            foreach (NetworkIdentity identity in spawned.Values)
             {
                 if (identity.observers == null || identity.observers.Count == 0)
                 {

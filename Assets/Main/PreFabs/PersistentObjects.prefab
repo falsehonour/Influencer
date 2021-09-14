@@ -10,8 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 725231524875645572}
   - component: {fileID: 725231524875645573}
-  - component: {fileID: 3919903870751352471}
-  - component: {fileID: 7096786344587257009}
   - component: {fileID: 6725937349077859992}
   m_Layer: 0
   m_Name: NetworkManagement
@@ -65,79 +63,12 @@ MonoBehaviour:
   playerSpawnMethod: 0
   spawnPrefabs:
   - {fileID: 1843534166062373018, guid: 17081affce466424894939440e222678, type: 3}
-  spawner: {fileID: 3919903870751352471}
-  roomManager: {fileID: 7096786344587257009}
+  spawnableObjectDefinitionsHolder: {fileID: 0}
   gameScene: Assets/Main/Scenes/Game.unity
   subScenes:
   - Assets/Main/Scenes/Game.unity
   playerControllerPrefab: {fileID: 9005568660542501622, guid: 17081affce466424894939440e222678,
     type: 3}
---- !u!114 &3919903870751352471
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 725231524875645571}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9db6c87255c417547ba541ab4a02163a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  spawnableObjectDefinitions:
-  - name: 0
-    preFab: {fileID: 0}
-    poolSize: 0
-  - name: 3
-    preFab: {fileID: 8407890554811429748, guid: dab38408ed5539e44944190813088de7,
-      type: 3}
-    poolSize: 8
-  - name: 2
-    preFab: {fileID: 3580980854754268047, guid: 6e5ba53153f19e44ca7ec7dd2dff6c32,
-      type: 3}
-    poolSize: 6
-  - name: 4
-    preFab: {fileID: 6790306834821819537, guid: 1d14d86a2a6abd84f9bd3c038ac2c5a7,
-      type: 3}
-    poolSize: 6
-  - name: 6
-    preFab: {fileID: 6790306834821819537, guid: d65cf4681dcdf394b92be46e0a214ffe,
-      type: 3}
-    poolSize: 6
-  - name: 5
-    preFab: {fileID: 2228932507445430528, guid: 38878069a25b29545bcf4ad63afe688a,
-      type: 3}
-    poolSize: 12
-  - name: 1
-    preFab: {fileID: 9148327222656253869, guid: a46b3fdc137a9e24ea5e549edee79b64,
-      type: 3}
-    poolSize: 24
-  - name: 8
-    preFab: {fileID: 6790306834821819537, guid: 62694f770e7b97945a5c8d09c2749680,
-      type: 3}
-    poolSize: 6
-  - name: 7
-    preFab: {fileID: 6790306834821819537, guid: bbec6f7793b353e49a5a36d0968b29a2,
-      type: 3}
-    poolSize: 6
---- !u!114 &7096786344587257009
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 725231524875645571}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1850a7470d54f3b4a8837c61295530e8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  settings:
-    playerCount: 2
-    countdown: 420
-    initialPickups: 0
-    taggerSpeedBoostInKilometresPerHour: 0
-    playerRotationSpeed: 1080
 --- !u!114 &6725937349077859992
 MonoBehaviour:
   m_ObjectHideFlags: 0

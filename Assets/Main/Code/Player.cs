@@ -31,23 +31,19 @@ namespace HashtagChampion
 
         #region Host Match:
 
-        public void HostMatch()
+        public void HostMatch(MatchSettings matchSettings)
         {
-            Cmd_HostMatch();
+            Cmd_HostMatch(matchSettings);
         }
 
 
         [Command]
-        private void Cmd_HostMatch()
+        private void Cmd_HostMatch(MatchSettings matchSettings)
         {
-            MatchData match = MatchMaker.instance.HostMatch(this, false,MatchMaker.GetDefaultMatchSettings);
+            MatchData match = MatchMaker.instance.HostMatch(this, false, matchSettings);
             if (match != null)
             {
                 GoToMatch(match);
-                /* networkMatch.matchId = match.id.ToGuid();
-                 //matchID = match.id;
-                // TargetRpc_HostMatch(true, match.id);
-                 TargetRpc_GoToGameScene();*/
             }
             else
             {
@@ -77,10 +73,7 @@ namespace HashtagChampion
             MatchData match = MatchMaker.instance.JoinSpecificMatch(matchID, this);
             if (match != null)
             {
-                // this.matchID = matchID;
                 GoToMatch(match);
-                //TargetRpc_JoinMatch(true, matchID);
-                // TargetRpc_GoToGameScene();
                 Debug.Log("joined match: " + matchID);
 
             }
@@ -88,9 +81,7 @@ namespace HashtagChampion
             {
                 Debug.LogError("Failed to join match: " + matchID);
                 // TargetRpc_JoinMatch(false, matchID);
-
             }
-
         }
 
         /*  [TargetRpc]
@@ -168,15 +159,11 @@ namespace HashtagChampion
             networkMatch.matchId = match.id.ToGuid();
             TargetRpc_GoToMatch();
 
-            //NetworkIdentity networkIdentity = other.gameObject.GetComponent<NetworkIdentity>();
             //TODO: Add unload on disconnect
             SceneMessage message = new SceneMessage 
                { sceneName = TagNetworkManager.Instance.gameScene, sceneOperation = SceneOperation.LoadAdditive };
             netIdentity.connectionToClient.Send(message);
 
-            playerController = (TagNetworkManager.Instance.CreatePlayerController(gameObject));
-            playerController.GetComponent<NetworkMatch>().matchId = this.networkMatch.matchId;
-            playerController.SetPlayer(this);
             //NetworkServer.Spawn(playerController.gameObject,this.gameObject);
             
         }
@@ -248,7 +235,7 @@ namespace HashtagChampion
         {
             if (currentMatchData != null)
             {
-                MatchMaker.instance.OnPlayerLeftMatch(this, currentMatchData.id);
+                MatchMaker.instance.OnPlayerLeftMatch(this, currentMatchData);
             }
 
             currentMatchData = null;
@@ -260,13 +247,6 @@ namespace HashtagChampion
 
             Rpc_OnLeaveMatch();
             TargetRpc_OnLeaveMatch();
-
-            //NOTE: Mirror seems to delete our player controller automattically..
-            if(playerController != null)
-            {
-                //TODO: Mirror gives an error whenm we do it once the app is closed. 
-                NetworkServer.Destroy(playerController.gameObject);
-            }
         }
 
         [ClientRpc]

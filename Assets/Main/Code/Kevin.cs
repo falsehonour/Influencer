@@ -8,7 +8,7 @@ namespace HashtagChampion
 {
     public class Kevin : MonoBehaviour
     {
-        private enum KevinStates : byte
+        public enum KevinStates : byte
         {
             Idle, ChoosingTagger, DroppingItems, Laughing
         }
@@ -35,6 +35,8 @@ namespace HashtagChampion
         [SerializeField] private DroppableItem[] droppableItems;
         private int droppableItemsOverallChancePoints;
         [SerializeField] private Animator animator;
+        private MatchManager matchManager;
+
         //[SerializeField] private NetworkAnimator networkAnimator;
 
         [System.Serializable]
@@ -57,8 +59,9 @@ namespace HashtagChampion
             }
         }
 
-        public void Initialise()
+        public void Initialise(MatchManager matchManager)
         {
+            this.matchManager = matchManager;
             myTransform = transform;
             Transform dropPointsParent = GameSceneManager.GetReferences().kevinDropPointsParent;
             dropPoints = new Transform[dropPointsParent.childCount];
@@ -67,8 +70,6 @@ namespace HashtagChampion
                 dropPoints[i] = dropPointsParent.GetChild(i);
             }
             InitialiseDroppableItems();
-            previousRoutine = nameof(IdleRoutine);
-            StartCoroutine(previousRoutine);
         }
 
         private void InitialiseDroppableItems()
@@ -91,7 +92,6 @@ namespace HashtagChampion
 
         public void SpawnInitialPickups(int initialPickupsCount)
         {
-            return;
             if (initialPickupsCount > 0)
             {
                 int dropPointsCount = dropPoints.Length;
@@ -114,7 +114,6 @@ namespace HashtagChampion
                     availableDropPointIndexes.RemoveAt(randomIndex);
                 }
             }
-
         }
 
         private IEnumerator ItemDropRoutine()
@@ -160,7 +159,6 @@ namespace HashtagChampion
             if (distanceFromEmbarrassment < maxDistance)
             {
                 StopAllCoroutines();
-                // instance.StopCoroutine(nameof(LaughAtRoutine));
                 StartCoroutine(LaughAtRoutine(embarrassmentTransform, Random.Range(2.5f, 4f)));
             }
         }
@@ -200,11 +198,23 @@ namespace HashtagChampion
             }
         }
 
-        public void StartDropRoutine()
+        public void StartRoutine(KevinStates routineState)
         {
-            //TODO:Bring back
-            return;
-            StartCoroutine(ItemDropRoutine());
+            IEnumerator routine = null;
+            switch (routineState)
+            {
+                case KevinStates.Idle:
+                    {
+                        routine = IdleRoutine();
+                    }
+                    break;
+                case KevinStates.DroppingItems:
+                    {
+                        routine = ItemDropRoutine();
+                    }
+                    break;
+            }
+            StartCoroutine(routine);
         }
 
         private void DropItem(Vector3 dropPosition)
@@ -228,13 +238,12 @@ namespace HashtagChampion
             }
             //int droppedItemIndex = Random.Range(0, allowedDroppedItems.Length);
             // Vector3 itemPosition = dropPoints[nextDropPointIndex].position; //myTransform.position;// + (myTransform.forward * -1.1f);//HARDCODED
-            TagNetworkManager.Spawner.Spawn(spawnable, dropPosition, Quaternion.identity, null);
+            matchManager.spawner.Spawn(spawnable, dropPosition, Quaternion.identity, null);
         }
 
         [Server]
         private bool ChangeDestination()
         {
-            Debug.Log("ChangeDestination");
             bool foundValidDestination = false;
             //TODO: We could use a more efficient and elegant solution for monitoring available drop points. 
             availableDropPointIndexes.Clear();
@@ -258,7 +267,6 @@ namespace HashtagChampion
 
             }
 
-            Debug.Log("availableDropPointIndexes.Count: " + availableDropPointIndexes.Count);
 
             if (availableDropPointIndexes.Count > 0)
             {
@@ -268,7 +276,10 @@ namespace HashtagChampion
                 /*Debug.Log(navAgent.hasPath);
                 Debug.Log(navAgent.remainingDistance);*/
             }
-
+            else
+            {
+                Debug.Log("Nowhere to go.. ");
+            }
             return foundValidDestination;
         }
 
@@ -305,6 +316,8 @@ namespace HashtagChampion
 
         private IEnumerator IdleRoutine()
         {
+            previousRoutine = nameof(IdleRoutine);
+
             state = KevinStates.Idle;
             navAgent.enabled = false;
             animator.SetInteger(AnimatorParameters.State, (int)KevinAnimationStates.Idle);
@@ -315,7 +328,6 @@ namespace HashtagChampion
                 yield return waitForSeconds;
             }
         }
-
     }
 
 }

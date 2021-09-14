@@ -18,8 +18,10 @@ namespace HashtagChampion
             get { return state; }
         }
 
+        [SerializeField] private Spawner spawnerPrefab;//TODO: Move refference to some singletom
+        [HideInInspector] public Spawner spawner;
         [SerializeField] private Kevin kevinPrefab;//TODO: Move refference to some singletom
-        public Kevin kevin;
+        [HideInInspector] public Kevin kevin;
         [SerializeField] private MatchCountdown countdown;
         [SerializeField] private LobbyUI lobbyUI;
 
@@ -27,8 +29,8 @@ namespace HashtagChampion
        // private List<PlayerController> relevantPlayersCache = new List<PlayerController>();
         private MatchData match;
         public MatchData Match => match;
-
-        public PlayerController[] relevantPlayerControllers;
+        [SerializeField] private NetworkMatch networkMatch;
+        public PlayerController[] playerControllers;
         private bool initialised;
 
         private void Start()
@@ -53,12 +55,15 @@ namespace HashtagChampion
                 PlayerController.ServerData.UpdateTaggerSpeed(roomManager.settings.taggerSpeedBoostInKilometresPerHour);
                 PlayerController.ServerData.UpdateRotationSpeed(roomManager.settings.playerRotationSpeed);*/
 
+                spawner = Instantiate(spawnerPrefab);
+                spawner.Initialise(networkMatch.matchId);
+
                 Transform kevinSpawnPoint = GameSceneManager.GetReferences().kevinSpawnPoint;
 
                 kevin = Instantiate(kevinPrefab, kevinSpawnPoint.position, kevinSpawnPoint.rotation);
-                kevin.GetComponent<NetworkMatch>().matchId = match.id.ToGuid();
+                kevin.GetComponent<NetworkMatch>().matchId = networkMatch.matchId;
                 NetworkServer.Spawn(kevin.gameObject);
-                kevin.Initialise();
+                kevin.Initialise(this);
 
                 Server_StartLobby();
             }
@@ -77,7 +82,19 @@ namespace HashtagChampion
         public void SetMatch(MatchData match)
         {
             this.match = match;
-            GetComponent<NetworkMatch>().matchId = match.id.ToGuid();
+            networkMatch.matchId = match.id.ToGuid();
+        }
+
+        public void RegisterPlayer(Player player)
+        {
+            match.players.Add(player);
+
+            PlayerController playerController = (TagNetworkManager.Instance.CreatePlayerController(player.gameObject));
+            playerController.GetComponent<NetworkMatch>().matchId = this.GetComponent<NetworkMatch>().matchId;
+            playerController.SetPlayer(player);
+            player.playerController = playerController;
+            RebuildPlayerControllersArray();
+            BroadcastMatchDescriptionToAllPlayers();
         }
 
         public void SwitchMatchAccessibility(Player player)
@@ -98,7 +115,7 @@ namespace HashtagChampion
             }
         }
 
-        public void BroadcastMatchDescriptionToAllPlayers()
+        private void BroadcastMatchDescriptionToAllPlayers()
         {
             if(state != GameStates.Lobby)
             {
@@ -142,6 +159,7 @@ namespace HashtagChampion
             state = GameStates.Lobby;
             match.states |= MatchData.StateFlags.Lobby;
 
+            spawner.KillAll();
             for (int i = 0; i < match.players.Count; i++)
             {
                 PlayerController playerController = match.players[i].playerController;
@@ -155,6 +173,9 @@ namespace HashtagChampion
                 }
             }
             BroadcastMatchDescriptionToAllPlayers();
+
+            kevin.StartRoutine(Kevin.KevinStates.Idle);
+
             Rpc_StartLobby();
         }
 
@@ -213,7 +234,7 @@ namespace HashtagChampion
             state = GameStates.ChoosingTagger;
             match.states &= ~MatchData.StateFlags.Lobby;
 
-            int playerCount = relevantPlayerControllers.Length;
+            int playerCount = playerControllers.Length;
             int taggerIndex = Random.Range(0, playerCount);
 
             //NOTE: David, please convert my solution to a mathematically elegant one
@@ -239,14 +260,15 @@ namespace HashtagChampion
 
             for (int i = 0; i < playerCount; i++)
             {
-                PlayerController playerController = relevantPlayerControllers[i];
+                PlayerController playerController = playerControllers[i];
                 if(playerController == null)
                 {
                     Debug.LogError("playerController is null!");
                 }
                 playerController.TargetRpc_Teleport(circleSpawnPoints[i].position, circleSpawnPoints[i].rotation);
             }
-            kevin.SpawnInitialPickups(match.settings.initialPickups);
+            //TODO: Initial pickups is to be expanded!!
+            kevin.SpawnInitialPickups(match.settings.GetInitialPickupsCount());
 
             yield return new WaitForSeconds(2f);//Hardcoded
 
@@ -256,7 +278,7 @@ namespace HashtagChampion
 
             for (int i = 0; i < playerCount; i++)
             {
-                PlayerController player = relevantPlayerControllers[i];
+                PlayerController player = playerControllers[i];
                 player.SetTagger(i == taggerIndex);
             }
 
@@ -278,41 +300,57 @@ namespace HashtagChampion
         private void StartTagGame()
         {
             state = GameStates.TagGame;
-            kevin.StartDropRoutine();
-            countdown.Server_StartCounting(match.settings.countdown);
-            Rpc_StartMatch();
+            kevin.StartRoutine(Kevin.KevinStates.DroppingItems);
+            countdown.Server_StartCounting(match.settings.GetCountdown());
+            Rpc_StartTagGame();
         }
 
         [ClientRpc]
-        private void Rpc_StartMatch()
+        private void Rpc_StartTagGame()
         {
             SoundManager.PlayMusicTrack(SoundNames.GameMusic);
         }
 
         [Server]
-        public void UpdatePlayersState()
+        public void OnPlayerDied()
         {
-            GenerateRelevantPlayerControllersArray();
+            OnPlayerOutOfTheGame();
+        }
+
+        [Server]
+        private void OnPlayerOutOfTheGame()
+        {
             if (State == GameStates.TagGame)
             {
-                int relevantPlayersCount = relevantPlayerControllers.Length;
-                if (relevantPlayersCount == 0)
+                //Filter players for those who are alive:
+                List<PlayerController> livingPlayers = new List<PlayerController>();
+                for (int i = 0; i < playerControllers.Length; i++)
                 {
-                    Debug.LogError("relevantPlayersCount == 0");
+                    PlayerController playerController = playerControllers[i];
+                    if (playerController.IsAlive())
+                    {
+                        livingPlayers.Add(playerController);
+                    }
                 }
-                else if (relevantPlayersCount == 1)
+
+                int livingPlayersCount = livingPlayers.Count;
+                if (livingPlayersCount == 0)
+                {
+                    Debug.LogError("livingPlayersCount == 0");
+                }
+                else if (livingPlayersCount == 1)
                 {
                     countdown.Server_StopCounting();
-                    EndGame(relevantPlayerControllers[0]);
+                    EndGame(livingPlayers[0]);
                 }
                 else
                 {
                     //Let's check wheather a tagger exists in the game. if not, promote the player with the highest HP.
 
-                    PlayerController nextTagger = relevantPlayerControllers[0];
-                    for (int i = 0; i < relevantPlayersCount; i++)
+                    PlayerController nextTagger = livingPlayers[0];
+                    for (int i = 0; i < livingPlayersCount; i++)
                     {
-                        PlayerController player = relevantPlayerControllers[i];
+                        PlayerController player = livingPlayers[i];
 
                         if (player.Tagger)
                         {
@@ -330,51 +368,39 @@ namespace HashtagChampion
         }
 
         [Server]
-        private void GenerateRelevantPlayerControllersArray()
+        private void RebuildPlayerControllersArray()
         {
             int count = match.players.Count;
-            List<PlayerController> playerControllersList = new List<PlayerController>(count);
+            playerControllers = new PlayerController[count];
+
             for (int i = 0; i < count; i++)
             {
                 PlayerController playerController = match.players[i].playerController;
                 if(playerController == null)
                 {
-                    Debug.LogError("playerController == null");
+                    Debug.LogError("playerController == null!");
                 }
-                else if (/*playerController.Initialised && */playerController.IsAlive())
+                else //if (/*playerController.Initialised && */playerController.IsAlive())
                 {
-                    playerControllersList.Add(playerController);
-                }
-                
+                    playerControllers[i] = playerController;
+                }            
             }
-
-            relevantPlayerControllers = playerControllersList.ToArray();
         }
 
         [Server]
         public void OnCountdownStopped()
-        {
-            int relevantPlayersCount = relevantPlayerControllers.Length;
-            if (relevantPlayersCount == 0)
+        {      
+            PlayerController winner = playerControllers[0];
+            for (int i = 0; i < playerControllers.Length; i++)
             {
-                Debug.LogError("relevantPlayersCount == 0");
-            }
-            else
-            {
-                //Let's check wheather a tagger exists in the game. if not, promote the player with the highest HP.
-
-                PlayerController winner = relevantPlayerControllers[0];
-                for (int i = 0; i < relevantPlayersCount; i++)
+                PlayerController player = playerControllers[i];
+                //TODO: But what about the rare occasion where the highest health value is shared among more than a single player 
+                if (player.Health > winner.Health)
                 {
-                    PlayerController player = relevantPlayerControllers[i];
-                    //TODO: But what about the rare occasion where the highest health value is shared among more than a single player 
-                    if (player.Health > winner.Health)
-                    {
-                        winner = player;
-                    }
+                    winner = player;
                 }
-                EndGame(winner);
             }
+            EndGame(winner);
         }
 
         [Server]
@@ -383,11 +409,11 @@ namespace HashtagChampion
             Debug.Log(winner.name + "WON THE MATCH!");
             winner.Win();
 
-            int relevantPlayersCount = relevantPlayerControllers.Length;
-            for (int i = 0; i < relevantPlayersCount; i++)
+            int playerCount = playerControllers.Length;
+            for (int i = 0; i < playerCount; i++)
             {
-                PlayerController player = relevantPlayerControllers[i];
-                if (player != winner)
+                PlayerController player = playerControllers[i];
+                if (player != winner && player.IsAlive())
                 {
                     player.Lose();
                 }
@@ -404,11 +430,38 @@ namespace HashtagChampion
             SoundManager.FadeOutMusic();
         }
 
+        public void OnPlayerLeftMatch(Player player)
+        {
+            match.players.Remove(player);
+            //NOTE: Mirror seems to delete our player controller automattically..
+            //TODO: Mirror gives an error whenm we do it once the app is closed. 
+            NetworkServer.Destroy(player.playerController.gameObject);
+
+            RebuildPlayerControllersArray();
+            Debug.Log($"Player disconnected from match {match.id} | {match.players.Count} players remaining");
+
+            if (match.players.Count == 0)
+            {
+                Debug.Log($"<color=yellow>No players in Match: {match.id}. Terminating.</color>");
+                MatchMaker.instance.TerminateMatch(match);
+            }
+            else
+            {
+                if (match.host == player)
+                {
+                    Player newHost = match.players[0];
+                    match.host = newHost;
+                }
+                BroadcastMatchDescriptionToAllPlayers();
+                OnPlayerOutOfTheGame();
+            }
+        }
 
         [Server]
         public void Terminate()
         {
             NetworkServer.Destroy(kevin.gameObject);
+            spawner.Terminate();
             NetworkServer.Destroy(this.gameObject);
         }
     }

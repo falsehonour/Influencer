@@ -229,3 +229,22 @@ velocity.x = movement.x;
                     Destroy(this);
                     Debug.LogError("There can only be ONE Kevin Rubin!");
                 }*/
+
+
+
+
+                       /* private IEnumerator InitialiseServerGameScene()
+        {
+
+            while (UnityEngine.SceneManagement.SceneManager.GetActiveScene().path != onlineScene)
+            {
+                yield return new WaitForSeconds(0.1f);
+                //TODO: Potential threat- what if for some reason someone tries to spawn something between these WaitForSeconds?
+            }
+            spawner.Initialise();
+        }*/
+
+                if(validSpawnable == null)
+        {
+            Debug.LogWarning("No dead spawnables were found... ");
+        }

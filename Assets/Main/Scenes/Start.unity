@@ -1019,6 +1019,12 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 8332540898342834417, guid: c30cbebde7e1eba49a1f368d0f6b7968,
         type: 3}
+    - target: {fileID: 725231524875645573, guid: 8b719343aced9b6479906e828528ed13,
+        type: 3}
+      propertyPath: spawnableObjectDefinitionsHolder
+      value: 
+      objectReference: {fileID: 11400000, guid: e603cfce1b87377438f05c420bb70d0f,
+        type: 2}
     - target: {fileID: 6622942107474586944, guid: 8b719343aced9b6479906e828528ed13,
         type: 3}
       propertyPath: m_Name

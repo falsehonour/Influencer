@@ -37,7 +37,7 @@ namespace HashtagChampion
         {
             this.id = id;
             players = new List<Player>();
-            players.Add(host);
+            //players.Add(host);
             this.host = host;
             states = StateFlags.Lobby;
             this.manager = manager;
@@ -51,14 +51,13 @@ namespace HashtagChampion
             return new Description
             {
                 playerCount = (byte)players.Count,
-                maxPlayerCount = this.settings.maxPlayerCount,
+                maxPlayerCount = this.settings.GetMaxPlayerCount(),
                 id = this.id,
                 states = this.states,
                 hostNetId = host.netId
             };
         }
     }
-
 
 }
 //

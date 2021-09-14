@@ -11,8 +11,6 @@ namespace HashtagChampion
         public List<MatchData> matches = new List<MatchData>();
         public static MatchMaker instance;
         [SerializeField] private MatchManager matchGameManagerPrefab;
-        [SerializeField] private MatchSettings defaultMatchSettings;
-        public static MatchSettings GetDefaultMatchSettings => instance.defaultMatchSettings;
 
         private void Start()
         {
@@ -27,14 +25,15 @@ namespace HashtagChampion
             {
                 return null;
             }
-            MatchManager matchGameManager = Instantiate(matchGameManagerPrefab);
-            NetworkServer.Spawn(matchGameManager.gameObject);
-            MatchData match = new MatchData(matchID, host, matchGameManager, settings);
+            MatchManager matchManager = Instantiate(matchGameManagerPrefab);
+            NetworkServer.Spawn(matchManager.gameObject);
+            MatchData match = new MatchData(matchID, host, matchManager, settings);
             if (publicMatch)
             {
                 match.states |= MatchData.StateFlags.Public;
             }
-            matchGameManager.SetMatch(match);
+            matchManager.SetMatch(match);
+            matchManager.RegisterPlayer(host);
             //host.TargetRpc_OnBecomeHost(match.states);
             instance.matches.Add(match);
             return match;
@@ -54,7 +53,7 @@ namespace HashtagChampion
                 {
                     message.messageType = JoinGameMessageTypes.GameTakingPlace;
                 }
-                else if (match.players.Count >= match.settings.maxPlayerCount)
+                else if (match.players.Count >= match.settings.GetMaxPlayerCount())
                 {
                     //Debug.Log("The match is not open for new players.");
                     message.messageType = JoinGameMessageTypes.MatchIsFull;
@@ -62,8 +61,7 @@ namespace HashtagChampion
                 else
                 {
                     message.messageType = JoinGameMessageTypes.Joining;
-                    match.players.Add(player);
-                    match.manager.BroadcastMatchDescriptionToAllPlayers();
+                    match.manager.RegisterPlayer(player);
                     joined = true;
                 }
             }
@@ -89,7 +87,7 @@ namespace HashtagChampion
                 bool canJoin =
                     ((match.states & MatchData.StateFlags.Public) != 0) &&
                     ((match.states & MatchData.StateFlags.Lobby)  != 0) &&
-                    (match.players.Count < match.settings.maxPlayerCount);
+                    (match.players.Count < match.settings.GetMaxPlayerCount());
                 if (canJoin)
                 {
                     validMatch = match;
@@ -106,7 +104,7 @@ namespace HashtagChampion
                     {
                         Debug.Log("Match is not in lobby mode");
                     }
-                    if (!(match.players.Count < match.settings.maxPlayerCount))
+                    if (!(match.players.Count < match.settings.GetMaxPlayerCount()))
                     {
                         Debug.Log("Match is full");
                     }
@@ -116,54 +114,26 @@ namespace HashtagChampion
 
             if (validMatch != null)
             {
-                validMatch.players.Add(player);
-                validMatch.manager.BroadcastMatchDescriptionToAllPlayers();
-
+                validMatch.manager.RegisterPlayer(player);
             }
             else
             {
-                validMatch = HostMatch(player, true, defaultMatchSettings);
+                MatchSettings matchSettings = new MatchSettings();
+                matchSettings.SetDefaultValues();
+                validMatch = HostMatch(player, true, matchSettings);
             }
             return validMatch;
         }
 
-        public void OnPlayerLeftMatch(Player player, string _matchID)
+        public void OnPlayerLeftMatch(Player player, MatchData match)
         {
-            for (int i = 0; i < matches.Count; i++)
-            {
-                MatchData match = matches[i];
-                if (match.id == _matchID)
-                {
-
-                    int playerIndex = match.players.IndexOf(player);
-                    match.players.RemoveAt(playerIndex);
-                    Debug.Log($"Player disconnected from match {_matchID} | {match.players.Count} players remaining");
-
-                    if (match.players.Count == 0)
-                    {
-                        Debug.Log($"<color=yellow>No players in Match: {_matchID}. Terminating.</color>");
-                        TerminateMatch(i);
-                    }
-                    else
-                    {
-
-                        if (match.host == player)
-                        {
-                            Player newHost = match.players[0];
-                            match.host = newHost;
-                           // newHost.TargetRpc_OnBecomeHost(match.states);
-                        }
-                        match.manager.BroadcastMatchDescriptionToAllPlayers();
-                    }
-                    break;
-                }
-            }
+            match.manager.OnPlayerLeftMatch(player);      
         }
 
-        private void TerminateMatch(int matchIndex)
+        public void TerminateMatch(MatchData match)
         {
-            matches[matchIndex].manager.Terminate();
-            matches.RemoveAt(matchIndex);
+            match.manager.Terminate();
+            matches.Remove(match);
         }
         /* public static void StartMatch(string matchID)
          {

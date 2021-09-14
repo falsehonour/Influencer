@@ -14,6 +14,8 @@ public class GameSceneManager : MonoBehaviour
         public Transform kevinDropPointsParent;
         public PlayerCamera playerCamera;
         public LobbyUI lobbyUI;
+        public PlayerInputButton tagButton;
+        public PowerUpButton powerUpButton;
 
         public void DestroyServerOnlyObjects()
         {

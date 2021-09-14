@@ -16,13 +16,6 @@ namespace HashtagChampion
             instance = this;
         }
 
-        public void Host()
-        {
-            //MatchMaker.instance.HostMatch();
-            Player.localPlayer.HostMatch();
-        }
-
-
         public void JoinSomeMatch()
         {
             Player.localPlayer.JoinSomeMatch();

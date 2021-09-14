@@ -45,10 +45,9 @@ namespace HashtagChampion
                 movementStateTimer = new SingleCycleTimer();
             }
 
-            public void UpdateTaggerSpeed(float taggerSpeedBoostInKilometresPerHour)
+            public void UpdateTaggerSpeed(float taggerSpeedMultiplier)
             {
-                taggerSpeed = (NONTAGGER_SPEED + 
-                    UnitConvertor.KilometresPerHourToMetresPerSecond(taggerSpeedBoostInKilometresPerHour));
+                taggerSpeed = NONTAGGER_SPEED * taggerSpeedMultiplier;
             }
 
         }
@@ -60,7 +59,7 @@ namespace HashtagChampion
         }
         private readonly static float MIN_MOVEMENT_SPEED = UnitConvertor.KilometresPerHourToMetresPerSecond(1f);
         private readonly static float MIN_RUN_SPEED = UnitConvertor.KilometresPerHourToMetresPerSecond(7.8f);
-        private readonly static float MIN_SPRINT_SPEED = UnitConvertor.KilometresPerHourToMetresPerSecond(22f);
+        private readonly static float MIN_SPRINT_SPEED = UnitConvertor.KilometresPerHourToMetresPerSecond(24f);
         public enum GaitTypes : byte
         {
             Standing = 0, Walking = 1, Running = 2, Sprinting = 3
@@ -199,7 +198,6 @@ namespace HashtagChampion
             matchManager = player.CurrentMatchData.manager;
             initialisation |= InitialisationFlags.Server;
             TargetRpc_OnServerInitialised(matchManager.netId);
-          
         }
 
         [Server]
@@ -211,8 +209,8 @@ namespace HashtagChampion
                 Debug.LogWarning("Will not ConformToInitialState if not already initialised");
                 return;
             }
-            Debug.Log("<color=yellow>ConformToInitialState</color>");
-            serverData.UpdateTaggerSpeed(matchManager.Match.settings.taggerSpeedBoostInKilometresPerHour);
+           // Debug.Log("<color=yellow>ConformToInitialState</color>");
+            serverData.UpdateTaggerSpeed(matchManager.Match.settings.GetTaggerSpeedMultiplier());
             X_health = ServerData.MAX_HEALTH;
             PowerUp initialPowerUp = new PowerUp { count = 0, type = PowerUp.Type.None };
             this.powerUp = initialPowerUp;
@@ -231,14 +229,14 @@ namespace HashtagChampion
         private void OwnerInitialise()
         {
             localPlayerController = this;
-
+            
             GameSceneManager.References sceneReferences = GameSceneManager.GetReferences();
 
-            //TODO: Remove path finding stuff if it's not gonna be used after all
-            tagButton = GameObject.Find("TagButton").GetComponent<PlayerInputButton>();
+            //TODO: Put these in sceneReferences;
+            tagButton = sceneReferences.tagButton;
             tagButton.SetIsEnabled(false);
 
-            powerUpButton = GameObject.Find("PowerUpButton").GetComponent<PowerUpButton>();
+            powerUpButton = sceneReferences.powerUpButton; 
             UpdatePowerUpButton();
 
             camera = sceneReferences.playerCamera;
@@ -261,7 +259,6 @@ namespace HashtagChampion
             if((initialisation & InitialisationFlags.Server) != 0)
             {
                 Server_ConformToInitialState();
-                matchManager.UpdatePlayersState();
             }
             else
             {
@@ -273,8 +270,31 @@ namespace HashtagChampion
         private void TargetRpc_OnServerInitialised(uint matchGameManagerNetID)
         {
             initialisation |= InitialisationFlags.Server;
-            NetworkIdentity matchGameManagerNetworkIdentity = NetworkIdentity.spawned[matchGameManagerNetID];
-            matchManager = matchGameManagerNetworkIdentity.GetComponent<MatchManager>();
+            StartCoroutine(WaitForMatchManagerToSpawn(matchGameManagerNetID));
+        }
+
+        private IEnumerator WaitForMatchManagerToSpawn(uint matchGameManagerNetID)
+        {         
+
+            float maxWaitTime = Time.time + 3f;
+            WaitForSeconds waitForSeconds = new WaitForSeconds(0.1f);
+            while (true)
+            {
+                if( NetworkClient.spawned.ContainsKey(matchGameManagerNetID))
+                {
+                    NetworkIdentity matchManagerNetworkIdentity = NetworkClient.spawned[matchGameManagerNetID];
+                    matchManager = matchManagerNetworkIdentity.GetComponent<MatchManager>();
+                    break;
+                }
+
+                yield return waitForSeconds;
+                Debug.Log("<color=green>Waiting for MatchManager to spawn...</color>");
+
+                if (Time.time > maxWaitTime)
+                {
+                    Debug.LogError("Been waiting for too long, somethin's wrong!");
+                }
+            }
         }
 
         private void PerformSyncVarHookFunctions()
@@ -625,7 +645,7 @@ namespace HashtagChampion
              tagBoundsCollider.po*/
             //  extendedTagBounds.Expand(new Vector3(0, 0, 1));//HARDCODED
             //bool playerFound = false;
-            PlayerController[] players = matchManager.relevantPlayerControllers;
+            PlayerController[] players = matchManager.playerControllers;
             for (int i = 0; i < players.Length; i++)
             {
                 PlayerController otherPlayer = players[i];
@@ -641,7 +661,7 @@ namespace HashtagChampion
                         if (otherPlayerIsInBounds)
                         {
                             serverData.playersInTagBounds.Add(otherPlayer);
-                        }
+                        }//TODO: This might be too costly
                         else if (!serverData.playersInExtendedTagBounds.Contains(otherPlayer))
                         {
                             serverData.playersInExtendedTagBounds.Add(otherPlayer);
@@ -671,7 +691,7 @@ namespace HashtagChampion
             if (!IsAlive())
             {
                 Lose();
-                matchManager.UpdatePlayersState();
+                matchManager.OnPlayerDied();
             }
         }
 
@@ -774,7 +794,7 @@ namespace HashtagChampion
 
         private void FixedUpdate()
         {
-            if ((initialisation & InitialisationFlags.This) == 0)
+            if ((initialisation & InitialisationFlags.This) == 0 || matchManager == null)
             {
                 return;
             }
@@ -782,7 +802,6 @@ namespace HashtagChampion
             if (localPlayerController == this || isServer)
             {
                 float deltaTime = Time.fixedDeltaTime;
-                //TODO: Remove the check once it's made sure that there is always a matchGameManager
                 GameStates gameState = matchManager.State;
                 if (localPlayerController == this)
                 {
@@ -907,8 +926,6 @@ namespace HashtagChampion
             totalVelocity.y += currentGravity;
             characterController.Move(totalVelocity * deltaTime);
 
-            /*characterController.enabled = false;
-            myTransform.position += velocity * deltaTime;*/
             //NOTE: Might interfere with RotateRoutine
             myTransform.rotation = Quaternion.RotateTowards
                 (myTransform.rotation, desiredRotation, MAX_ROTATION_SPEED * deltaTime);
@@ -1004,7 +1021,7 @@ namespace HashtagChampion
                 (myTransform.position + (myTransform.forward * 0.75f) + (Vector3.up * 0.82f));//HARDCODED
             Quaternion bulletSpawnRotation = myTransform.rotation;
             PhysicalProjectile projectile =
-                (PhysicalProjectile)TagNetworkManager.Spawner.Spawn(Spawnables.Bullet, bulletSpawnPosition, bulletSpawnRotation, netId);
+                (PhysicalProjectile)matchManager.spawner.Spawn(Spawnables.Bullet, bulletSpawnPosition, bulletSpawnRotation, netId);
             // projectile.SetIgnoredCollider(characterController/* GetComponent<Collider>()*/);
             // projectile.SetIgnoredCollider(this/* GetComponent<Collider>()*/);
         }
@@ -1026,7 +1043,7 @@ namespace HashtagChampion
             Vector3 ballSpawnPosition =
                 (myTransform.position + (myTransform.forward * 0.7f) + (Vector3.up * 0.5f));//HARDCODED
             Quaternion ballSpawnRotation = myTransform.rotation;
-            TagNetworkManager.Spawner.Spawn(Spawnables.ThrownFootball, ballSpawnPosition, ballSpawnRotation, netId);
+            matchManager.spawner.Spawn(Spawnables.ThrownFootball, ballSpawnPosition, ballSpawnRotation, netId);
 
         }
 
@@ -1046,7 +1063,7 @@ namespace HashtagChampion
             Vector3 bananaPosition =
                 myTransform.position + (myTransform.forward * -0.92f) + (Vector3.up * 1.8f);//HARDCODED as F%$#
             Quaternion bananaRotation = Quaternion.Euler(0, Random.Range(0, 360), 0);
-            TagNetworkManager.Spawner.Spawn(Spawnables.ThrownBanana, bananaPosition, bananaRotation, netId);
+            matchManager.spawner.Spawn(Spawnables.ThrownBanana, bananaPosition, bananaRotation, netId);
         }
 
         [Server]
@@ -1279,6 +1296,7 @@ namespace HashtagChampion
             characterController.enabled = false;
             myTransform.position = position;
             myTransform.rotation = rotation;
+            desiredRotation = rotation;
             characterController.enabled = true;
         }
 
@@ -1325,21 +1343,12 @@ namespace HashtagChampion
 
         private void OnDestroy()
         {
-            if (isServer)
-            {
-                Server_OnDestroy();
-            }
             if (playerUI)
             {
                 Destroy(playerUI.gameObject);
             }
         }
 
-        [Server]
-        private void Server_OnDestroy()
-        {
-            matchManager.UpdatePlayersState();
-        }
 
         [Command]
         private void Cmd_LeaveMatch()

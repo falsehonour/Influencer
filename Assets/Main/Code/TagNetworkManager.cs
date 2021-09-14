@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
 using UnityEngine.SceneManagement;
-using System;
 
 namespace HashtagChampion
 {
@@ -11,8 +10,8 @@ namespace HashtagChampion
     {
         //[SerializeField] private GameManager gameManager;
         public static TagNetworkManager Instance => (TagNetworkManager)singleton;
-        [SerializeField] private Spawner spawner;
-        public static Spawner Spawner => Instance.spawner;
+        [SerializeField] private SpawnableObjectDefinitionsHolder spawnableObjectDefinitionsHolder;
+
         [Scene]
         public string gameScene = "";
         [Scene]
@@ -33,7 +32,6 @@ namespace HashtagChampion
 
             // load all subscenes on the server only
             StartCoroutine(LoadSubScenes());
-            //GameObject.FindWithTag("")
         }*/
 
         IEnumerator LoadSubScenes()
@@ -114,20 +112,9 @@ namespace HashtagChampion
              }*/
         }
 
-       /* private IEnumerator InitialiseServerGameScene()
-        {
-
-            while (UnityEngine.SceneManagement.SceneManager.GetActiveScene().path != onlineScene)
-            {
-                yield return new WaitForSeconds(0.1f);
-                //TODO: Potential threat- what if for some reason someone tries to spawn something between these WaitForSeconds?
-            }
-            spawner.Initialise();
-        }*/
-
         private void RegisterPrefabs()
         {
-            GameObject[] prefabs = spawner.GetAllSpawnablePrefabs();
+            GameObject[] prefabs = spawnableObjectDefinitionsHolder.GetAllSpawnablePrefabs();
             for (int i = 0; i < prefabs.Length; i++)
             {
                 GameObject prefab = prefabs[i];

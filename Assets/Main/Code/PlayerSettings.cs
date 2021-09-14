@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 [System.Serializable]
 public class PlayerSettings : ISavable
 {
@@ -38,11 +37,11 @@ public class PlayerSettings : ISavable
 
 public enum OnOffSwitch : sbyte
 {
-    Min = 0, Off = 0, On = 1, Max = 1
+   Off = 0, On = 1,
 }
 
 public enum JoystickTypes : sbyte
 {
-    Min = 0, Fixed = 0, Dynamic = 1, Max = 1
+    Fixed = 0, Dynamic = 1,
 }
 

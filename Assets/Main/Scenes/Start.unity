@@ -252,24 +252,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1112667185 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 725231524875645571, guid: 8b719343aced9b6479906e828528ed13,
-    type: 3}
-  m_PrefabInstance: {fileID: 8748602536620852061}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1112667189
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1112667185}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d09f5c8bf2f4747b7a9284ef5d9ce2a7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1185631656
 GameObject:
   m_ObjectHideFlags: 0
@@ -283,7 +265,7 @@ GameObject:
   - component: {fileID: 1185631659}
   - component: {fileID: 1185631658}
   m_Layer: 5
-  m_Name: ConnectToServerButton (1)
+  m_Name: StartServerButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -979,7 +961,7 @@ MonoBehaviour:
     type: 3}
   m_PrefabInstance: {fileID: 8748602536620852061}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1112667185}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 83c0c493194d0094a8bdcdf9df05eac7, type: 3}
@@ -992,48 +974,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 725231524875645573, guid: 8b719343aced9b6479906e828528ed13,
-        type: 3}
-      propertyPath: subScenes.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 725231524875645573, guid: 8b719343aced9b6479906e828528ed13,
-        type: 3}
-      propertyPath: spawnPrefabs.Array.size
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 725231524875645573, guid: 8b719343aced9b6479906e828528ed13,
-        type: 3}
-      propertyPath: subScenes.Array.data[1]
-      value: Assets/Main/Scenes/Game.unity
-      objectReference: {fileID: 0}
-    - target: {fileID: 725231524875645573, guid: 8b719343aced9b6479906e828528ed13,
-        type: 3}
-      propertyPath: spawnPrefabs.Array.data[1]
-      value: 
-      objectReference: {fileID: 1811028983083577912, guid: 18f2d5d8d21dafa478ed34b1295a58ac,
-        type: 3}
-    - target: {fileID: 725231524875645573, guid: 8b719343aced9b6479906e828528ed13,
-        type: 3}
-      propertyPath: spawnPrefabs.Array.data[2]
-      value: 
-      objectReference: {fileID: 8332540898342834417, guid: c30cbebde7e1eba49a1f368d0f6b7968,
-        type: 3}
-    - target: {fileID: 725231524875645573, guid: 8b719343aced9b6479906e828528ed13,
-        type: 3}
-      propertyPath: spawnableObjectDefinitionsHolder
-      value: 
-      objectReference: {fileID: 11400000, guid: e603cfce1b87377438f05c420bb70d0f,
-        type: 2}
     - target: {fileID: 6622942107474586944, guid: 8b719343aced9b6479906e828528ed13,
         type: 3}
       propertyPath: m_Name
       value: PersistentObjects
-      objectReference: {fileID: 0}
-    - target: {fileID: 6622942107474586950, guid: 8b719343aced9b6479906e828528ed13,
-        type: 3}
-      propertyPath: transport
-      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 6622942107474586951, guid: 8b719343aced9b6479906e828528ed13,
         type: 3}
@@ -1090,6 +1034,5 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 7096786344587257009, guid: 8b719343aced9b6479906e828528ed13, type: 3}
+    m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8b719343aced9b6479906e828528ed13, type: 3}

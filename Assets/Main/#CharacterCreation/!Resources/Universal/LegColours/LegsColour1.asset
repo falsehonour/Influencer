@@ -10,13 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 65805055832fc1a41ac3020ea7523f8f, type: 3}
-  m_Name: Boy_Feet1_Texture1
+  m_Name: LegsColour1
   m_EditorClassIdentifier: 
-  categories: 128
+  categories: 256
   compatibleMeshes:
-  - {fileID: 11400000, guid: 20d9afc93308e1e47b1d9ca424491441, type: 2}
-  colourMods: []
-  textureMods:
+  - {fileID: 11400000, guid: 59c327168921ea449ada8bb2b4c9befc, type: 2}
+  - {fileID: 11400000, guid: 1b98babd6c2d52d45bf04fd5b9d1599c, type: 2}
+  - {fileID: 11400000, guid: e924a5bca126b85488f4f434e09f1c8a, type: 2}
+  colourMods:
   - matIndex: 0
-    textureName: 0
-    texture: {fileID: 2800000, guid: 1f8e9eab508371c4ab9aeda2c0e623bc, type: 3}
+    colourName: 1
+    colour:
+      serializedVersion: 2
+      rgba: 4283331440
+  textureMods: []

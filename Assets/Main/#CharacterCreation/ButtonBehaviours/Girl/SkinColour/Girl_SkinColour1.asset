@@ -16,5 +16,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: bed573089f436c74da504c1e0b3a014e, type: 2}
   characterPreFab: {fileID: 0}
   linkedButtonBehaviours: []
-  icon: {fileID: 0}
-  iconTint: {r: 1, g: 1, b: 1, a: 1}
+  icon: {fileID: 21300000, guid: 1095bc1a49b044c479c768d8444a5974, type: 3}
+  iconTint: {r: 0.50980395, g: 0.34901962, b: 0.3019608, a: 1}

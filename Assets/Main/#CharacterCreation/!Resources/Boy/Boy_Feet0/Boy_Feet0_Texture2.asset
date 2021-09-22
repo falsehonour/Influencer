@@ -13,7 +13,9 @@ MonoBehaviour:
   m_Name: Boy_Feet0_Texture2
   m_EditorClassIdentifier: 
   categories: 128
-  compatibleMeshes: []
+  compatibleMeshes:
+  - {fileID: 11400000, guid: 5664c9a4e43aef64985a09728c243cff, type: 2}
+  - {fileID: 11400000, guid: 7c2cc84d51f1b7b4e85f96b04ea58726, type: 2}
   colourMods: []
   textureMods:
   - matIndex: 0

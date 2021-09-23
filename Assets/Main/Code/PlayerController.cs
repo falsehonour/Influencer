@@ -120,6 +120,11 @@ namespace HashtagChampion
         private PowerUpButton powerUpButton;
         [SerializeField] private GameObject football;
         #endregion
+        #region Spectator:
+        private Transform spectator;
+        [SerializeField] private float spectatorSpeed;
+        private Collider spectatorBounds;
+        #endregion
         private enum InitialisationFlags : byte
         {
             None = 0, Server = 1, OwnerClient = 2, This = 4
@@ -223,13 +228,14 @@ namespace HashtagChampion
         private void TargetRpc_ConformToInitialState()
         {
             networkAnimator.SetTrigger(AnimatorParameters.Reset);
+            camera.SetTarget(myTransform);
         }
 
         [Client]
         private void OwnerInitialise()
         {
             localPlayerController = this;
-            
+            //TODO: Is it healthy to have so many scene refferences refferenced on the player as well?
             GameSceneManager.References sceneReferences = GameSceneManager.GetReferences();
 
             //TODO: Put these in sceneReferences;
@@ -241,6 +247,8 @@ namespace HashtagChampion
 
             camera = sceneReferences.playerCamera;
             camera.Initialise(myTransform);
+
+            spectatorBounds = sceneReferences.spectatorBounds;
 
             Cmd_SetName(StaticData.playerName.name);
 
@@ -746,7 +754,14 @@ namespace HashtagChampion
                 }
                 if (Input.GetKeyDown(KeyCode.H))
                 {
-                    Cmd_HealMe();
+                    if (Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt))
+                    {
+                        Cmd_DamageMe();
+                    }
+                    else
+                    {
+                        Cmd_HealMe();
+                    }
                 }
                 if (Input.GetKeyDown(KeyCode.Escape))
                 {
@@ -854,23 +869,37 @@ namespace HashtagChampion
             }
             controlledVelocity = ZERO_VECTOR3;
             //TODO: This area of th code must be revisited, it is probably outdated 
-            bool isControllable = ((gameState != GameStates.ChoosingTagger) && (gameState != GameStates.PostGame) 
-                && IsAlive() && (MovementState != MovementStates.Frozen));
-            if (isControllable)
-            {
-                float verticalInput = joystick.Vertical + forcedMovementInput.y;
-                float horizontalInput = joystick.Horizontal + forcedMovementInput.x;
 
-                if ((verticalInput != 0 || horizontalInput != 0))
+            /*float verticalInput = joystick.Vertical + forcedMovementInput.y;
+            float horizontalInput = joystick.Horizontal + forcedMovementInput.x;*/
+            Vector3 inputVector3 = new Vector3(joystick.Horizontal, 0, joystick.Vertical);
+
+            if (IsAlive())
+            {
+                bool isControllable = ((gameState != GameStates.ChoosingTagger) &&
+                (gameState != GameStates.PostGame) && (MovementState != MovementStates.Frozen));
+                if (isControllable)
                 {
-                    Vector3 inputVector3 = new Vector3(horizontalInput, 0, verticalInput);
-                    desiredRotation = Quaternion.LookRotation(inputVector3);
-                    controlledVelocity = inputVector3 * currentMaxMovementSpeed;// * deltaTime;
-                                                                                //Debug.Log($"movement magnitude: {movement.magnitude}"); Magnitude seems good!
+                    if (inputVector3 != ZERO_VECTOR3)
+                    {
+                        desiredRotation = Quaternion.LookRotation(inputVector3);
+                        controlledVelocity = inputVector3 * currentMaxMovementSpeed;// * deltaTime;
+                        //Debug.Log($"movement magnitude: {movement.magnitude}"); Magnitude seems good!
+                    }
                 }
             }
+            else //Controll Spectator
+            {
+                if (inputVector3 != ZERO_VECTOR3)
+                {
+                    Vector3 spectatorVelocity = (inputVector3 * spectatorSpeed * deltaTime);
+                    Vector3 newPosition = spectator.position + spectatorVelocity;
+                    newPosition = spectatorBounds.ClosestPoint(newPosition);
 
-
+                    spectator.position = newPosition;
+                }
+            }
+            
             #region Gravity
             bool isGrounded = characterController.isGrounded; //navMeshAgent.isGrounded;
             if (isGrounded)
@@ -1337,7 +1366,15 @@ namespace HashtagChampion
                 //HARDCODED
                 desiredRotation = Quaternion.Euler(0, 180, 0);
                 networkAnimator.SetTrigger(AnimatorParameters.Lose);
-                camera.distanceMultiplier = 0.8f;
+               // camera.distanceMultiplier = 0.8f;
+                if (spectator == null)
+                {
+                    spectator = Instantiate(new GameObject()).transform;
+                }
+                Vector3 spectatorPosition = myTransform.position;
+                spectatorPosition.y = 4;//HARDCODED
+                spectator.position = spectatorPosition;
+                camera.SetTarget(spectator);
             }
         }
 
@@ -1360,6 +1397,12 @@ namespace HashtagChampion
         private void Cmd_HealMe()
         {
             ModifyHealth(ServerData.HEALTH_PICK_UP_BONUS);
+        }
+
+        [Command]
+        private void Cmd_DamageMe()
+        {
+            ModifyHealth(-ServerData.HEALTH_PICK_UP_BONUS);
         }
     }
 }

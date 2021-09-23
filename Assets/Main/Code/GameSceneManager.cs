@@ -16,6 +16,7 @@ public class GameSceneManager : MonoBehaviour
         public LobbyUI lobbyUI;
         public PlayerInputButton tagButton;
         public PowerUpButton powerUpButton;
+        public Collider spectatorBounds;
 
         public void DestroyServerOnlyObjects()
         {

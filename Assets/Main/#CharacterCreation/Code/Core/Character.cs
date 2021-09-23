@@ -153,7 +153,6 @@ namespace HashtagChampion
                         }
                     }
 
-
                     //Empty category check
                     {
                         string missingCategories = "";
@@ -597,18 +596,19 @@ namespace HashtagChampion
                         {
                             if (equippedMeshesByMeshCategory[j] != null)
                             {
-                                if (equippedMeshesByMeshCategory[j] == modifierCompatibleMeshes[i] && characterRenderersByMeshCategory[i] != null)
+                                if (equippedMeshesByMeshCategory[j] == modifierCompatibleMeshes[i] && characterRenderersByMeshCategory[j] != null)
                                 {
                                     compatibleRenderers.Add(characterRenderersByMeshCategory[j]);
                                 }
                             }
                         }
                     }
+                    //Debug.Log("modifierCompatibleMeshes: " + modifierCompatibleMeshes.Length);
                 }
 
                 //Cleanup
                 {
-                    //Debug.Log("Pre-clenup compatibleRenderers.Count:" + compatibleRenderers.Count);
+                   // Debug.Log("Pre-clenup compatibleRenderers.Count:" + compatibleRenderers.Count);
                     for (int i = 0; i < compatibleRenderers.Count - 1; i++)
                     {
                         for (int j = i + 1; j < compatibleRenderers.Count;)
@@ -623,7 +623,7 @@ namespace HashtagChampion
                             }
                         }
                     }
-                    // Debug.Log("Post-clenup compatibleRenderers.Count:" + compatibleRenderers.Count);
+                    //Debug.Log("Post-clenup compatibleRenderers.Count:" + compatibleRenderers.Count);
                 }
 
                 return compatibleRenderers;

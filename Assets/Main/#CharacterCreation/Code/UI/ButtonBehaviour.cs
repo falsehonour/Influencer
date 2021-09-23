@@ -29,6 +29,23 @@ namespace HashtagChampion
                 //icon = from.icon;
             }
 
+            [ContextMenu("Overide tint by first colour mod found")]
+            private void OverideTint()
+            {
+                for (int i = 0; i < characterPieces.Length; i++)
+                {
+                    if (characterPieces[i] is CharacterMatsMod)
+                    {
+                        CharacterMatsMod mod = (CharacterMatsMod)characterPieces[i];
+                        if(mod.ColourMods != null && mod.ColourMods.Length > 0)
+                        {
+                            iconTint = mod.ColourMods[0].colour;
+                            return;
+                        }
+                    }
+                }
+                Debug.LogWarning("No ColourMods found..");
+            }
             /* public void SetIcon(Sprite icon)
              {
                  this.icon = icon;

@@ -173,3 +173,78 @@ velocity.x = movement.x;
             }
         }
     }
+
+
+	
+        #region Interactables:
+        private Interactable FindInteractable()
+        {
+            Interactable interactable = null;
+            Vector2 mousePosition = Input.mousePosition;
+            //NOTE: this is destroyed
+            Ray ray = new Ray();// camera.ScreenPointToRay(mousePosition);
+            RaycastHit raycastHit;
+
+            if (Physics.Raycast(ray, out raycastHit))
+            {
+                interactable = raycastHit.collider.GetComponentInParent<Interactable>();
+                if (interactable != null)
+                {
+                    Debug.Log("Interactable found!");
+                }
+            }
+
+            return interactable;
+        }
+
+
+
+        #endregion
+
+
+
+                    public static void UpdateRotationSpeed(float rotationSpeed)
+            {
+                ServerData.rotationSpeed = rotationSpeed;
+                if(allPlayers != null && allPlayers.Count > 0)
+                {
+                    for (int i = 0; i < allPlayers.Count; i++)
+                    {
+                        allPlayers[i].TargetRpc_SetRotationSpeed(ServerData.rotationSpeed);
+                    }
+                }
+                //Debug.Log("PlayerServerData:UpdateRotationSpeed: " + PlayerServerData.rotationSpeed);
+            }
+
+
+
+                            /*if (instance == null)
+                {
+                    instance = this;
+
+                    // allowedDroppedItems = new Spawnables[] { Spawnables.HealthPickup, Spawnables.FootballPickup/*, Spawnables.Trap };
+                }
+                else
+                {
+                    Destroy(this);
+                    Debug.LogError("There can only be ONE Kevin Rubin!");
+                }*/
+
+
+
+
+                       /* private IEnumerator InitialiseServerGameScene()
+        {
+
+            while (UnityEngine.SceneManagement.SceneManager.GetActiveScene().path != onlineScene)
+            {
+                yield return new WaitForSeconds(0.1f);
+                //TODO: Potential threat- what if for some reason someone tries to spawn something between these WaitForSeconds?
+            }
+            spawner.Initialise();
+        }*/
+
+                if(validSpawnable == null)
+        {
+            Debug.LogWarning("No dead spawnables were found... ");
+        }

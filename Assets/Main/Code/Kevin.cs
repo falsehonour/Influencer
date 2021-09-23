@@ -8,7 +8,7 @@ namespace HashtagChampion
 {
     public class Kevin : MonoBehaviour
     {
-        private enum KevinStates : byte
+        public enum KevinStates : byte
         {
             Idle, ChoosingTagger, DroppingItems, Laughing
         }
@@ -23,7 +23,7 @@ namespace HashtagChampion
         [SerializeField] private AnimationCurve rotationCurve;
         [SerializeField] private int extraCompleteRotations;
         #endregion
-        [SerializeField] private Transform dropPointsParent;
+        //[SerializeField] private Transform dropPointsParent;
         private Transform[] dropPoints;
         private List<int> availableDropPointIndexes = new List<int>();
         private float availableDropPointCheckRadius = 1.5f;
@@ -35,8 +35,9 @@ namespace HashtagChampion
         [SerializeField] private DroppableItem[] droppableItems;
         private int droppableItemsOverallChancePoints;
         [SerializeField] private Animator animator;
+        private MatchManager matchManager;
+
         //[SerializeField] private NetworkAnimator networkAnimator;
-        private static Kevin instance;
 
         [System.Serializable]
         private struct DroppableItem
@@ -50,38 +51,25 @@ namespace HashtagChampion
         {
             //Removing unnesssry components from Kevin
             //TODO: Find a way to remove these things from the build, they shouldn't be there in the first place
-            if (NetworkServer.active)
+            if (!NetworkServer.active)
             {
-                if (instance == null)
-                {
-                    instance = this;
-
-                    // allowedDroppedItems = new Spawnables[] { Spawnables.HealthPickup, Spawnables.FootballPickup/*, Spawnables.Trap*/ };
-                }
-                else
-                {
-                    Destroy(this);
-                    Debug.LogError("There can only be ONE Kevin Rubin!");
-                }
-            }
-            else
-            {
+                //TODO: don't create these in the first place
                 Destroy(navAgent);
                 Destroy(this);
             }
         }
 
-        public void Initialise()
+        public void Initialise(MatchManager matchManager)
         {
+            this.matchManager = matchManager;
             myTransform = transform;
+            Transform dropPointsParent = GameSceneManager.GetReferences().kevinDropPointsParent;
             dropPoints = new Transform[dropPointsParent.childCount];
             for (int i = 0; i < dropPoints.Length; i++)
             {
                 dropPoints[i] = dropPointsParent.GetChild(i);
             }
             InitialiseDroppableItems();
-            previousRoutine = nameof(IdleRoutine);
-            StartCoroutine(previousRoutine);
         }
 
         private void InitialiseDroppableItems()
@@ -102,16 +90,15 @@ namespace HashtagChampion
             }
         }
 
-        public void SpawnInitialPickups()
+        public void SpawnInitialPickups(int initialPickupsCount)
         {
-            int initialPickups = TagNetworkManager.RoomManager.settings.initialPickups;
-            if (initialPickups > 0)
+            if (initialPickupsCount > 0)
             {
                 int dropPointsCount = dropPoints.Length;
-                if (initialPickups > dropPointsCount)
+                if (initialPickupsCount > dropPointsCount)
                 {
                     Debug.LogWarning("initialPickups > dropPointsCount, it will be reduced to dropPointsCount since we do not allow things to be spawn on top of each other");
-                    initialPickups = dropPointsCount;
+                    initialPickupsCount = dropPointsCount;
                 }
                 //NOTE: This may not be a very efficient way of doing this but we do it once a game.
                 List<int> availableDropPointIndexes = new List<int>(dropPointsCount);
@@ -119,7 +106,7 @@ namespace HashtagChampion
                 {
                     availableDropPointIndexes.Add(i);
                 }
-                for (int i = 0; i < initialPickups; i++)
+                for (int i = 0; i < initialPickupsCount; i++)
                 {
                     int randomIndex = Random.Range(0, availableDropPointIndexes.Count);
                     Vector3 dropPoint = dropPoints[availableDropPointIndexes[randomIndex]].position;
@@ -127,7 +114,6 @@ namespace HashtagChampion
                     availableDropPointIndexes.RemoveAt(randomIndex);
                 }
             }
-
         }
 
         private IEnumerator ItemDropRoutine()
@@ -150,6 +136,7 @@ namespace HashtagChampion
                     DropItem(dropPoint);
                     //NOTE: This wait is here mainly to ensure that OverlapSphere performed in ChangeDestination 
                     //detects the thing we just dropped...
+                    //TODO: cache WaitForSeconds
                     yield return new WaitForSeconds(0.1f);
                     while (!ChangeDestination())
                     {
@@ -161,19 +148,18 @@ namespace HashtagChampion
 
         }
 
-        public static void TryLaughAt(Transform embarrassmentTransform)
+        public void TryLaughAt(Transform embarrassmentTransform)
         {
             //HARDCODING AHEAD:
             //TODO: Maybe do a raycast to make sure Kevin can actually see the event?
 
             float distanceFromEmbarrassment =
-                Vector3.Distance(instance.myTransform.position, embarrassmentTransform.position);
+                Vector3.Distance(myTransform.position, embarrassmentTransform.position);
             float maxDistance = 4f;
             if (distanceFromEmbarrassment < maxDistance)
             {
-                instance.StopAllCoroutines();
-                // instance.StopCoroutine(nameof(LaughAtRoutine));
-                instance.StartCoroutine(instance.LaughAtRoutine(embarrassmentTransform, Random.Range(2.5f, 4f)));
+                StopAllCoroutines();
+                StartCoroutine(LaughAtRoutine(embarrassmentTransform, Random.Range(2.5f, 4f)));
             }
         }
 
@@ -212,14 +198,25 @@ namespace HashtagChampion
             }
         }
 
-        [Server]
-        public void StartDropRoutine()
+        public void StartRoutine(KevinStates routineState)
         {
-
-            StartCoroutine(ItemDropRoutine());
+            IEnumerator routine = null;
+            switch (routineState)
+            {
+                case KevinStates.Idle:
+                    {
+                        routine = IdleRoutine();
+                    }
+                    break;
+                case KevinStates.DroppingItems:
+                    {
+                        routine = ItemDropRoutine();
+                    }
+                    break;
+            }
+            StartCoroutine(routine);
         }
 
-        [Server]
         private void DropItem(Vector3 dropPosition)
         {
             //TODO: דיויד, וודא שההגרלה יוצאת כמו שמצופה והחלף את המודל אם יש צורך
@@ -241,13 +238,12 @@ namespace HashtagChampion
             }
             //int droppedItemIndex = Random.Range(0, allowedDroppedItems.Length);
             // Vector3 itemPosition = dropPoints[nextDropPointIndex].position; //myTransform.position;// + (myTransform.forward * -1.1f);//HARDCODED
-            TagNetworkManager.Spawner.Spawn(spawnable, dropPosition, Quaternion.identity, null);
+            matchManager.spawner.Spawn(spawnable, dropPosition, Quaternion.identity, null);
         }
 
         [Server]
         private bool ChangeDestination()
         {
-            Debug.Log("ChangeDestination");
             bool foundValidDestination = false;
             //TODO: We could use a more efficient and elegant solution for monitoring available drop points. 
             availableDropPointIndexes.Clear();
@@ -271,7 +267,6 @@ namespace HashtagChampion
 
             }
 
-            Debug.Log("availableDropPointIndexes.Count: " + availableDropPointIndexes.Count);
 
             if (availableDropPointIndexes.Count > 0)
             {
@@ -281,7 +276,10 @@ namespace HashtagChampion
                 /*Debug.Log(navAgent.hasPath);
                 Debug.Log(navAgent.remainingDistance);*/
             }
-
+            else
+            {
+                Debug.Log("Nowhere to go.. ");
+            }
             return foundValidDestination;
         }
 
@@ -318,16 +316,18 @@ namespace HashtagChampion
 
         private IEnumerator IdleRoutine()
         {
+            previousRoutine = nameof(IdleRoutine);
+
             state = KevinStates.Idle;
             navAgent.enabled = false;
             animator.SetInteger(AnimatorParameters.State, (int)KevinAnimationStates.Idle);
+            WaitForSeconds waitForSeconds = new WaitForSeconds(2f);
             while (state == KevinStates.Idle)
             {
                 //Debug.Log("Kevin is Idle");
-                yield return new WaitForSeconds(2f);
+                yield return waitForSeconds;
             }
         }
-
     }
 
 }

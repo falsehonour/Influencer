@@ -42,6 +42,10 @@ public class SoundManager : MonoBehaviour
     private static SoundManager instance;
     private void Awake()
     {
+        if(instance != null)
+        {
+            Debug.LogError("an instance of SoundManager already exists!");
+        }
         instance = this;
     }
 
@@ -186,7 +190,6 @@ public class SoundManager : MonoBehaviour
         
     }
 
-
     public static void ConformToPlayerSettings()
     {
         PlayerSettings playerSettings = StaticData.playerSettings;
@@ -207,11 +210,12 @@ public class SoundManager : MonoBehaviour
 
         float fadeDuration = 2f;
         float fadeInterval = 0.1f;
+        WaitForSeconds waitForSeconds = new WaitForSeconds(fadeInterval);
         float fadeStep = fadeInterval / fadeDuration;
         while (musicSource.volume > 0)
         {
             musicSource.volume -= fadeStep;
-            yield return new WaitForSeconds(fadeInterval);
+            yield return  waitForSeconds;
         }
         musicSource.Stop();
     }

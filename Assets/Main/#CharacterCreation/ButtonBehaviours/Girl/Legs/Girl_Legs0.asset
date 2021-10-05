@@ -15,5 +15,10 @@ MonoBehaviour:
   characterPieces:
   - {fileID: 11400000, guid: e924a5bca126b85488f4f434e09f1c8a, type: 2}
   characterPreFab: {fileID: 0}
-  linkedButtonBehaviours: []
+  linkedButtonBehaviours:
+  - {fileID: 11400000, guid: 52a6eae427fd8b543b560b4c1e5a30fc, type: 2}
+  - {fileID: 11400000, guid: 2fe6d522dd1e93843aa6818b9a6eb32a, type: 2}
+  - {fileID: 11400000, guid: a44129b4d773e514bb527a8ee2ade77e, type: 2}
+  - {fileID: 11400000, guid: 13540c47ab3ba3f4eac675b1ecf49ef4, type: 2}
   icon: {fileID: -1588971091990071535, guid: 44cee6c3285e72b4085cbd8554bd1598, type: 3}
+  iconTint: {r: 1, g: 1, b: 1, a: 1}

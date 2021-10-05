@@ -153,6 +153,7 @@ MonoBehaviour:
   placeholderGraphics: {fileID: 4370205383554667044}
   playerUIAnchor: {fileID: 8757102476550614701}
   football: {fileID: 621626809293957774}
+  spectatorSpeed: 10
 --- !u!143 &1843534166062372999
 CharacterController:
   m_ObjectHideFlags: 0

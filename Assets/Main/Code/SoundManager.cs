@@ -42,6 +42,10 @@ public class SoundManager : MonoBehaviour
     private static SoundManager instance;
     private void Awake()
     {
+        if(instance != null)
+        {
+            Debug.LogError("an instance of SoundManager already exists!");
+        }
         instance = this;
     }
 

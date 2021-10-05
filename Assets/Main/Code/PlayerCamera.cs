@@ -55,4 +55,9 @@ public class PlayerCamera : MonoBehaviour
         initialised = true;
     }
 
+    public void SetTarget(Transform target)
+    {
+        this.target = target;
+    }
+
 }

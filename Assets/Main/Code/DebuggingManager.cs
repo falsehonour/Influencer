@@ -12,9 +12,11 @@ public class DebuggingManager : MonoBehaviour
     [SerializeField] private Light directionalLight;
     [SerializeField] private InputField targetFPSInputField;
     [SerializeField] private GameObject FPSCounter;
+    [SerializeField] private UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset universalRenderPipelineAsset;
     [SerializeField] private InputField qualityLevelInputField;
     [SerializeField] private InputField AOqualityInputField;
     [SerializeField] private InputField fixedTimeStepInputField;
+    [SerializeField] private InputField renderScaleInputField;
 
     [SerializeField] private Material debugMat;
 
@@ -85,6 +87,15 @@ public class DebuggingManager : MonoBehaviour
                 AOqualityInputField.text = qualityLevelNumber.ToString();
 
             }
+        }
+    }
+
+    public void SetRenderScale()
+    {
+        float renderScale;
+        if (float.TryParse(renderScaleInputField.text, out renderScale))
+        {
+            universalRenderPipelineAsset.renderScale = renderScale;
         }
     }
 

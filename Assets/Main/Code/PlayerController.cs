@@ -134,6 +134,8 @@ namespace HashtagChampion
         private MatchManager matchManager;
         private Player player;
 
+        public static List<Transform> allPlayerTransforms = new List<Transform>();
+
         public void SetPlayer(Player player)
         {
             this.player = player;
@@ -171,6 +173,7 @@ namespace HashtagChampion
             }
             else
             {
+                allPlayerTransforms.Add(myTransform);
                 #region UI Initialisation:
                 //NOTE: We (used to do)  doing this in Awake in order to avoid hook shinanigans
                 playerUI = PlayerUIManager.CreatePlayerUI(playerUIAnchor);
@@ -181,13 +184,11 @@ namespace HashtagChampion
                 {
                     OwnerInitialise();
                 }
-            }
 
-            if (!isServer)
-            {
                 //Note: the reason we set it here is in order to perform sync var hook functions. Does this leave us open for bugs??
                 PerformSyncVarHookFunctions();
             }
+
 
             /* if(characterController.attachedRigidbody != null)
              {
@@ -1380,6 +1381,10 @@ namespace HashtagChampion
 
         private void OnDestroy()
         {
+            if (!isServer)
+            {
+                allPlayerTransforms.Remove(myTransform);
+            }
             if (playerUI)
             {
                 Destroy(playerUI.gameObject);

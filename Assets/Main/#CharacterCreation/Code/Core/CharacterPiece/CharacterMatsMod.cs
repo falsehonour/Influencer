@@ -13,7 +13,7 @@ namespace HashtagChampion
         {
             public enum MaterialParameters : byte
             {
-                _MainTex, _Color
+                _BaseMap, _BaseColor
             }
 
             [Serializable]

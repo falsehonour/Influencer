@@ -20,11 +20,11 @@ namespace HashtagChampion
 
         [SerializeField] private PlayerController playerControllerPrefab;
 
-        public override void Start()
+       /* public override void Start()
         {
             base.Start();
             RegisterPrefabs();
-        }
+        }*/
 
         /*public override void OnStartServer()
         {
@@ -121,6 +121,12 @@ namespace HashtagChampion
                 NetworkClient.RegisterPrefab(prefab);
                 //ClientScene.RegisterPrefab(prefab);
             }
+        }
+
+        public override void OnStartClient()
+        {
+            base.OnStartClient();
+            RegisterPrefabs();
         }
 
         public PlayerController CreatePlayerController(GameObject authority)

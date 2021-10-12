@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using Mirror;
 
-public class PickUp : Spawnable
+public class PickUp : NetworkSpawnable
 {
     [Server]
     public void Collect()

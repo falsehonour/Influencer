@@ -18,8 +18,8 @@ namespace HashtagChampion
             get { return state; }
         }
 
-        [SerializeField] private Spawner spawnerPrefab;//TODO: Move refference to some singletom
-        [HideInInspector] public Spawner spawner;
+        [SerializeField] private NetworkSpawner spawnerPrefab;//TODO: Move refference to some singletom
+        [HideInInspector] public NetworkSpawner spawner;
         [SerializeField] private Kevin kevinPrefab;//TODO: Move refference to some singletom
         [HideInInspector] public Kevin kevin;
         [SerializeField] private MatchCountdown countdown;

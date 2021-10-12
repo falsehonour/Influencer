@@ -6,7 +6,7 @@ using Mirror;
 
 namespace HashtagChampion
 {
-    public abstract class PhysicalProjectile : Spawnable
+    public abstract class PhysicalProjectile : NetworkSpawnable
     {
         private const int PROJECTILE_LAYER = 8;
         private const int PARTICLES_LAYER = 9;

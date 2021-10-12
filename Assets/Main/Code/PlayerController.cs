@@ -96,6 +96,7 @@ namespace HashtagChampion
         private SingleCycleTimer tagCooldownTimer;
         private const float TAG_COOLDOWN_INTERVAL = 0.6f;
         private PlayerInputButton tagButton;
+        [SerializeField] private ParticleSystem taggerParticleSystem;
         #endregion
         #region Health:
         [SyncVar(hook = nameof(OnHealthChanged))] private sbyte X_health = ServerData.MAX_HEALTH;
@@ -161,7 +162,7 @@ namespace HashtagChampion
             football.SetActive(false);
             if (skin != null)
             {
-                Destroy(placeholderGraphics);
+                placeholderGraphics.SetActive(false);// Destroy(placeholderGraphics);
                 skin.Initialise();
             }
 
@@ -473,8 +474,13 @@ namespace HashtagChampion
         [ClientRpc]
         private void Rpc_OnPushed()
         {
-            //TODO: summon an explosion particle effect that will handle the sound as well
-            SoundManager.PlayOneShotSound(SoundNames.PushHit, myTransform.position);
+            //TODO: Send a better position from server?
+            //HARDCODED
+            Vector3 pushPosition = myTransform.position + (Vector3.up * 0.5f);
+           //TODO: summon an explosion particle effect that will handle the sound as well
+            SoundManager.PlayOneShotSound(SoundNames.PushHit, pushPosition);
+            EffectsManager.instance.Spawn
+                 (EffectNames.TagExplosion, pushPosition, Quaternion.identity);
         }
 
         #region Tagging:
@@ -490,7 +496,6 @@ namespace HashtagChampion
             //TODO: should we do this upon freeze??
             /*canTag = false;
             serverData.playersInRange.Clear();*/
-
             if (value)
             {
                 //serverData.healthReductionTimer.Reset();
@@ -499,9 +504,10 @@ namespace HashtagChampion
         }
 
         [ClientRpc]
-        private void Rpc_OnTagged()
+        private void Rpc_OnITagged()
         {
             SoundManager.PlayOneShotSound(SoundNames.Tagged);
+
         }
 
         [Client]
@@ -513,6 +519,14 @@ namespace HashtagChampion
             }
             char character = newValue ? '#' : ' ';
             playerUI.SetProceedingCharacter(character);
+            if (newValue)
+            {
+                taggerParticleSystem.Play();
+            }
+            else
+            {
+                taggerParticleSystem.Stop();
+            }
             if (localPlayerController == this)
             {
                 tagButton.SetIsEnabled(newValue);
@@ -598,7 +612,7 @@ namespace HashtagChampion
                     }
 
                     //TODO: Croud shocked for untagged players
-                    Rpc_OnTagged();
+                    Rpc_OnITagged();
                     nextTagger.SetTagger(true, ServerData.TAGGER_FREEZE_DURATION);
                     Vector3 pushForce = myTransform.forward * ServerData.PUSH_FORCE;
                     Push(nextTagger, pushForce, ServerData.TAGGER_FREEZE_DURATION);
@@ -1051,7 +1065,7 @@ namespace HashtagChampion
                 (myTransform.position + (myTransform.forward * 0.75f) + (Vector3.up * 0.82f));//HARDCODED
             Quaternion bulletSpawnRotation = myTransform.rotation;
             PhysicalProjectile projectile =
-                (PhysicalProjectile)matchManager.spawner.Spawn(Spawnables.Bullet, bulletSpawnPosition, bulletSpawnRotation, netId);
+                (PhysicalProjectile)matchManager.spawner.Spawn(NetworkSpawnables.Bullet, bulletSpawnPosition, bulletSpawnRotation, netId);
             // projectile.SetIgnoredCollider(characterController/* GetComponent<Collider>()*/);
             // projectile.SetIgnoredCollider(this/* GetComponent<Collider>()*/);
         }
@@ -1073,7 +1087,7 @@ namespace HashtagChampion
             Vector3 ballSpawnPosition =
                 (myTransform.position + (myTransform.forward * 0.7f) + (Vector3.up * 0.5f));//HARDCODED
             Quaternion ballSpawnRotation = myTransform.rotation;
-            matchManager.spawner.Spawn(Spawnables.ThrownFootball, ballSpawnPosition, ballSpawnRotation, netId);
+            matchManager.spawner.Spawn(NetworkSpawnables.ThrownFootball, ballSpawnPosition, ballSpawnRotation, netId);
 
         }
 
@@ -1093,7 +1107,7 @@ namespace HashtagChampion
             Vector3 bananaPosition =
                 myTransform.position + (myTransform.forward * -0.92f) + (Vector3.up * 1.8f);//HARDCODED as F%$#
             Quaternion bananaRotation = Quaternion.Euler(0, Random.Range(0, 360), 0);
-            matchManager.spawner.Spawn(Spawnables.ThrownBanana, bananaPosition, bananaRotation, netId);
+            matchManager.spawner.Spawn(NetworkSpawnables.ThrownBanana, bananaPosition, bananaRotation, netId);
         }
 
         [Server]
@@ -1393,7 +1407,7 @@ namespace HashtagChampion
 
 
         [Command]
-        private void Cmd_LeaveMatch()
+        public void Cmd_LeaveMatch()
         {
             player.Server_LeaveMatch();
         }

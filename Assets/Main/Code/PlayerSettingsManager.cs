@@ -3,24 +3,33 @@ using System.Collections.Generic;
 using UnityEngine;
 
 //TODO: Change name
-public class PlayerSettingsManager : MonoBehaviour
+namespace HashtagChampion
 {
-    [SerializeField] private Joystick fixedJoystick;
-    [SerializeField] private Joystick dynamicJoystick;
-
-    private void Start()
+    public class PlayerSettingsManager : MonoBehaviour
     {
-        SetActiveJoystick(StaticData.playerSettings.joystickType == JoystickTypes.Fixed);
-    }
+        [SerializeField] private Joystick fixedJoystick;
+        [SerializeField] private Joystick dynamicJoystick;
 
-    private void SetActiveJoystick(bool fixedJoystick)
-    {
-        Joystick activeJoystick = fixedJoystick ? this.fixedJoystick : dynamicJoystick;
-        Joystick nonactiveJoystick = fixedJoystick ? dynamicJoystick : this.fixedJoystick;
+        private void Start()
+        {
+            SetActiveJoystick(StaticData.playerSettings.joystickType == JoystickTypes.Fixed);
+        }
 
-        activeJoystick.gameObject.SetActive(true);
-        nonactiveJoystick.gameObject.SetActive(false);
-        HashtagChampion.PlayerController.SetActiveJoystick(activeJoystick);
+        private void SetActiveJoystick(bool fixedJoystick)
+        {
+            Joystick activeJoystick = fixedJoystick ? this.fixedJoystick : dynamicJoystick;
+            Joystick nonactiveJoystick = fixedJoystick ? dynamicJoystick : this.fixedJoystick;
 
+            activeJoystick.gameObject.SetActive(true);
+            nonactiveJoystick.gameObject.SetActive(false);
+            HashtagChampion.PlayerController.SetActiveJoystick(activeJoystick);
+
+        }
+
+        public void LeaveMatch()
+        {
+            PlayerController.localPlayerController.Cmd_LeaveMatch();
+        }
     }
 }
+

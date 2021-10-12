@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-public enum Spawnables : byte
+public enum NetworkSpawnables : byte
 {
     Null = 0, HealthPickup = 2, ThrownFootball = 3, FootballPickup = 4,
     ThrownBanana = 5, BananaPickup = 6, GunPickup = 7, Bullet = 1, SprintPickup = 8,
@@ -12,8 +12,8 @@ public enum Spawnables : byte
 [System.Serializable]
 public struct SpawnableObjectDefinition
 {
-    public Spawnables name;
-    public Spawnable preFab;
+    public NetworkSpawnables name;
+    public NetworkSpawnable preFab;
     public int poolSize;
 }
 
@@ -38,7 +38,7 @@ public class SpawnableObjectDefinitionsHolder : ScriptableObject
     }
 
 
-    public ref SpawnableObjectDefinition GetSpawnableDefinition(Spawnables spawnableName)
+    public ref SpawnableObjectDefinition GetSpawnableDefinition(NetworkSpawnables spawnableName)
     {
         //Look for definition:
         for (int j = 0; j < spawnableObjectDefinitions.Length; j++)

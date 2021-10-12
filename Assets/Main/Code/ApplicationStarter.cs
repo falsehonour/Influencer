@@ -13,12 +13,20 @@ public class ApplicationStarter : MonoBehaviour
    }
     [SerializeField] private bool autoConnection;
     [SerializeField] private ApplicationStartModes startMode;
-    [SerializeField] private NetworkManager networkManager;
+    [SerializeField] private GameObject persistentObjectsPrefab;
+    private static bool initialised = false;
 
     private void Awake()
     {
-        //TODO: Does the server need this?
-        StaticData.Initialise();
+        if (!initialised)
+        {
+            //TODO: Does the server need this?
+            StaticData.Initialise();
+            Instantiate(persistentObjectsPrefab);
+            initialised = true;
+        }
+
+
     }
 
     void Start()
@@ -29,6 +37,7 @@ public class ApplicationStarter : MonoBehaviour
         }
         else if (autoConnection)
         {
+            NetworkManager networkManager = NetworkManager.singleton;
             switch (startMode)
             {
                 case ApplicationStartModes.Server:
@@ -56,7 +65,7 @@ public class ApplicationStarter : MonoBehaviour
 
     public void TryConnectToServer()
     {
-        networkManager.StartClient();
+        NetworkManager.singleton.StartClient();
     }
 
 }

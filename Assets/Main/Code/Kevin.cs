@@ -42,7 +42,7 @@ namespace HashtagChampion
         [System.Serializable]
         private struct DroppableItem
         {
-            public Spawnables spawnable;
+            public NetworkSpawnables spawnable;
             public int dropChancePoints;
             [HideInInspector] public int chanceThreshold;
         }
@@ -222,7 +222,7 @@ namespace HashtagChampion
             //TODO: דיויד, וודא שההגרלה יוצאת כמו שמצופה והחלף את המודל אם יש צורך
             int chance = Random.Range(0, droppableItemsOverallChancePoints);
             //Debug.Log($"chance = {chance}");
-            Spawnables spawnable = Spawnables.Null;
+            NetworkSpawnables spawnable = NetworkSpawnables.Null;
             for (int i = 0; i < droppableItems.Length; i++)
             {
                 if (chance < droppableItems[i].chanceThreshold)
@@ -231,7 +231,7 @@ namespace HashtagChampion
                     break;
                 }
             }
-            if (spawnable == Spawnables.Null)
+            if (spawnable == NetworkSpawnables.Null)
             {
                 Debug.LogError("Thine chance model did not work after all!");
                 return;

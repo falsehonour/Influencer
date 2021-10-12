@@ -46,6 +46,10 @@ public class SoundManager : MonoBehaviour
         {
             Debug.LogError("an instance of SoundManager already exists!");
         }
+        else if (Mirror.NetworkServer.active)
+        {
+            Destroy(this);
+        }
         instance = this;
     }
 

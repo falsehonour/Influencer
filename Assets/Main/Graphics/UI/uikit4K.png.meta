@@ -28,13 +28,16 @@ TextureImporter:
     second: uikit4K_12
   - first:
       213: 1109698441009972998
-    second: uikit4K_19
+    second: Settings
   - first:
       213: -7369922474067895456
     second: uikit4K_20
   - first:
       213: 8131123870852940960
     second: uikit4K_21
+  - first:
+      213: 1144949691550017131
+    second: ExitDoor
   externalObjects: {}
   serializedVersion: 11
   mipmaps:
@@ -1234,7 +1237,7 @@ TextureImporter:
         width: 2292
         height: 304
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -1242,6 +1245,48 @@ TextureImporter:
       bones: []
       spriteID: 8148f721815bf0a20800000000000000
       internalID: 3030840189237822488
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Settings
+      rect:
+        serializedVersion: 2
+        x: 2913
+        y: 81
+        width: 282
+        height: 282
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 60744384ad0766f00800000000000000
+      internalID: 1109698441009972998
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ExitDoor
+      rect:
+        serializedVersion: 2
+        x: 3244
+        y: 51
+        width: 315
+        height: 337
+      alignment: 9
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b662882adada3ef00800000000000000
+      internalID: 1144949691550017131
       vertices: []
       indices: 
       edges: []
